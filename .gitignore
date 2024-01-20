@@ -2,3 +2,4 @@
 *.iws
 /out/*
 backend/__pycache__/
+.env
