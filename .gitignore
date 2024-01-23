@@ -1,4 +1,4 @@
 .idea/*
 *.iws
 /out/*
-backend/__pycache__/
+*/__pycache__/*
