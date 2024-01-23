@@ -3,4 +3,4 @@ If you want to use your own key, just replace the field in .env (but copy the or
 
 Use pipreqs --force ./ to generate requirements.txt after new install.
 
-Use streamlit run Welcome.py to run the app or streamlit run development.py for testing.
+Use streamlit run Welcome.py to run the app or streamlit run frontend/development.py for testing.
