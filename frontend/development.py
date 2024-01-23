@@ -10,6 +10,7 @@ from backend.test import *
 prompt = st.chat_input("Say something")
 if prompt:
     st.write(f"User has sent the following prompt: {prompt}")
-    st.write(test_api(prompt))
+    gpt_box = st.empty()
+    test_api(gpt_box, prompt)
 
 st.write(f"{test()}")
