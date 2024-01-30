@@ -1,0 +1,17 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+src/Copilot_For_Business.egg-info/PKG-INFO
+src/Copilot_For_Business.egg-info/SOURCES.txt
+src/Copilot_For_Business.egg-info/dependency_links.txt
+src/Copilot_For_Business.egg-info/not-zip-safe
+src/Copilot_For_Business.egg-info/requires.txt
+src/Copilot_For_Business.egg-info/top_level.txt
+src/backend/__init__.py
+src/backend/classifier.py
+src/backend/generator.py
+src/backend/test.py
+src/frontend/Welcome.py
+src/frontend/development.py
