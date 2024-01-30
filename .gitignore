@@ -3,3 +3,5 @@
 /out/*
 */__pycache__/*
 myenv/
+.mypy_cache/
+.pytest_cache/
