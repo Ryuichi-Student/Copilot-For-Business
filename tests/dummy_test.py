@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 print(sys.path)
 
 # Import test from backend
-from src.backend.test import *
+from src.backend.test import dummy_test
 
 
 class Backend_Test():
