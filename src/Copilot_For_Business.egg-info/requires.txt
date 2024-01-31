@@ -1,4 +1,3 @@
-pydantic>=1.8.0
 
 [testing]
 flake8>=3.9
