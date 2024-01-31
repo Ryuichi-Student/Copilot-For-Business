@@ -14,7 +14,8 @@ from backend import test
 class test():
     def test():
         # Return current working directory files
-
+        print(os.getcwd())
+        print(os.listdir(os.getcwd()))
         # Print the the full recursive directory of python files
         for root, dirs, files in os.walk(os.getcwd() + "/src"):
             for filename in files:
