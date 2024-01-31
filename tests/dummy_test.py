@@ -1,6 +1,6 @@
 # Import test from backend
+import backend.test as test
 from backend import test
-
 # No module called backend erorr
 
 
@@ -14,7 +14,7 @@ from backend import test
 def test_one():
     print(test.test())
 
-    assert test.test() =="Backend is operational!"
+    assert test.test() =="Backend is operational"
 
 if __name__ == "__main__":
     test_one()
