@@ -8,8 +8,12 @@ import os
 class test():
     def test():
         # Return current working directory files
-        print(os.listdir(os.getcwd()))
+
+        # Print the src directory within the current working directory
+        print(os.listdir(os.getcwd() + "/src"))
+
         import src
+        src.backend.test.test()
         return(os.getcwd())
     
 
