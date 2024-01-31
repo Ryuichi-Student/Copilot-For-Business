@@ -2,7 +2,6 @@
 
 import os
 
-from backend import test
 
 
 
