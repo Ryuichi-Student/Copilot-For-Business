@@ -2,10 +2,10 @@
 # TODO: For development purposes only. Use REST APIs or some other communication protocols to interact with backend.
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import streamlit as st
-from backend.test import *
+from src.backend.test import *
 
 test_db()
 
@@ -15,4 +15,4 @@ if prompt:
     gpt_box = st.empty()
     test_api(gpt_box, prompt)
 
-st.write(f"{test()}")
+st.write(f"{dummy_test()}")
