@@ -1,4 +1,6 @@
-from backend import test
+# IMport test from backend
+import backend.test as test
+
 
 # Will run any functions of form test_* in this file
 # Can import directly from backend and frontend 
