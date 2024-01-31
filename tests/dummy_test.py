@@ -2,9 +2,8 @@
 
 import os
 # Print current working directory
-print(os.getcwd())
 
-from backend import test
+from src.backend import test
 
 
 # No module called backend erorr
