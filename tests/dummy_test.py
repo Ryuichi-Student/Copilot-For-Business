@@ -3,9 +3,6 @@
 import os
 
 
-
-
-
 # Print current working directory
 
 # from src.backend import test
@@ -13,12 +10,9 @@ import os
 class test():
     def test():
         # Return current working directory files
-        print(os.getcwd())
-        print(os.listdir(os.getcwd()))
-        # Print the the full recursive directory of python files
-        for root, dirs, files in os.walk(os.getcwd() + "/src"):
-            for filename in files:
-                print(filename) if filename.endswith(".py") else None
+
+                   
+        
 
         return("Backend is o perational")
     
