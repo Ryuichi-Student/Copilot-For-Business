@@ -16,7 +16,7 @@ class test():
         # Return current working directory files
 
         # Print the the full recursive directory of python files
-        for root, dirs, files in os.walk("src"):
+        for root, dirs, files in os.walk(os.getcwd() + "/src"):
             for filename in files:
                 print(filename) if filename.endswith(".py") else None
 
