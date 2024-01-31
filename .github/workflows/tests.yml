@@ -21,7 +21,14 @@ jobs:
 
       - name: Install dependencies
         run: |
+
+          apt -q update
+          ~/.pyenv/bin/pyenv install -s 3.11.0
+          ~/.pyenv/bin/pyenv virtualenv 3.11.0 venv
+          ~/.pyenv/bin/pyenv local venv
+
           pip install tox tox-gh-actions
+          pip install -r requirements.txt pytest
 
       - name: Run tests with tox
         run: tox
