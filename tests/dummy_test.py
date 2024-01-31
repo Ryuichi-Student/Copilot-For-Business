@@ -7,7 +7,11 @@ import os
 
 class test():
     def test():
+        # Return current working directory files
+        print(os.listdir(os.getcwd()))
+        import src
         return(os.getcwd())
+    
 
 
 # No module called backend erorr
