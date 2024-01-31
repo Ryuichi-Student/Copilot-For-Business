@@ -1,9 +1,9 @@
 # Use this if you want to test random functions
-from backend.utils.gpt import get_gpt_response
+from src.backend.utils.gpt import get_gpt_response
 import sqlite3 as sql
 import pandas as pd
 
-def test():
+def dummy_test():
     return "Backend is operational!"
 
 def test_api(message_placeholder, prompt = "What is the capital of Japan?"):
