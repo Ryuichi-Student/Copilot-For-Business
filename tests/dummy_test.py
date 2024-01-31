@@ -1,6 +1,8 @@
 # Import test from backend
 
 import os
+import src
+
 # Print current working directory
 
 # from src.backend import test
@@ -10,11 +12,10 @@ class test():
         # Return current working directory files
 
         # Print the src directory within the current working directory
-        print(os.listdir(os.getcwd() + "/src"))
+        print(dir(src))
+        print("=====================================")
 
-        import src
-        src.backend.test.test()
-        return(os.getcwd())
+        return("Backend is operational")
     
 
 
