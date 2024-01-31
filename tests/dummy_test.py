@@ -1,7 +1,11 @@
 # Import test from backend
 
 import os
-import src
+
+from backend import test
+
+
+
 
 # Print current working directory
 
@@ -11,11 +15,12 @@ class test():
     def test():
         # Return current working directory files
 
-        # Print the src directory within the current working directory
-        print(dir(src))
-        print("=====================================")
+        # Print the the full recursive directory of python files
+        for root, dirs, files in os.walk("src"):
+            for filename in files:
+                print(filename) if filename.endswith(".py") else None
 
-        return("Backend is operatio nal")
+        return("Backend is o perational")
     
 
 
