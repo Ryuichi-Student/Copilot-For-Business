@@ -3,7 +3,11 @@
 import os
 # Print current working directory
 
-from src.backend import test
+# from src.backend import test
+
+class test():
+    def test():
+        return(os.getcwd())
 
 
 # No module called backend erorr
