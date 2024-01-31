@@ -2,7 +2,11 @@ try:
     import openai
 except ImportError as e:
     print(e)
-    print(e.path)
+    import pkg_resources
+
+    installed_packages = [d.project_name for d in pkg_resources.working_set]
+    print("Failed to import openai. Installed packages:", installed_packages)
+    exit(0)
 import dotenv
 
 config = dotenv.dotenv_values(".env")
