@@ -1,6 +1,12 @@
 # Import test from backend
-import backend.test as test
+
+import os
+# Print current working directory
+print(os.getcwd())
+
 from backend import test
+
+
 # No module called backend erorr
 
 
