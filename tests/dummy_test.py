@@ -1,5 +1,5 @@
-# IMport test from backend
-from src.backend import test
+# Import test from backend
+from backend import test
 
 # No module called backend erorr
 
