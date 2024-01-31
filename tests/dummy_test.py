@@ -1,25 +1,15 @@
-# Import test from backend
-
+import sys
 import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-# Print current working directory
-
-# from src.backend import test
-
-class test():
-    def test():
-        # Return current working directory files
-
-                   
-        
-
-        return("Backend is o perational")
-    
+# Import test from backend
+from src.backend.test import *
 
 
-# No module called backend erorr
-
+class Backend_Test():
+    def t(self):
+        return dummy_test()
 
 
 # Will run any functions of form test_* in this file
@@ -29,9 +19,12 @@ class test():
 # Can add @pytest.mark.skip(reason="") to skip tests
 
 def test_one():
-    print(test.test())
+    t = Backend_Test()
 
-    assert test.test() =="Backend is operational"
+    assert t.t() == "Backend is operational!"
+
+    print(t.t())
+
 
 if __name__ == "__main__":
     test_one()
