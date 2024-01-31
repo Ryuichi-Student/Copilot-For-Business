@@ -1,4 +1,8 @@
-import openai
+try:
+    import openai
+except ImportError as e:
+    print(e)
+    print(e.path)
 import dotenv
 
 config = dotenv.dotenv_values(".env")
