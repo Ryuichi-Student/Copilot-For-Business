@@ -17,4 +17,5 @@ def test_db():
     print(df)
 
 if __name__ == "__main__":
-    test_db()
+    #test_db()
+    pass
