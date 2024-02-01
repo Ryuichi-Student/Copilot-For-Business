@@ -5,3 +5,7 @@
 myenv/
 .mypy_cache/
 .pytest_cache/
+Copilot_For_Business.egg-info/
+src\Copilot_For_Business.egg-info/
+.DS_Store
+
