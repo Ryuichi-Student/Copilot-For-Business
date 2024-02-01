@@ -33,6 +33,7 @@ class SQLGenerator:
         #Validates the generated SQL query
         #returns None or raises Error
         if not query.lower().startswith("select"):
+            pass
             #raiseError
 
     def executeQuery(self, query):
@@ -42,3 +43,4 @@ class SQLGenerator:
             return df
         except:
             #raiseError
+            pass
