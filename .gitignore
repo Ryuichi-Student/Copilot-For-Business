@@ -8,4 +8,5 @@ myenv/
 Copilot_For_Business.egg-info/
 src\Copilot_For_Business.egg-info/
 .DS_Store
-
+backend/utils/__pycache__/
+.coverage
