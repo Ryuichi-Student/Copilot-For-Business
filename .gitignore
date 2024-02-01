@@ -1,3 +1,12 @@
+.idea/*
+*.iws
+/out/*
+**/__pycache__/
+myenv/
+.mypy_cache/
+.pytest_cache/
+Copilot_For_Business.egg-info/
+src\Copilot_For_Business.egg-info/
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
