@@ -8,7 +8,7 @@ todo:
 we need to decide the structure of error-handling in our project
 
 question:
-have I got the template for generateQuery right?
+Have I got the template for generateQuery right?
 
 
 
