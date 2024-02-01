@@ -1,30 +1,30 @@
-import openai
+from openai import OpenAI
 import dotenv
 
 config = dotenv.dotenv_values(".env")
-openai.api_key = config['OPENAI_API_KEY']
+client = OpenAI(api_key=config['OPENAI_API_KEY'])
 
 def get_gpt_embedding(text):
     # calls openai embedding endpoint
-    response = openai.Embedding.create(
+    response = client.embeddings.create(
         input = text,
         model = "text-embedding-ada-002"
     )
-    embedding = response['data'][0]['embedding']
+    embedding = response.data[0].embedding
     return embedding
 
 def get_gpt_response(*messages, history=None, model="gpt-4-1106-preview", max_tokens=1500,
                      stream=False, message_placeholder=None):
     if history is None: history = []
     messages = history + [{"role": m[0], "content": m[1]} for m in messages]
-    gpt_response = openai.ChatCompletion.create(
+    gpt_response = client.chat.completions.create(
         model=model,
         messages=messages,
         max_tokens=max_tokens,
         stream=stream
     )
     if not stream:
-        return gpt_response["choices"][0]["message"]["content"]
+        return gpt_response.choices[0].message.content
     else:
         if message_placeholder is None:
             raise Exception("No stream placeholder!")
