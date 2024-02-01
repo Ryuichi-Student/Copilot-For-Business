@@ -77,14 +77,15 @@ class SQLiteDatabase(Database):
         Get the description of the database
         return: str
         """
-        descriptions = []
-        for table in self.tableNames:
-            description = self.query(f"SELECT * FROM \"{table}\" LIMIT 1").to_string(index=False)
-            descriptions.append(table)
-            descriptions.append(description)
-        table_descriptions = "\n".join(descriptions)
-        question = f"Given this database schema: {self.schema}, as well as the following table descriptions: {table_descriptions}, come up with a structured, detailed description of the database."
-        return get_gpt_response(("system", "You are a helpful assistant"), ("user", question))
+        # descriptions = []
+        # for table in self.tableNames:
+        #     description = self.query(f"SELECT * FROM \"{table}\" LIMIT 1").to_string(index=False)
+        #     descriptions.append(table)
+        #     descriptions.append(description)
+        # table_descriptions = "\n".join(descriptions)
+        # question = f"Given this database schema: {self.schema}, as well as the following table descriptions: {table_descriptions}, come up with a structured, detailed description of the database."
+        # return get_gpt_response(("system", "You are a helpful assistant"), ("user", question))
+        return "This is a database"
 
     def getSchema(self):
         with sqlite3.connect(self.url) as conn:
