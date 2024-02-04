@@ -88,7 +88,7 @@ class SQLiteDatabase(Database):
         return "This is a database"
 
     def getSchema(self):
-        print(f"URL: {self.url}")
+        # print(f"URL: {self.url}")
         with sqlite3.connect(self.url) as conn:
             # Get the list of tables
             tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
