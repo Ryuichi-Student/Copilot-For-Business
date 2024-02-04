@@ -11,6 +11,9 @@ class TestSQLiteDatabase:
 
     def test_getSchema(self):
         # convert the relative file databases/crm1.db path to python os path
+        relative_path = "databases"
+        absolute_path = os.path.abspath(os.path.join(relative_path))
+        print(os.listdir(absolute_path))
         relative_path = "databases/crm1"
         absolute_path = os.path.abspath(os.path.join(relative_path))
         # print(f"VERSION: {sqlite3.version}")
