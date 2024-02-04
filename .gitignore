@@ -10,7 +10,7 @@ src\Copilot_For_Business.egg-info/
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
+*/__pycache__/*
 *.py[cod]
 *$py.class
 
