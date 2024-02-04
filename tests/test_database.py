@@ -1,6 +1,10 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.backend.utils.database import SQLiteDatabase
 import sqlite3 as sql
-import os
+
 class TestSQLiteDatabase:
 
     def test_getSchema(self):
