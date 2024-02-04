@@ -1,3 +1,4 @@
+import sqlite3
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -5,12 +6,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.backend.utils.database import SQLiteDatabase
 import sqlite3 as sql
 
+
 class TestSQLiteDatabase:
 
     def test_getSchema(self):
         # convert the relative file databases/crm1.db path to python os path
         relative_path = "databases/crm1"
         absolute_path = os.path.abspath(os.path.join(relative_path))
+        print(f"VERSION: {sqlite3.version}")
         db = SQLiteDatabase(absolute_path)
         schema = db.getSchema()
         print(schema)
@@ -44,3 +47,5 @@ class TestSQLiteDatabase:
 if __name__ == "__main__":
     c = TestSQLiteDatabase()
     c.test_getSchema()
+
+    print(sqlite3.version)
