@@ -13,6 +13,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          lfs: true # Ensure Git LFS objects are checked out
+
+      - name: Cache LFS objects
+        uses: actions/cache@v2
+        with:
+          path: |
+            .git/lfs/objects
+          key: ${{ runner.os }}-lfs-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-lfs-
+
+      - name: Fetch LFS objects if needed
+        if: steps.cache-lfs.outputs.cache-hit != 'true'
+        run: git lfs pull
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
@@ -20,7 +36,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-
+          python -m pip install --upgrade pip
           python -m pip install pytest
           python -m pip install pytest-cov
           pip install tox tox-gh-actions
