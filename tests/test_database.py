@@ -10,7 +10,8 @@ class TestSQLiteDatabase:
     def test_getSchema(self):
         # convert the relative file databases/crm1.db path to python os path
         relative_path = "databases/crm1"
-        db = SQLiteDatabase(relative_path)
+        absolute_path = os.path.abspath(os.path.join(relative_path))
+        db = SQLiteDatabase(absolute_path)
         schema = db.getSchema()
         print(schema)
         assert isinstance(schema, dict)
@@ -27,7 +28,7 @@ class TestSQLiteDatabase:
         assert isinstance(schema["completedorder"][0]["is_foreign"], (bool, str))
         print(db.description)
 
-    def testDBconnection(self):
+    def test_DBconnection(self):
         # convert the relative file databases/crm1.db path to python os path
         relative_path = "databases/crm1.sqlite3"
         absolute_path = os.path.abspath(os.path.join(relative_path))
@@ -38,4 +39,8 @@ class TestSQLiteDatabase:
             tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
             a = conn.execute(tables_query).fetchall()
             print(a)
-        
+
+
+if __name__ == "__main__":
+    c = TestSQLiteDatabase()
+    c.test_getSchema()
