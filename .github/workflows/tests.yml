@@ -21,7 +21,7 @@ jobs:
         with:
           path: |
             .git/lfs/objects
-          key: ${{ runner.os }}-lfs-${{ github.sha }}
+          key: ${{ runner.os }}-lfs-354e74cf3a5d8965860a44fa6163c1ad59a81cdc
           restore-keys: |
             ${{ runner.os }}-lfs-354e74cf3a5d8965860a44fa6163c1ad59a81cdc
 
