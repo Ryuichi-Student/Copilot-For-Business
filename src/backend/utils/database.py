@@ -72,7 +72,7 @@ class SQLiteDatabase(Database):
         with sqlite3.connect(self.url) as conn:
             return pd.read_sql_query(code, conn)
 
-    def getDescriptions(self)-> str:
+    def getDescriptions(self)-> List[str]:
         """
         Get the description of the database
         return: str
@@ -85,7 +85,7 @@ class SQLiteDatabase(Database):
         # table_descriptions = "\n".join(descriptions)
         # question = f"Given this database schema: {self.schema}, as well as the following table descriptions: {table_descriptions}, come up with a structured, detailed description of the database."
         # return get_gpt_response(("system", "You are a helpful assistant"), ("user", question))
-        return "This is a database"
+        return ["This is a database"]
 
     def getSchema(self):
         # print(f"URL: {self.url}")
@@ -93,7 +93,7 @@ class SQLiteDatabase(Database):
             # Get the list of tables
             tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
             tables = [row[0] for row in conn.execute(tables_query)]
-            schema = {}
+            schema : Dict[str, List[Dict[str, Union[str, bool, int]]]] = {}
             for table in tables:
                 # Get the column details
                 columns_query = f"PRAGMA table_info(\"{table}\")"
