@@ -23,7 +23,7 @@ jobs:
             .git/lfs/objects
           key: ${{ runner.os }}-lfs-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-lfs-
+            ${{ runner.os }}-lfs-354e74cf3a5d8965860a44fa6163c1ad59a81cdc
 
       - name: Fetch LFS objects if needed
         if: steps.cache-lfs.outputs.cache-hit != 'true'
