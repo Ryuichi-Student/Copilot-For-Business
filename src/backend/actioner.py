@@ -1,3 +1,4 @@
+from textwrap import dedent
 from src.backend.utils.gpt import get_gpt_response
 
 class Actioner:
@@ -12,30 +13,23 @@ class Actioner:
 
         What products are most positively received by customers
         """
-        system_prompt = """
-You are a data consultant, giving advice to the user. Try to answer questions directly. Here are two examples: 
-If asked about the data required to answer question "What is the average salary of a data scientist", reply with historical salary data only.
-For data to answer "Who is the most valuable customer", reply with historical spending, future estimated spending, number of referrals and customer satisfaction.
-        """
+        system_prompt = dedent("""\
+            You are a data consultant, giving advice to the user. You will be provided with a question regarding some data. Respond with a list of relevant information which would be required to answer the question. Limit the number of requirements to a maximum of 10. Please respond in a csv format including only the requirements and nothing else. Make sure commas are only used as delimiters and nowhere else.
+             
+            Here are two examples:
+            
+            User: "What is the average salary of a data scientist"
+            Assistant: "historical salary data"
+                               
+            User: "Who is the most valuable customer"
+            Assistant: "historical spending, future estimated spending, number of referrals and customer satisfaction"\
+        """)
         response = get_gpt_response(
             ("system", system_prompt),
-            ("user", f'What information would be required to answer the following question: "{query}" Only state the most relevant ones.')
+            ("user", query),
+            top_p = 0.5, frequency_penalty = 0, presence_penalty = 0
         )
-
-        system_prompt = """
-Only respond in the format: Requirement1, Requirement2, ... Do not write anything else and do not split the given requirements into smaller ones. 
-For example, if asked to list down "The most useful requirements are years of experience, education level and salary amount", respond: "Years of experience, education level, salary amount".
-If asked to list down "Location segmentation of health workers", respond "Location".
-        """
-        parsable_response = get_gpt_response(
-            ("system", system_prompt),
-            ("user", f'List down the data requirements listed by the user: "{response}"'),
-            top_p=1, frequency_penalty=0, presence_penalty=0
-        )
-
-        # TODO: Choose which requirements can be fulfilled by the database
-
-        return parsable_response.split(", ")
+        return(response.split(','))
 
     def get_action(self, requirement: str, schema, query: str):
         pass

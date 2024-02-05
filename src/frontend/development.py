@@ -12,7 +12,6 @@ test_db()
 prompt = st.chat_input("Say something")
 if prompt:
     st.write(f"User has sent the following prompt: {prompt}")
-    gpt_box = st.empty()
-    test_api(gpt_box, prompt)
+    st.write(",".join(test_requirements(prompt)))
 
 st.write(f"{dummy_test()}")

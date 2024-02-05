@@ -1,4 +1,5 @@
 from src.backend.utils.gpt import get_gpt_response
+from src.backend.actioner import Actioner
 import sqlite3 as sql
 import pandas as pd
 
@@ -13,6 +14,8 @@ def test_api(message_placeholder, prompt = "What is the capital of Japan?"):
         message_placeholder=message_placeholder
     )
 
+def test_requirements(query):
+    return Actioner().get_requirements(query)
 
 def test_db():
     conn = sql.connect('databases/crm1.db')
