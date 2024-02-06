@@ -1,19 +1,22 @@
 from abc import ABC, abstractmethod
+from textwrap import dedent
 from typing import Optional, Union, List, Dict, Any
 import sqlite3
 import pandas as pd
 import pandasql as psql
-from src.backend.utils.gpt import get_gpt_response
+import json
+from src.backend.utils.gpt import *
 
 
 class Database(ABC):
     def __init__(self, url: str, additionalMetadata: Optional[Dict[Any, Any]] = None):
         self._url: str = url
-        self._schema: Dict[str, Dict[str, Dict[str, Union[str, bool, int]]]] = self.getSchema()
+        self._embeddings: List[float] = self.getEmbeddings()
+        self._schema: Dict[str, List[Dict[str, Union[str, bool, int]]]] = self.getSchema()
+        self._textSchema: str = self.getTextSchema()
         self._tableNames: List[str] = self.getTableNames()
         self._columnNames: List[str] = self.getColumnNames()
         self.additionalMetadata: Dict[Any, Any] = additionalMetadata if additionalMetadata else {}
-        self._description: List[str] = self.getDescriptions()
 
 
     @property
@@ -25,12 +28,16 @@ class Database(ABC):
         self._url = value
         
     @property
-    def schema(self) -> Dict[str, Dict[str, Dict[str, Union[str, bool, int]]]]:
+    def embeddings(self) -> List[str]:
+        return self._embeddings
+
+    @property
+    def schema(self) -> Dict[str, List[Dict[str, Union[str, bool, int]]]]:
         return self._schema
     
     @property
-    def description(self) -> List[str]:
-        return self._description
+    def textSchema(self) -> str:
+        return self._textSchema
     
     @property
     def tableNames(self) -> List[str]:
@@ -49,11 +56,15 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def getSchema(self) -> Dict[str, Dict[str, Dict[str, Union[str, bool, int]]]]:
+    def getEmbeddings(self) -> List[float]:
         pass
 
     @abstractmethod
-    def getDescriptions(self) -> List[str]:
+    def getSchema(self) -> Dict[str, List[Dict[str, Union[str, bool, int]]]]:
+        pass
+
+    @abstractmethod
+    def getTextSchema(self) -> str:
         pass
 
     @abstractmethod
@@ -72,20 +83,32 @@ class SQLiteDatabase(Database):
         with sqlite3.connect(self.url) as conn:
             return pd.read_sql_query(code, conn)
 
-    def getDescriptions(self)-> List[str]:
+    def getEmbeddings(self, forceWrite=False)-> List[float]:
         """
-        Get the description of the database
-        return: str
+        Get the embedding of each table in the database. If forceWrite is true will overwrite the embedding file.
         """
-        # descriptions = []
-        # for table in self.tableNames:
-        #     description = self.query(f"SELECT * FROM \"{table}\" LIMIT 1").to_string(index=False)
-        #     descriptions.append(table)
-        #     descriptions.append(description)
-        # table_descriptions = "\n".join(descriptions)
-        # question = f"Given this database schema: {self.schema}, as well as the following table descriptions: {table_descriptions}, come up with a structured, detailed description of the database."
-        # return get_gpt_response(("system", "You are a helpful assistant"), ("user", question))
-        return ["This is a database"]
+        description_url = f'{self.url}.json'
+        table_embeddings = {}
+        try:
+            with open(description_url, 'r') as description_file:
+                table_embeddings = json.load(description_file)
+        except FileNotFoundError:
+            for table in self.tableNames:
+                table_preview = self.query(f"SELECT * FROM {table} LIMIT 5").to_string(index=False)
+                system_prompt = dedent("""\
+                    You are a data consultant, giving descriptions to tables. You will be provided with a preview of the first 5 rows of a table. Please come up with a short, concise description that accurately describes the table.\
+                """)
+                response = get_gpt_response(
+                    ("system", system_prompt),
+                    ("user", table_preview),
+                    top_p = 0.5, frequency_penalty = 0, presence_penalty = 0
+                )
+                print(response)
+                embedding = get_gpt_embedding(response)
+                table_embeddings[table] = embedding
+            with open(description_url, 'w') as description_file:
+                json.dump(table_embeddings, description_file)      
+        return table_embeddings
 
     def getSchema(self):
         # print(f"URL: {self.url}")
@@ -117,6 +140,26 @@ class SQLiteDatabase(Database):
                     schema[table].append(column_info)
             return schema
 
+    def getTextSchema(self) -> str:
+        # Turns schema into text. Assumes self._schema has been filled
+        text_schema = ''
+        schema = self.schema
+        for table in schema:
+            text_schema += f'CREATE TABLE {table} (\n'
+            for column in schema[table]:
+                text_schema += f'  {column["column_name"]} {column["type"]}'
+                if not column['nullable']:
+                    text_schema += ' NOT NULL'
+                if not column['default_value'] == None:
+                    text_schema += f' DEFAULT {column["default_value"]}'
+                if column['is_primary']:
+                    text_schema += f' PRIMARY KEY'
+                if column['is_foreign']:
+                    text_schema += f' FOREIGN KEY REFERENCES {column["is_foreign"]}'
+                text_schema += ',\n'
+            text_schema += ');\n'
+        return text_schema
+
     def getTableNames(self) -> List[str]:
         with sqlite3.connect(self.url) as conn:
             return [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")]
@@ -126,8 +169,6 @@ class SQLiteDatabase(Database):
             # Assuming conn is your database connection and self.tableNames is a list of table names
             column_names = [column_name for tname in self.tableNames for column_name in [row[1] for row in conn.execute(f"PRAGMA table_info(\"{tname}\")")]]
             return column_names
-
-        
 
     def to_str(self):
         # Implement this method
@@ -142,11 +183,15 @@ class CSVDatabase(Database):
     def query(self, code):
         return psql.sqldf(code, locals())
 
-    def getDescriptions(self):
+    def getEmbeddings(self):
         # Implement this method
         pass
 
     def getSchema(self):
+        # Implement this method
+        pass
+
+    def getTextSchema(self):
         # Implement this method
         pass
 
