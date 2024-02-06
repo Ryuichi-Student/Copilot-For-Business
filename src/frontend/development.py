@@ -8,7 +8,7 @@ import streamlit as st
 from src.backend.test import *
 from src.backend.utils.database import SQLiteDatabase
 
-db = SQLiteDatabase('databases/crm_refined.sqlite3')
+test_db()
 
 prompt = st.chat_input("Say something")
 if prompt:

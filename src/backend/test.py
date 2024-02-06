@@ -24,16 +24,5 @@ def test_actioner_workflow(query):
     print(command)
 
 def test_db():
-    conn = sql.connect('databases/crm1.db')
-    c = conn.cursor()
-
-    c.execute("SELECT * FROM completedacct")
-
-    # Fetch all rows from the query result
-    rows = c.fetchall()
-
-    # Convert the result into a pandas DataFrame
-    df = pd.DataFrame(rows, columns=[description[0] for description in c.description])
-
-    # Print the DataFrame
-    print(df)
+    db = SQLiteDatabase('databases/crm_refined.sqlite3')
+    print(db.descriptionEmbeddings)
