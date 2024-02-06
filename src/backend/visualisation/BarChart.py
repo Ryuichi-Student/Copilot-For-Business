@@ -1,10 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plot
-import sys, os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from visualisationclass import Visualisation
-
-
+from src.backend.visualisation.Visualisation import Visualisation
 
 class BarChart(Visualisation):
     def __init__(self, title, data, query, xaxis, yaxis):
@@ -19,7 +15,7 @@ class BarChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a bar chart is most suitable to represent the data. The following values for graph_type and graph_info should be used."
+        return "This should be chosen when a bar chart is most suitable to represent the data."
     
     # returns a dictionary of the parameters required from the Actioner to create a BarChart object
     @staticmethod

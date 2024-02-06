@@ -2,8 +2,7 @@ import json
 from textwrap import dedent
 from src.backend.utils.database import Database
 from src.backend.utils.gpt import get_gpt_response
-from src.backend.visualisation.BarChart import BarChart
-from src.backend.visualisation.PieChart import PieChart
+from src.backend.visualisation.Visualisation import Visualisation
 
 # https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api/172683
 
@@ -61,23 +60,13 @@ class Actioner:
 
             The 'command' field should contain a string detailing actionable steps in an imperative mood to find the required information. The 'relevant_columns' field should contain a JSON list of fields from the database which will be needed to generate SQL code to calculate the required information.
             
-            The 'graph_type' field should contain a string of the name of the graph which should be used to best represent the required information. The 'graph_info' field should contain a JSON object providing details about the graph depending on which graph_type has been chosen. You may only choose from the following graph types and their corresponding graph_info:
-            
-            1. None
-            This should be chosen when a graph is not suitable to represent the data. Choose this option when none of the other graphs from the list are suitable to represent the data. The following values for graph_type and graph_info should be used:
-                graph_type: 'None'
-                graph_info: {{}}
-            
-            2. {BarChart.getChartName()}
-            {BarChart.getChartDescription()} {BarChart.getChartParameterDescription()}:
-                graph_type: {BarChart.getChartName()}
-                graph_info: {str(BarChart.getChartParametersForActioner())}
-
-            3. {PieChart.getChartName()}
-            {PieChart.getChartDescription()} {PieChart.getChartParameterDescription()}:
-                graph_type: {PieChart.getChartName()}
-                graph_info: {str(PieChart.getChartParametersForActioner())} 
+            The 'graph_type' field should contain a string of the name of the graph which should be used to best represent the required information. The 'graph_info' field should contain a JSON object providing details about the graph depending on which graph_type has been chosen. You may only choose from the following graph types and their corresponding graph_info:\
         ''')
+            #         1. {NoChart.getChartName()}
+            # This should be chosen when none of the other graphs from are suitable to represent the data. The following values for graph_type and graph_info should be used:
+            #     graph_type: 'None'
+            #     graph_info: {{}}
+        print(Visualisation.__subclasses__())
         response = get_gpt_response(
             ("system", system_prompt),
             ("user", dedent(f'''\
