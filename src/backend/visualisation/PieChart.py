@@ -11,6 +11,23 @@ class PieChart(Visualisation):
         self.categories = categories
         self.count = count
 
+    # functions for the actioner
+    @staticmethod
+    def getChartName():
+        return "Pie Chart"
+
+    @staticmethod
+    def getChartDescription():
+        return "This should be chosen when a pie chart is most suitable to represent the data. The following values for graph_type and graph_info should be used."
+
+    @staticmethod
+    def getChartParametersForActioner():
+        return {'title': '', 'categories': '', 'count': ''}
+
+    @staticmethod
+    def getChartParameterDescription():
+        return "title should contain a string of the most suitable title for the pie chart. categories should contain a string of the column name that should be used as the segment labels of the pie chart. count should contain a string of the column name that should be used as the total count of occurrences of each of the segments of the pie chart."
+
     def generate(self):
         segments = self.df[self.categories]
         percentages = self.df[self.count]
