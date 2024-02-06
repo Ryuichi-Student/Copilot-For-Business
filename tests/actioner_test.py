@@ -6,7 +6,7 @@ from src.backend.actioner import Actioner
 
 
 def test_requirements():
-    actioner = Actioner()
+    actioner = Actioner(None)
 
     # Simple test
     requirements = actioner.get_requirements("What is the average salary of a data scientist?")

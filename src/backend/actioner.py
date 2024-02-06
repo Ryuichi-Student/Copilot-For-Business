@@ -21,15 +21,13 @@ class Actioner:
         What products are most positively received by customers
         """
         system_prompt = dedent("""\
-            You are a data consultant, giving advice to the user. You will be provided with a question regarding some data. Respond with a list of relevant information which would be required to answer the question. Limit the number of requirements to a maximum of 10. Please respond in a csv format including only the requirements and nothing else. Make sure commas are only used as delimiters and nowhere else.
+            You are a data consultant, giving advice to the user. You will be provided with a question regarding some data. Respond with a list of relevant information which would be required to answer the question. Limit the number of relevant information to a maximum of 10. Please respond in a csv format including only the requirements and nothing else. Make sure commas are only used as delimiters and nowhere else.
              
             Here are two examples:
             
-            User: "What is the average salary of a data scientist"
-            Assistant: "historical data scientist salary data"
+            For the prompt "What is the average salary of a data scientist", reply with "historical data scientist salary data"
                                
-            User: "Who is the most valuable customer"
-            Assistant: "historical customer spending, future estimated customer spending, number of referrals"\
+            For the prompt "Who is the most valuable customer", reply with "historical customer spending, future estimated customer spending, number of referrals"\
         """)
         response = get_gpt_response(
             ("system", system_prompt),
