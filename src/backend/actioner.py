@@ -34,7 +34,7 @@ class Actioner:
             ("system", system_prompt),
             ("user", query)
         )
-        return(json.loads(response))
+        return(response.split(','))
 
     def get_action(self, requirement: str, query: str):
         system_prompt = dedent("""\
