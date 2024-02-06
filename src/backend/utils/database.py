@@ -15,7 +15,7 @@ class Database(ABC):
         self._textSchema: str = self.getTextSchema()
         self._tableNames: List[str] = self.getTableNames()
         self._columnNames: List[str] = self.getColumnNames()
-        self._embeddings: Dict[str, List[float]] = self.getEmbeddings()
+        self._descriptionEmbeddings = self.getDescriptionEmbeddings()
         self.additionalMetadata: Dict[Any, Any] = additionalMetadata if additionalMetadata else {}
 
 
@@ -44,8 +44,8 @@ class Database(ABC):
         return self._columnNames
     
     @property
-    def embeddings(self) -> Dict[str, List[float]]:
-        return self._embeddings
+    def descriptionEmbeddings(self) -> Dict[str, Dict[str, Union[str, List[float]]]]:
+        return self._descriptionEmbeddings
 
     @abstractmethod
     def to_str(self) -> str:
@@ -72,7 +72,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def getEmbeddings(self) -> Dict[str, List[float]]:
+    def getDescriptionEmbeddings(self) -> Dict[str, Dict[str, Union[str, List[float]]]]:
         pass
 
 class SQLiteDatabase(Database):
@@ -143,34 +143,36 @@ class SQLiteDatabase(Database):
             column_names = [column_name for tname in self.tableNames for column_name in [row[1] for row in conn.execute(f"PRAGMA table_info(\"{tname}\")")]]
             return column_names
     
-    def getEmbeddings(self, forceWrite=False):
+    def getDescriptionEmbeddings(self, forceWrite=False):
         """
         Get the embedding of each table in the database. If forceWrite is true will overwrite the embedding file.
         """
         description_url = f'{self.url}.json'
-        table_embeddings = {}
+        table_description_embeddings = {}
         try:
             if forceWrite:
                 raise FileNotFoundError
             with open(description_url, 'r') as description_file:
-                table_embeddings = json.load(description_file)
+                table_description_embeddings = json.load(description_file)
         except FileNotFoundError:
             for table in self.tableNames:
                 table_preview = self.query(f"SELECT * FROM \"{table}\" LIMIT 5").to_string(index=False)
                 system_prompt = dedent("""\
-                    You are a data consultant, giving descriptions to tables. You will be provided with a preview of the first 5 rows of a table. Please come up with a short, concise description that accurately describes the table.\
+                    You are a data consultant, giving descriptions to tables. You will be provided with a preview of the first 5 rows of a table. Please come up with a short, concise description in one or two sentences that gives an accurate overview of the table.\
                 """)
                 response = get_gpt_response(
                     ("system", system_prompt),
                     ("user", table_preview),
                     top_p = 0.5, frequency_penalty = 0, presence_penalty = 0
                 )
-                print(response)
                 embedding = get_gpt_embedding(response)
-                table_embeddings[table] = embedding
+                table_description_embeddings[table] = {
+                    'description': response,
+                    'embedding': embedding
+                }
             with open(description_url, 'w') as description_file:
-                json.dump(table_embeddings, description_file)      
-        return table_embeddings
+                json.dump(table_description_embeddings, description_file)      
+        return table_description_embeddings
 
     def to_str(self):
         # Implement this method
@@ -201,7 +203,7 @@ class CSVDatabase(Database):
         # Implement this method
         pass
 
-    def getEmbeddings(self):
+    def getDescriptionEmbeddings(self):
         # Implement this method
         pass
 
