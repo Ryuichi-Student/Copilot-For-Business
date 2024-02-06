@@ -71,7 +71,7 @@ class Actioner:
             ("system", system_prompt),
             ("user", dedent(f'''\
                 Here is the database schema:
-                {self.database.textSchema}
+                {self.database.getTextSchema()}
                 
                 Provide details for finding {requirement} from the database. It will be used to answer the following question: {query}.
             ''')),
