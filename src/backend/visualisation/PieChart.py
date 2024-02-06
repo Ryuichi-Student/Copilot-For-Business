@@ -23,7 +23,7 @@ class PieChart(Visualisation):
 
     @staticmethod
     def getChartParameterDescription():
-        return "title should contain a string of the most suitable title for the pie chart. categories should contain a string of the column name that should be used as the segment labels of the pie chart. count should contain a string of the column name that should be used as the total count of occurrences of each of the segments of the pie chart."
+        return "'title' should contain a string of the most suitable title for the pie chart. 'categories' should contain a string of the column name that should be used as the segment labels of the pie chart. 'count' should contain a string of the column name that should be used as the total count of occurrences of each of the segments of the pie chart."
 
     def generate(self):
         segments = self.df[self.categories]

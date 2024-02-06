@@ -1,38 +1,32 @@
-import inspect
+from typing import Dict
 import pandas as pd
 from abc import ABC, abstractmethod
-from src.backend import visualisation
 
 class Visualisation(ABC):
     def __init__(self, title, data, query):
         self.title = title
         self.df: pd.DataFrame = data
         self.query = query
-
-    @staticmethod
-    def getAllCharts():
-        return inspect.getmembers(visualisation)
-        return [BarChart, PieChart, NoChart]
     
     @staticmethod
     @abstractmethod
-    def getChartName():
-        pass
+    def getChartName() -> str:
+        return ''
 
     @staticmethod
     @abstractmethod
-    def getChartDescription():
-        pass
+    def getChartDescription() -> str:
+        return ''
 
     @staticmethod
     @abstractmethod
-    def getChartParametersForActioner():
-        pass
-
+    def getChartParametersForActioner() -> Dict[str, str]:
+        return {}
+    
     @staticmethod
     @abstractmethod
-    def getChartParameterDescription():
-        pass
+    def getChartParameterDescription() -> str:
+        return ''
     
     # Generates the visualisation for the class. When the base class is used the title is displayed
     @abstractmethod
@@ -40,19 +34,5 @@ class Visualisation(ABC):
         pass
     
     @abstractmethod
-    def validate(self):
+    def validate(self) -> bool:
         pass
-
-
-    # add a validate data function
-    # 
-
-
-
-
-
-
-
-# df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
-# df.plot(kind='line')
-# plt.show()

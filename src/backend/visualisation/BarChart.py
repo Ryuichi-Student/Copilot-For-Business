@@ -24,7 +24,7 @@ class BarChart(Visualisation):
     
     @staticmethod
     def getChartParameterDescription():
-        return "title should contain a string of most suitable title for the bar chart. x_axis should contain a string of the column name that should be used as the x axis of the bar chart. y_axis should contain a string of the column name that should be used as the y axis of the bar chart."
+        return "'title' should contain a string of most suitable title for the bar chart. 'x_axis' should contain a string of the column name that should be used as the x axis of the bar chart. 'y_axis' should contain a string of the column name that should be used as the y axis of the bar chart."
     
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
     def generate(self):

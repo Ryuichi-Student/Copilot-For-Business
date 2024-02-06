@@ -19,7 +19,7 @@ class NoChart(Visualisation):
 
     @staticmethod
     def getChartParameterDescription():
-        return ""
+        return "graph_info should contain an empty object."
 
     def generate(self):
         pass
