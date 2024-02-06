@@ -1,3 +1,4 @@
+import json
 from textwrap import dedent
 from src.backend.utils.database import Database
 from src.backend.utils.gpt import get_gpt_response
@@ -21,19 +22,20 @@ class Actioner:
         What products are most positively received by customers
         """
         system_prompt = dedent("""\
-            You are a data consultant, giving advice to the user. You will be provided with a question regarding some data. Respond with a list of relevant information which would be required to answer the question. Limit the number of relevant information to a maximum of 10. Please respond in a csv format including only the requirements and nothing else. Make sure commas are only used as delimiters and nowhere else.
+            You are a data consultant, giving advice to the user. You will be provided with a question regarding some data. Respond with a list of relevant information which would be required to answer the question. Limit the number of relevant information to a maximum of 10. Please respond in a JSON array including only the requirements and nothing else. Make sure commas are only used as delimiters and nowhere else.
              
             Here are two examples:
             
-            For the prompt "What is the average salary of a data scientist", reply with "historical data scientist salary data"
+            For the prompt "What is the average salary of a data scientist", reply with "[historical data scientist salary data]"
                                
-            For the prompt "Who is the most valuable customer", reply with "historical customer spending, future estimated customer spending, number of referrals"\
+            For the prompt "Who is the most valuable customer", reply with "[historical customer spending, future estimated customer spending, number of referrals]"\
         """)
         response = get_gpt_response(
             ("system", system_prompt),
-            ("user", query)
+            ("user", query),
+            jsonMode = True
         )
-        return(response.split(','))
+        return(json.loads(response))
 
     def get_action(self, requirement: str, query: str):
         system_prompt = dedent("""\
@@ -73,7 +75,6 @@ class Actioner:
                     y_axis: '',
                 }
         """)
-        print(system_prompt)
         response = get_gpt_response(
             ("system", system_prompt),
             ("user", dedent(f'''\
@@ -83,7 +84,7 @@ class Actioner:
                 Provide details for finding {requirement} from the database. It will be used to answer the following question: {query}.
             ''')),
             jsonMode = True,
-            top_p = 0.2, frequency_penalty = 0, presence_penalty = 0
+            top_p = 0.2
         )
         return response
 
