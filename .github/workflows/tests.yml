@@ -40,14 +40,11 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/.cache/pip
-            **/site-packages
+            .tox
 
-          key: ${{ runner.os }}-${{ matrix.python-version }} -requirements
+          key: ${{ runner.os }}-tox-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'tox.ini') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }} -requirements
-
-
+            ${{ runner.os }}-tox-${{ matrix.python-version }}-
 
       - name: Install dependencies
         run: |
