@@ -3,6 +3,7 @@ from textwrap import dedent
 from src.backend.utils.database import Database
 from src.backend.utils.gpt import get_gpt_response
 from src.backend.visualisation.BarChart import BarChart
+from src.backend.visualisation.PieChart import PieChart
 
 # https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api/172683
 
@@ -72,7 +73,10 @@ class Actioner:
                 graph_type: {BarChart.getChartName()}
                 graph_info: {str(BarChart.getChartParametersForActioner())}
 
-            3. 
+            3. {PieChart.getChartName()}
+            {PieChart.getChartDescription()} {PieChart.getChartParameterDescription()}:
+                graph_type: {PieChart.getChartName()}
+                graph_info: {str(PieChart.getChartParametersForActioner())} 
         ''')
         response = get_gpt_response(
             ("system", system_prompt),
