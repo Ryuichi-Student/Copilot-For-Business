@@ -68,9 +68,22 @@ class SQLiteDatabase(Database):
     def __init__(self, file_path, additionalMetadata=None):
         super().__init__(file_path, additionalMetadata)
 
-    def query(self, code):
+    def query(self, code, is_df = True, is_single_value=False):
         with sqlite3.connect(self.url) as conn:
-            return pd.read_sql_query(code, conn)
+            if is_df:
+                df = pd.read_sql_query(code, conn)
+                if is_single_value:
+                    return df.iloc[0, 0]
+                else:
+                    return df
+            else:
+                cursor = conn.cursor()
+                try:
+                    cursor.execute(code)
+                except:
+                    
+            
+
 
     def getDescriptions(self)-> List[str]:
         """
