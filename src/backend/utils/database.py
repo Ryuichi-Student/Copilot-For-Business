@@ -12,12 +12,10 @@ class Database(ABC):
     def __init__(self, url: str, additionalMetadata: Optional[Dict[Any, Any]] = None):
         self._url: str = url
         self._schema: Dict[str, List[Dict[str, Union[str, bool, int]]]] = self.getSchema()
-        self._textSchema: str = self.getTextSchema()
         self._tableNames: List[str] = self.getTableNames()
         self._columnNames: List[str] = self.getColumnNames()
         self._descriptionEmbeddings = self.getDescriptionEmbeddings()
         self.additionalMetadata: Dict[Any, Any] = additionalMetadata if additionalMetadata else {}
-
 
     @property
     def url(self) -> str:
@@ -30,10 +28,6 @@ class Database(ABC):
     @property
     def schema(self) -> Dict[str, List[Dict[str, Union[str, bool, int]]]]:
         return self._schema
-    
-    @property
-    def textSchema(self) -> str:
-        return self._textSchema
     
     @property
     def tableNames(self) -> List[str]:
@@ -113,11 +107,14 @@ class SQLiteDatabase(Database):
                     schema[table].append(column_info)
             return schema
 
-    def getTextSchema(self) -> str:
+    def getTextSchema(self, filterTableNames:Optional[List[str]] = None) -> str:
         # Turns schema into text. Assumes self._schema has been filled
         text_schema = ''
         schema = self.schema
         for table in schema:
+            if filterTableNames is not None:
+                if table not in filterTableNames:
+                    continue
             text_schema += f'CREATE TABLE {table} (\n'
             for column in schema[table]:
                 text_schema += f'  {column["column_name"]} {column["type"]}'

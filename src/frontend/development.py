@@ -8,8 +8,6 @@ import streamlit as st
 from src.backend.test import *
 from src.backend.utils.database import SQLiteDatabase
 
-test_db()
-
 prompt = st.chat_input("Say something")
 if prompt:
     st.write(f"User has sent the following prompt: {prompt}")

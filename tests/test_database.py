@@ -1,6 +1,7 @@
 import sqlite3
 import sys
 import os
+from textwrap import dedent
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.backend.utils.database import SQLiteDatabase
@@ -19,7 +20,6 @@ class TestSQLiteDatabase:
         # print(f"VERSION: {sqlite3.version}")
         db = SQLiteDatabase(absolute_path)
         schema = db.getSchema()
-        print(schema)
         assert isinstance(schema, dict)
         assert len(schema) == 12
         assert isinstance(schema["completedorder"], list)
@@ -32,6 +32,20 @@ class TestSQLiteDatabase:
         assert isinstance(schema["completedorder"][0]["default_value"], (None.__class__, str))
         assert isinstance(schema["completedorder"][0]["is_primary"], bool)
         assert isinstance(schema["completedorder"][0]["is_foreign"], (bool, str))
+    
+    def test_textSchema(self):
+        db = SQLiteDatabase('databases/crm_refined.sqlite3')
+        schema = db.getTextSchema(['completedorder'])
+        assert schema == dedent('''\
+        CREATE TABLE completedorder (
+          order_id INTEGER PRIMARY KEY,
+          account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id),
+          bank_to TEXT,
+          account_to INTEGER,
+          amount REAL,
+          k_symbol TEXT,
+        );
+        ''')
 
     def test_DBconnection(self):
         # convert the relative file databases/crm1.db path to python os path
@@ -49,5 +63,4 @@ class TestSQLiteDatabase:
 if __name__ == "__main__":
     c = TestSQLiteDatabase()
     c.test_getSchema()
-
-    print(sqlite3.version)
+    c.test_textSchema()
