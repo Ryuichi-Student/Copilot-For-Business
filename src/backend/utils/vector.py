@@ -1,6 +1,6 @@
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Union
 
-def findClosest(vectordb: Dict[str, List[float]], target: List[float]) -> str:
-    dotdb = {index:np.dot(vector, target) for index,vector in vectordb.items()}
+def closestTable(tableJSON: Dict[str, Dict[str, Union[str, List[float]]]], target: List[float]) -> str:
+    dotdb = {index:np.dot(data['embedding'], target) for index,data in tableJSON.items()}
     return max(dotdb, key = lambda k: dotdb[k])
