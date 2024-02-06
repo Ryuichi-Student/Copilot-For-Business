@@ -5,23 +5,18 @@ import matplotlib.pyplot as plt
 class Visualisation:
     def __init__(self, title, data, query):
         self.title = title
-        self.df = data
+        self.df: pd.DataFrame = data
         self.query = query
     
     # Generates the visualisation for the class. When the base class is used the title is displayed
     def generate(self):
         print(self.title)
+    
+    def validate(self):
+        return not self.df.empty
 
     # add a validate data function
     # 
-
-    
-
-class PieChart(Visualisation):
-    def __init__(self, title, data, query, categories, percentages):
-        super().__init__(title, data, query)
-        self.categories = categories
-        self.percentages = percentages
 
 
 
