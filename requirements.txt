@@ -1,4 +1,5 @@
-openai==1.10.0
+numpy==1.23.5
+openai==1.11.1
 pandas==2.2.0
 pandasql==0.7.3
 python-dotenv==1.0.1
