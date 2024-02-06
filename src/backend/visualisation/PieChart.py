@@ -1,9 +1,6 @@
-import sys, os
 import pandas as pd
 import matplotlib.pyplot as plot
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from visualisationclass import Visualisation
-
+from src.backend.visualisation.Visualisation import Visualisation
 
 class PieChart(Visualisation):
     def __init__(self, title, data, query, categories, count):
@@ -18,7 +15,7 @@ class PieChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a pie chart is most suitable to represent the data. The following values for graph_type and graph_info should be used."
+        return "This should be chosen when a pie chart is most suitable to represent the data."
 
     @staticmethod
     def getChartParametersForActioner():

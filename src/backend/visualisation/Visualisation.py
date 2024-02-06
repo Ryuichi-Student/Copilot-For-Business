@@ -1,13 +1,18 @@
+import inspect
 import pandas as pd
-import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
-
+from src.backend import visualisation
 
 class Visualisation(ABC):
     def __init__(self, title, data, query):
         self.title = title
         self.df: pd.DataFrame = data
         self.query = query
+
+    @staticmethod
+    def getAllCharts():
+        return inspect.getmembers(visualisation)
+        return [BarChart, PieChart, NoChart]
     
     @staticmethod
     @abstractmethod
