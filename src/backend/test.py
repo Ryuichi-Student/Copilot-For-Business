@@ -19,10 +19,4 @@ def test_actioner_workflow(query):
     db = SQLiteDatabase('databases/crm_refined.sqlite3')
     actioner = Actioner(db)
     requirements = actioner.get_requirements(query)
-    print(requirements)
     command = actioner.get_action(requirements[0], query)
-    print(command)
-
-def test_db():
-    db = SQLiteDatabase('databases/crm_refined.sqlite3')
-    print(db.descriptionEmbeddings)
