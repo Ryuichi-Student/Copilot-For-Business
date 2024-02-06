@@ -8,9 +8,6 @@ from src.backend.visualisation.BarChart import BarChart
 # import pie chart class
 from src.backend.visualisation.PieChart import PieChart
 
-
-
-
 # tests validation for bar chart
 def test_validateBarChart():
     df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
