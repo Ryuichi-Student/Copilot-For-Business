@@ -32,7 +32,6 @@ class TestSQLiteDatabase:
         assert isinstance(schema["completedorder"][0]["default_value"], (None.__class__, str))
         assert isinstance(schema["completedorder"][0]["is_primary"], bool)
         assert isinstance(schema["completedorder"][0]["is_foreign"], (bool, str))
-        print(db.description)
 
     def test_DBconnection(self):
         # convert the relative file databases/crm1.db path to python os path
