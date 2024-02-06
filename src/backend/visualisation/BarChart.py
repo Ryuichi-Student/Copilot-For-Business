@@ -1,6 +1,10 @@
-from visualisationclass import Visualisation
 import pandas as pd
 import matplotlib.pyplot as plot
+import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from visualisationclass import Visualisation
+
+
 
 class BarChart(Visualisation):
     def __init__(self, title, data, query, xaxis, yaxis):
@@ -31,8 +35,8 @@ class BarChart(Visualisation):
 
 
 
-df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
+# df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
 
-bar = BarChart("title 1", df, "SELECT * FROM *", "lab", "val")
-bar.generate()
-plt.show()
+# bar = BarChart("title 1", df, "SELECT * FROM *", "lab", "val")
+# bar.generate()
+# plot.show()
