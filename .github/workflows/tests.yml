@@ -40,11 +40,12 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            .tox/**/lib/python*/site-packages
-            requirements.txt
-          key: ${{ runner.os }}-${{ hashFiles('**/*.txt') }}
+            ~/.cache/pip
+            **/site-packages
+
+          key: ${{ runner.os }}-${{ matrix.python-version }} -requirements
           restore-keys: |
-            ${{ runner.os }}-
+            ${{ runner.os }}-${{ matrix.python-version }} -requirements
 
 
 
