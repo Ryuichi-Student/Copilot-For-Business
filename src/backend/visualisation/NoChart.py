@@ -27,9 +27,3 @@ class NoChart(Visualisation):
     def validate(self):
         return True
 
-
-# df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
-
-# bar = PieChart("title 1", df, "SELECT * FROM *", "lab", "val")
-# bar.generate()
-# plot.show()

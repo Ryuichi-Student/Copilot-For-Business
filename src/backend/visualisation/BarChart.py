@@ -32,6 +32,8 @@ class BarChart(Visualisation):
         y_axis = self.df[self.yaxis]
         # plots a bar graph
         plot.bar(x_axis, y_axis)
+
+        return plot
     
     # test for this that gives an invalid data frame
     def validate(self):
