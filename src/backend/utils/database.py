@@ -69,6 +69,12 @@ class SQLiteDatabase(Database):
         super().__init__(file_path, additionalMetadata)
 
     def query(self, code, is_df = True, is_single_value=False):
+
+        def check_single_value(df):
+            first_result = cursor.fetchone()
+            next_result = cursor.fetchone()
+            return first_result is not None and len(first_result) == 1 and next_result is None
+        
         with sqlite3.connect(self.url) as conn:
             if is_df:
                 df = pd.read_sql_query(code, conn)
@@ -79,8 +85,15 @@ class SQLiteDatabase(Database):
             else:
                 cursor = conn.cursor()
                 try:
-                    cursor.execute(code)
-                except:
+                    df = cursor.execute(code)
+                    if is_single_value and not check_single_value(df):
+                        raise RuntimeError("SQL query does not return single value, but single value expected")
+                except sqlite3.ProgrammingError:
+                    raise RuntimeError("There's an issue with the SQL query, such as syntax error or wrong number of bindings")
+                except sqlite3.OperationalError:
+                    raise RuntimeError("There's an issue in how the query interacts with the SQLite database, such as a referencing a non-existent table")
+
+
                     
             
 
