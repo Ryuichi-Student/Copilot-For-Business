@@ -1,5 +1,6 @@
 from typing import Dict
 import pandas as pd
+import matplotlib
 from abc import ABC, abstractmethod
 
 class Visualisation(ABC):
