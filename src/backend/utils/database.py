@@ -46,7 +46,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def query(self, code: str, is_single_value: bool) -> pd.DataFrame:
+    def query(self, code: str, is_df: bool, is_single_value: bool) -> pd.DataFrame:
         pass
 
     @abstractmethod
@@ -209,7 +209,7 @@ class CSVDatabase(Database):
         super().__init__(file_path, additionalMetadata)
         self.dataframe = pd.read_csv(self.url)
 
-    def query(self, code, is_single_value):
+    def query(self, code, is_df, is_single_value):
         return psql.sqldf(code, locals())
 
     def getSchema(self):
