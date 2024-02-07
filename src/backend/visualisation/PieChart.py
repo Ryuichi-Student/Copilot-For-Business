@@ -26,10 +26,25 @@ class PieChart(Visualisation):
         return "'title' should contain a string of the most suitable title for the pie chart. 'categories' should contain a string of the column name that should be used as the segment labels of the pie chart. 'count' should contain a string of the column name that should be used as the total count of occurrences of each of the segments of the pie chart."
 
     def generate(self):
+        if not self.validate():
+            # handle this
+            print("data invalid")
+            return
+        
+        # gets the segment and count data from the dataframe
         segments = self.df[self.categories]
         percentages = self.df[self.count]
+
+        # set size of the figure
+        fig = plot.figure(figsize=(4,4))
+
         # plot a pie chart
         plot.pie(percentages, labels=segments)
+        # set the title
+        plot.title(self.title)
+
+
+        return fig
 
 
     def validate(self):
