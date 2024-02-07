@@ -94,7 +94,7 @@ class SQLGenerator:
     def executeQuery(self, query):
         #Executes the SQL query and returns the results as a pandas DataFrame
         try:
-            df = self.database.query(query,df=True,is_single_value=self.is_single_value)
+            df = self.database.query(query,is_df=True,is_single_value=self.is_single_value)
             return df
         except:
             #raiseSomeError
