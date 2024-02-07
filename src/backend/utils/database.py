@@ -45,7 +45,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def query(self, code: str) -> pd.DataFrame:
+    def query(self, code: str, is_single_value: bool) -> pd.DataFrame:
         pass
 
     @abstractmethod
@@ -70,10 +70,12 @@ class SQLiteDatabase(Database):
 
     def query(self, code, is_df = True, is_single_value=False):
 
-        def check_single_value(df):
+        def check_single_value(cursor):
             first_result = cursor.fetchone()
-            next_result = cursor.fetchone()
-            return first_result is not None and len(first_result) == 1 and next_result is None
+            if first_result is not None:
+                next_result = cursor.fetchone()
+                return len(first_result) == 1 and next_result is None
+            return False
         
         with sqlite3.connect(self.url) as conn:
             if is_df:
@@ -85,13 +87,13 @@ class SQLiteDatabase(Database):
             else:
                 cursor = conn.cursor()
                 try:
-                    df = cursor.execute(code)
-                    if is_single_value and not check_single_value(df):
+                    cursor_result = cursor.execute(code)
+                    if is_single_value and not check_single_value(cursor_result):
                         raise RuntimeError("SQL query does not return single value, but single value expected")
                 except sqlite3.ProgrammingError:
                     raise RuntimeError("There's an issue with the SQL query, such as syntax error or wrong number of bindings")
                 except sqlite3.OperationalError:
-                    raise RuntimeError("There's an issue in how the query interacts with the SQLite database, such as a referencing a non-existent table")
+                    raise RuntimeError("There's an issue in how the SQL query interacts with the SQLite database, such as a referencing a non-existent table")
 
 
                     
@@ -165,7 +167,7 @@ class CSVDatabase(Database):
         super().__init__(file_path, additionalMetadata)
         self.dataframe = pd.read_csv(self.url)
 
-    def query(self, code):
+    def query(self, code, is_single_value):
         return psql.sqldf(code, locals())
 
     def getDescriptions(self):

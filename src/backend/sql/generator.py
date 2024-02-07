@@ -19,11 +19,12 @@ Have I got the template for generateQuery right?
 class SQLGenerator:
     #Core class for generating SQL queries.
 
-    def __init__(self, database, actionCommand_obj, graph_info, relevantColumns):
+    def __init__(self, database, actionCommand_obj, graph_info, relevantColumns, is_single_value = False):
         self.database = database
         self.actionCommand_obj = actionCommand_obj
         self.graph_info = graph_info
         self.relevantColumns = relevantColumns
+        self.is_single_value = is_single_value
 
     def generateQuery(self):
         #method to generate SQL queries.
@@ -43,10 +44,11 @@ class SQLGenerator:
     def validateQuery(self, query):
         #Validates the generated SQL query
         #returns None or raises Error
-        if not query.lower().startswith("select"):
-            #raiseSomeError
-            pass
-
+        try:
+            self.database.query(query,False,is_single_value)
+        except:
+            raise Exception("SQL query validation failed: ",e)
+            
     def executeQuery(self, query):
         #Executes the SQL query and returns the results as a pandas DataFrame
         try:
