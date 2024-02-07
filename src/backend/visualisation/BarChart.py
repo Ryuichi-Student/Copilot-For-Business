@@ -28,12 +28,28 @@ class BarChart(Visualisation):
     
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
     def generate(self):
+        if not self.validate():
+            # return an error
+            print("invalid data")
+            return
+        
+        # x and y axis variables
         x_axis = self.df[self.xaxis]
         y_axis = self.df[self.yaxis]
+
+        # sets the size of the bar graph
+        fig = plot.figure(figsize=(10,6))
+
         # plots a bar graph
         plot.bar(x_axis, y_axis)
+        # sets the title of the graph
+        plot.title(self.title)
+        # sets the x and y axis labels
+        # TODO: change these to natural language/remove - they're just the column names at the moment
+        plot.xlabel(self.xaxis)
+        plot.ylabel(self.yaxis)
 
-        return plot
+        return fig
     
     # test for this that gives an invalid data frame
     def validate(self):
