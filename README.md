@@ -3,12 +3,12 @@ If you want to use your own key, just replace the field in .env (but copy the or
 
 Use pipreqs --force ./ to generate requirements.txt after new install.
 
-Use streamlit run frontend/Welcome.py to run the app or streamlit run frontend/development.py for testing.
+Use streamlit run src/frontend/Welcome.py to run the app or streamlit run src/frontend/development.py for testing.
 
 To test we need to run tox:
-  First run: install all requirements_dev and requirements (pip install -r __name__)
-  Then run: pytest or tox from root directory
+First run: install all requirements_dev and requirements (pip install -r **name**)
+Then run: pytest or tox from root directory
 
 Testing convention:
-  All under test directory
-  Add appropriate tests before every push
+All under test directory
+Add appropriate tests before every push
