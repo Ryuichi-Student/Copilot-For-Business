@@ -1,10 +1,10 @@
 import streamlit as st
 import pandas as pd
-from src.backend.visualisation.BarChart import BarChart
+from src.backend.visualisation.PieChart import PieChart
 
 df = pd.DataFrame({'lab':['A', 'X', 'D'], 'val':[10, 30, 20]})
 
-bar = BarChart("title 1", df, "", "lab", "val")
+bar = PieChart("title 1", df, "", "lab", "val")
 plot = bar.generate()
 
 
