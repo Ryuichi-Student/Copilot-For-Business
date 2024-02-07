@@ -68,7 +68,7 @@ class SQLiteDatabase(Database):
     def __init__(self, file_path, additionalMetadata=None):
         super().__init__(file_path, additionalMetadata)
 
-    def query(self, code, is_df = True, is_single_value=False):
+    def query(self, code, is_df = True, is_single_value = False):
 
         def check_single_value(cursor):
             first_result = cursor.fetchone()

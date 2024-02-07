@@ -45,8 +45,8 @@ class SQLGenerator:
         #Validates the generated SQL query
         #returns None or raises Error
         try:
-            self.database.query(query,False,is_single_value)
-        except:
+            self.database.query(query,is_df=False,is_single_value=self.is_single_value)
+        except RuntimeError as e:
             raise Exception("SQL query validation failed: ",e)
             
     def executeQuery(self, query):
