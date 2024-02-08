@@ -57,6 +57,9 @@ class PieChart(Visualisation):
         else:
             # both categories and and the count are in the dataframe
             return True
+    
+    def getSQLQuery(self) -> str:
+        return self.query
 
 
 # df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})

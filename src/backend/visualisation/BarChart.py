@@ -64,6 +64,9 @@ class BarChart(Visualisation):
         else:
             return True
     
+    def getSQLQuery(self) -> str:
+        return self.query
+    
 
 
 
