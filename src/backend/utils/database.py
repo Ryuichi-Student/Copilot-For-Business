@@ -100,7 +100,7 @@ class SQLiteDatabase(Database):
                 except sqlite3.OperationalError:
                     raise RuntimeError("There's an issue in how the SQL query interacts with the SQLite database, such as a referencing a non-existent table")
                 except sqlite3.Error as er:
-                    raise RuntimeError("There's an issue with SQLite3:",er.sqlite3_errorname,er.sqlite3_errorcode)
+                    raise raise RuntimeError(f"There's an issue with SQLite3: {er}")
 
 
                     
