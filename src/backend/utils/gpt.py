@@ -18,7 +18,7 @@ def get_gpt_response(*messages, history=None, model="gpt-4-1106-preview", max_to
                      top_p=0.5, frequency_penalty=0, presence_penalty=0):
     if history is None: history = []
     messages = history + [{"role": m[0], "content": m[1]} for m in messages]
-    gpt_response = client.chat.completions.create(
+    gpt_response = client.chat.completions.create( # type: ignore
         model = model,
         messages = messages,
         max_tokens = max_tokens,
