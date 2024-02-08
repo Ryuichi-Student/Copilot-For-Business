@@ -33,6 +33,14 @@ if userQuery:
     for requirement in requirements:
         action = actioner.get_action(requirement, userQuery)
 
+        # pass actions to the sql generator
+
+        # pass data, query, and actioner parameters to the visualisation
+
+        # go to new page to show plot? allow a keep and delete
+        # show code
+        # show sql
+
     # show the answer
     # st.pyplot(plot)
 
