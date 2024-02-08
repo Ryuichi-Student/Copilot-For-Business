@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from src.backend.visualisation.PieChart import PieChart
+from src.backend.actioner import Actioner
+from src.backend.utils.database import SQLiteDatabase
 
 df = pd.DataFrame({'lab':['A', 'X', 'D'], 'val':[10, 30, 20]})
 
@@ -12,17 +14,27 @@ plot = bar.generate()
 st.header("Copilot for Business")
 
 # all the user to enter a prompt
-prompt = st.chat_input("Enter your question")
+userQuery = st.chat_input("Enter your question")
 
 
-if prompt:
+if userQuery:
     # display the user's entered prompt
-    st.text(prompt)
+    st.text(userQuery)
 
-    # TODO: generate the answer
+    # get the database
+    db = SQLiteDatabase('databases/crm_refined.sqlite3')
+    # create an actioner object    
+    actioner = Actioner(db)
+
+    # get requirements from the actioner
+    requirements = actioner.get_requirements(userQuery)
+
+    # for each of the requirements get the required action
+    for requirement in requirements:
+        action = actioner.get_action(requirement, userQuery)
 
     # show the answer
-    st.pyplot(plot)
+    # st.pyplot(plot)
 
 
 
