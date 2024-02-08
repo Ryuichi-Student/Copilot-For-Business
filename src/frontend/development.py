@@ -6,7 +6,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 import streamlit as st
 from src.backend.test import *
-from src.backend.utils.database import SQLiteDatabase
 
 prompt = st.chat_input("Say something")
 if prompt:

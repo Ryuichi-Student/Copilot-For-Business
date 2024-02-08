@@ -2,6 +2,7 @@ import json
 from textwrap import dedent
 from src.backend.utils.database import Database
 from src.backend.utils.gpt import get_gpt_response
+from src.backend.visualisation import visualisation_subclasses
 
 # https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api/172683
 
@@ -37,7 +38,7 @@ class Actioner:
         return(response.split(','))
 
     def get_action(self, requirement: str, query: str):
-        system_prompt = dedent("""\
+        system_prompt = dedent('''\
             You are a data consultant, giving advice to the user. You will be provided with a database schema, some information which you will need to find, and the query which the information will be used to answer. Respond with details on how to find the request information, keeping in mind that the requested information will be used to solve the given query.
             
             First, determine whether it would be possible to find the information from the database. If not, respond with the following JSON object:
@@ -61,19 +62,16 @@ class Actioner:
             
             The 'graph_type' field should contain a string of the name of the graph which should be used to best represent the required information. The 'graph_info' field should contain a JSON object providing details about the graph depending on which graph_type has been chosen. You may only choose from the following graph types and their corresponding graph_info:
             
-            1. None
-            This should be chosen when a graph is not suitable to represent the data. Choose this option when none of the other graphs from the list are suitable to represent the data. The following values for graph_type and graph_info should be used:
-                graph_type: 'None'
-                graph_info: {}
-            
-            2. Bar Chart
-            This should be chosen when a bar chart is most suitbale to represent the data. The following values for graph_type and graph_info should be used. x_axis should contain a string of the column name that should be used as the x axis of the bar chart. y_axis should contain a string of the column name that should be used as the y axis of the bar chart:
-                graph_type: 'Bar'
-                graph_info: {
-                    x_axis: '',
-                    y_axis: '',
-                }
-        """)
+        ''')
+        for index, visualisation_class in enumerate(visualisation_subclasses):
+            system_prompt += dedent(f'''\
+                {index+1}. {visualisation_class.getChartName()}
+                {visualisation_class.getChartDescription()} The following values for graph_type and graph_info should be used. {visualisation_class.getChartParameterDescription()}
+                    graph_type: '{visualisation_class.getChartName()}'
+                    graph_info: {str(visualisation_class.getChartParametersForActioner())}
+
+            ''')
+        print(system_prompt)
         response = get_gpt_response(
             ("system", system_prompt),
             ("user", dedent(f'''\
