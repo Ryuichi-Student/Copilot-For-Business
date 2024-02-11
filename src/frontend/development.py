@@ -10,6 +10,7 @@ from src.backend.test import *
 prompt = st.chat_input("Say something")
 if prompt:
     st.write(f"User has sent the following prompt: {prompt}")
-    test_actioner_workflow(prompt)
+    command = test_actioner_workflow(prompt)
 
-st.write(f"{dummy_test()}")
+
+    st.write(f"Backend has responded with the following command: {command}")
