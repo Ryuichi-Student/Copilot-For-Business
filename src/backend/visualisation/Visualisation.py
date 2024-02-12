@@ -37,7 +37,6 @@ class Visualisation(ABC):
     @abstractmethod
     def validate(self) -> bool:
         pass
-
-    @abstractmethod
+    
     def getSQLQuery(self) -> str:
-        pass
+        return self.query
