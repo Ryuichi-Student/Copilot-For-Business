@@ -5,8 +5,8 @@ from src.backend.visualisation.Visualisation import Visualisation
 class BarChart(Visualisation):
     def __init__(self, title, data, query, xaxis, yaxis):
         super().__init__(title, data, query)
-        self.xaxis = xaxis
-        self.yaxis = yaxis
+        self.x_axis = xaxis
+        self.y_axis = yaxis
     
     # functions for the actioner
     @staticmethod
@@ -34,8 +34,8 @@ class BarChart(Visualisation):
             return
         
         # x and y axis variables
-        x_axis = self.df[self.xaxis]
-        y_axis = self.df[self.yaxis]
+        x_axis = self.df[self.x_axis]
+        y_axis = self.df[self.y_axis]
 
         # sets the size of the bar graph
         fig = plot.figure(figsize=(10,6))
@@ -46,18 +46,18 @@ class BarChart(Visualisation):
         plot.title(self.title)
         # sets the x and y axis labels
         # TODO: change these to natural language/remove - they're just the column names at the moment
-        plot.xlabel(self.xaxis)
-        plot.ylabel(self.yaxis)
+        plot.xlabel(self.x_axis)
+        plot.ylabel(self.y_axis)
 
         return fig
     
     # test for this that gives an invalid data frame
     def validate(self):
-        if self.xaxis not in self.df:
+        if self.x_axis not in self.df:
             # no x axis in the data frame
             # make this better raise an error? call to gpt?
             return False
-        elif self.yaxis not in self.df:
+        elif self.y_axis not in self.df:
             # no yaxis in the data frame
             # raise an error
             return False
