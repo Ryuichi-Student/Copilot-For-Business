@@ -87,20 +87,14 @@ class Actioner:
         return response
     
     
-    def get_maximum_action(self, requirements: list[pd.DataFrame], query: str, initial_actions: list[str]):
+    def get_maximum_action(self, relevant_columns: list[str], query: str, initial_actions: list[str]): # Attempt, needs to be tested and debugged
         """
         Get the maximum amount of data required to answer the query.
-        param requirements : list[pd.DataFrame]
-        param query: str
+        param relevant_columns: list[str] - The relevant columns from the database, should be a set?
+        param query: str             - The query to be answered
+        param initial_actions: list[str] - The initial actions to be taken
         return: list[str]
         """
-
-        # requirements_columns: list[str] list of all the dataframe column names
-        requirements_columns = list(map(lambda requirement: list(requirement.columns), requirements))
-
-        # requirements_columns: list[str] list of all the dataframe column names with the dataframe name (Dot might not work)
-        requirements_columns = list(map(lambda requirement: list(map(lambda column: f"{requirement.} . {column}", requirement.columns)), requirements))
-
 
 
         adapted_query = query.replace('?', '')
@@ -110,8 +104,8 @@ class Actioner:
 
         response = get_gpt_response(
             ("system", dedent(f'''\
-                    You are a data consultant who has been asked to solve the problem of {adapted_query}.
-                    You have been provided with the following dataframes: {requirements}
+                    You are a data consultant.
+                    You have been provided with the following dataframes columns: {relevant_columns}
 
                     First, determine whether it would be possible to find the information. If not, respond with the following JSON object:
 
@@ -126,23 +120,19 @@ class Actioner:
                     {{
                         status: 'success',
                         command: '',
-                        relevant_columns: [],
                     }}
 
-                    The 'command' field should contain a string detailing actionable steps in an imperative mood to find the required information. This should result in a clear query in order to find the required information.
-                    The 'relevant_columns' field should contain a JSON list of fields from the list of relvant dataframes which will be needed to generate SQL code to calculate the required information.
-
-
+                    The 'command' field should contain a string detailing actionable steps in an imperative mood to find the required information. This should result in a clear query in order to find the required information, using only the relevant columns provided.
 
 
             ''')),
-            ("user", requirements),
+            ("user", f"Solve the problem of {adapted_query}."),
             jsonMode = True
         )
 
 
 
-        pass
+        return response
 
     class Action:
         """
