@@ -2,8 +2,11 @@ import streamlit as st
 import pandas as pd
 import json
 from src.backend.visualisation.PieChart import PieChart
+from src.backend.visualisation.LineChart import LineChart
+from src.backend.visualisation.BarChart import BarChart
 from src.backend.actioner import Actioner
 from src.backend.utils.database import SQLiteDatabase
+from src.backend.visualisation import visualisation_subclasses
 
 df = pd.DataFrame({'lab':['A', 'X', 'D'], 'val':[10, 30, 20]})
 
@@ -61,7 +64,17 @@ if userQuery:
 
 
 def createVisualisation(action):
-    # pattern match on the graph_type
-    # create a graph of the right type
-    # get the bits from the json from the actioner
-    pass
+    graph_type = action['graph_type']
+    if graph_type == PieChart.getChartName():
+        # pie chart object
+        # get stuff from actioner
+        pass
+    elif graph_type == BarChart.getChartName():
+        # bar chart object
+        pass
+    elif graph_type == LineChart.getChartName():
+        # line chart object
+        pass
+    else:
+        # other
+        pass
