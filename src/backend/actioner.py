@@ -3,6 +3,7 @@ from textwrap import dedent
 from src.backend.utils.database import Database
 from src.backend.utils.gpt import get_gpt_response
 from src.backend.visualisation import visualisation_subclasses
+import pandas as pd
 
 # https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api/172683
 
@@ -84,6 +85,64 @@ class Actioner:
             top_p = 0.2
         )
         return response
+    
+    
+    def get_maximum_action(self, requirements: list[pd.DataFrame], query: str, initial_actions: list[str]):
+        """
+        Get the maximum amount of data required to answer the query.
+        param requirements : list[pd.DataFrame]
+        param query: str
+        return: list[str]
+        """
+
+        # requirements_columns: list[str] list of all the dataframe column names
+        requirements_columns = list(map(lambda requirement: list(requirement.columns), requirements))
+
+        # requirements_columns: list[str] list of all the dataframe column names with the dataframe name (Dot might not work)
+        requirements_columns = list(map(lambda requirement: list(map(lambda column: f"{requirement.} . {column}", requirement.columns)), requirements))
+
+
+
+        adapted_query = query.replace('?', '')
+
+
+
+
+        response = get_gpt_response(
+            ("system", dedent(f'''\
+                    You are a data consultant who has been asked to solve the problem of {adapted_query}.
+                    You have been provided with the following dataframes: {requirements}
+
+                    First, determine whether it would be possible to find the information. If not, respond with the following JSON object:
+
+                    {{
+                        status: 'error',
+                        error: 'DATA_NOT_FOUND'
+                        reason: ''
+                    }}
+
+                    If it is possible, respond with a JSON object of the following structure, which will be used to generate SQL code to query the data:
+
+                    {{
+                        status: 'success',
+                        command: '',
+                        relevant_columns: [],
+                    }}
+
+                    The 'command' field should contain a string detailing actionable steps in an imperative mood to find the required information. This should result in a clear query in order to find the required information.
+                    The 'relevant_columns' field should contain a JSON list of fields from the list of relvant dataframes which will be needed to generate SQL code to calculate the required information.
+
+
+
+
+            ''')),
+            ("user", requirements),
+            jsonMode = True
+        )
+
+
+
+        pass
 
     class Action:
         """
