@@ -19,8 +19,7 @@ userQuery = st.chat_input("Enter your question")
 
 
 
-# put this in a separate function
-
+# put this in a separate file
 if userQuery:
     # display the user's entered prompt
     st.text(userQuery)
@@ -41,9 +40,9 @@ if userQuery:
         
         # can only use them for the sql generator if its a success
         if json.loads(action)['status'] == 'success':
-            st.text("wooo yeah")
+            st.text("success")
         else:
-            st.text("oh no")
+            st.text("failure")
         
 
         # pass actions to the sql generator
