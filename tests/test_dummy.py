@@ -11,7 +11,7 @@ from src.backend.test import dummy_test
 
 # Can add @pytest.mark.skip(reason="") to skip tests
 def test_one():
-    assert dummy_test() == "Backend is operational!"
+    assert dummy_test() == "Backend is operational"
 
 if __name__ == "__main__":
     test_one()
