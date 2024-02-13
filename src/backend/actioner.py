@@ -3,6 +3,7 @@ from textwrap import dedent
 from src.backend.utils.database import Database
 from src.backend.utils.gpt import get_gpt_response
 from src.backend.visualisation import visualisation_subclasses
+import pandas as pd
 
 # https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api/172683
 
@@ -83,6 +84,54 @@ class Actioner:
             jsonMode = True,
             top_p = 0.2
         )
+        return response
+    
+    
+    def get_maximum_action(self, relevant_columns: list[str], query: str, initial_actions: list[str]): # Attempt, needs to be tested and debugged
+        """
+        Get the maximum amount of data required to answer the query.
+        param relevant_columns: list[str] - The relevant columns from the database, should be a set?
+        param query: str             - The query to be answered
+        param initial_actions: list[str] - The initial actions to be taken
+        return: list[str]
+        """
+
+
+        adapted_query = query.replace('?', '')
+
+
+
+
+        response = get_gpt_response(
+            ("system", dedent(f'''\
+                    You are a data consultant.
+                    You have been provided with the following dataframes columns: {relevant_columns}
+
+                    First, determine whether it would be possible to find the information. If not, respond with the following JSON object:
+
+                    {{
+                        status: 'error',
+                        error: 'DATA_NOT_FOUND'
+                        reason: ''
+                    }}
+
+                    If it is possible, respond with a JSON object of the following structure, which will be used to generate SQL code to query the data:
+
+                    {{
+                        status: 'success',
+                        command: '',
+                    }}
+
+                    The 'command' field should contain a string detailing actionable steps in an imperative mood to find the required information. This should result in a clear query in order to find the required information, using only the relevant columns provided.
+
+
+            ''')),
+            ("user", f"Solve the problem of {adapted_query}."),
+            jsonMode = True
+        )
+
+
+
         return response
 
     class Action:
