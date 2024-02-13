@@ -50,5 +50,36 @@ def test_action_invalid():
 
     assert command['status'] == 'error'
 
+
+def test_actioner_max_pass():
+
+    query = "What are our most popular products?"
+    db = SQLiteDatabase('databases/crm_refined.sqlite3')
+    actioner = Actioner(db)
+
+    columns = ['product_id', 'product_name', 'product_price', 'product_category', 'product_rating', 'product_sales']
+
+    command = actioner.get_maximum_action(columns, query, initial_actions=None)
+    
+    command = json.loads(command)
+
+    assert command['status'] == 'success'
+
+def test_actioner_max_fail():
+
+    query = "What are our most popular products?"
+    db = SQLiteDatabase('databases/crm_refined.sqlite3')
+    actioner = Actioner(db)
+
+    columns = []
+
+    command = actioner.get_maximum_action(columns, query, initial_actions=None)
+    
+    command = json.loads(command)
+
+    assert command['status'] == 'error'
+    
+    
+
 if __name__ == "__main__":
-    test_requirements()
+    test_actioner_max_fail()
