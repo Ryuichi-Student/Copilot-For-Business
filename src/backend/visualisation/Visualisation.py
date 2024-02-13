@@ -1,5 +1,6 @@
 from typing import Dict
 import pandas as pd
+import matplotlib
 from abc import ABC, abstractmethod
 
 class Visualisation(ABC):
@@ -36,3 +37,6 @@ class Visualisation(ABC):
     @abstractmethod
     def validate(self) -> bool:
         pass
+    
+    def getSQLQuery(self) -> str:
+        return self.query
