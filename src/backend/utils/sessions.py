@@ -12,10 +12,11 @@ class Session_Storage:
             mru (deque): A double-ended queue to track session IDs in MRU order.
             to_delete (set): A set of session IDs marked for deletion.
         """
-    def __init__(self):
+    def __init__(self, rerun):
         self.session_data = {}
         self.mru = deque()
         self.to_delete = set()
+        self.rerun = rerun
 
     def create_session(self, session_name):
         """
@@ -23,16 +24,13 @@ class Session_Storage:
 
         Args:
             session_name (str): The name of the session to create.
-
-        Returns:
-            UUID: The unique identifier for the new session.
         """
         session_id = uuid.uuid4()
         self.session_data[session_id] = {"name": session_name, "data": ""}
         self.mru.appendleft(session_id)
-        return session_id
+        self.rerun()
 
-    def delete_session(self, session_id, rerun):
+    def delete_session(self, session_id):
         """
         Marks a session for deletion and triggers a UI rerun. Actual deletion from the MRU tracking is deferred.
 
@@ -46,7 +44,7 @@ class Session_Storage:
         if session_id in self.session_data:
             del self.session_data[session_id]
             self.to_delete.add(session_id)
-            rerun()
+            self.rerun()
         return False
 
     def get_sessions(self) -> List[uuid.UUID]:
