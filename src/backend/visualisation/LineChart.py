@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plot
 import pandas as pd
-from Visualisation import Visualisation
+from src.backend.visualisation.Visualisation import Visualisation
 
 class LineChart(Visualisation):
     def __init__(self, title, data, query, xaxis, yaxis):
