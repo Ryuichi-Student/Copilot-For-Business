@@ -29,14 +29,21 @@ class Query:
 
     def set_actionCommands(self, actioner, threadpool):
         if self.actionCommands is None:
-            futures = [threadpool.submit(actioner.get_action, req, self.userQuery) for req in self.requirements]
-            self.actionCommands = [future.result() for future in as_completed(futures)]
+            if self.requirements is None:
+                self.actionCommands = []
+            else:
+                futures = [threadpool.submit(actioner.get_action, req, self.userQuery) for req in self.requirements]
+                self.actionCommands = [future.result() for future in as_completed(futures)]
 
     def create_sql_query(self, db, threadpool):
         if self.queries is None:
-            self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, self.requirements) for actionCommand in self.actionCommands]
-            futures = [threadpool.submit(sql.validateQuery, sql.parseQuery(sql.generateQuery())) for sql in self.sql_generators]
-            self.queries = [future.result() for future in as_completed(futures)]
+            if self.actionCommands is None or self.requirements is None:
+                self.sql_generators = []
+                self.queries = []
+            else:
+                self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, list(self.requirements.keys())) for actionCommand in self.actionCommands]
+                futures = [threadpool.submit(sql.validateQuery, sql.parseQuery(sql.generateQuery())) for sql in self.sql_generators]
+                self.queries = [future.result() for future in as_completed(futures)]
 
     def get_df(self):
         if self.df is None:
