@@ -39,12 +39,16 @@ jobs:
       - name: Fetch LFS objects if needed
         if: steps.cache-lfs.outputs.cache-hit != 'true'
         run: git lfs pull
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+      - name: Add Python to PATH
+        run: |
+          $pythonPath = "C:\actions-runner\_work\_tool\Python\3.9.13" # Update this path
+          echo "##vso[task.prependpath]$pythonPath"
+        shell: powershell
+#      - name: Set up Python ${{ matrix.python-version }}
+#        uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#          cache: 'pip'
 
       - name: Cache requirements
         id: cache-requirements
