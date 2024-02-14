@@ -4,6 +4,7 @@ from concurrent.futures import as_completed, ThreadPoolExecutor
 from src.backend.actioner import Actioner
 from src.backend.database import SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
+from src.backend.visualisation.PieChart import PieChart
 
 
 # TODO: After we finish everything, we can start making this into more than 2 layers.
@@ -28,14 +29,21 @@ class Query:
 
     def set_actionCommands(self, actioner, threadpool):
         if self.actionCommands is None:
-            futures = [threadpool.submit(actioner.get_action, req, self.userQuery) for req in self.requirements]
-            self.actionCommands = [future.result() for future in as_completed(futures)]
+            if self.requirements is None:
+                self.actionCommands = []
+            else:
+                futures = [threadpool.submit(actioner.get_action, req, self.userQuery) for req in self.requirements]
+                self.actionCommands = [future.result() for future in as_completed(futures)]
 
     def create_sql_query(self, db, threadpool):
         if self.queries is None:
-            self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, self.requirements) for actionCommand in self.actionCommands]
-            futures = [threadpool.submit(sql.validateQuery, sql.parseQuery(sql.generateQuery())) for sql in self.sql_generators]
-            self.queries = [future.result() for future in as_completed(futures)]
+            if self.actionCommands is None or self.requirements is None:
+                self.sql_generators = []
+                self.queries = []
+            else:
+                self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, list(self.requirements.keys())) for actionCommand in self.actionCommands]
+                futures = [threadpool.submit(sql.validateQuery, sql.parseQuery(sql.generateQuery())) for sql in self.sql_generators]
+                self.queries = [future.result() for future in as_completed(futures)]
 
     def get_df(self):
         if self.df is None:
@@ -43,9 +51,11 @@ class Query:
             pass
         return self.df
 
-    # TODO: Implement these final two methods
+    # TODO: Implement the methods below without hard coding
     def get_plot(self):
-        return
+        pie = PieChart("title 1", self.df, "SELECT * FROM *", "lab", "val")
+        self.plot = {"df": self.df, "pie": pie}
+        return self.plot
 
     def get_answer(self):
         return
@@ -100,6 +110,9 @@ class Copilot:
 
     def get_df(self, query: str):
         return self.UserQueries[hash(query)].df
+
+    def get_plot(self, query: str):
+        return self.UserQueries[hash(query)].plot
 
     def cleanup(self):
         print("Cleaning up threadpool")

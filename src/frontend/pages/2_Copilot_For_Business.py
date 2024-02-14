@@ -9,9 +9,6 @@ from src.backend.utils.visualiser import get_test_chart
 from src.backend.utils.sessions import Session_Storage
 
 
-df, bar, plot = get_test_chart()
-
-
 def display_session_ui():
     session_manager = st.session_state.session_storage
     sessions = session_manager.get_sessions()
@@ -75,17 +72,20 @@ if current_session_id is not None:
             else:
                 st.text("failure")
 
+        plot = copilot.get_plot(userQuery)
 
-            # pass actions to the sql generator
+        sqlView = st.toggle("Show SQL query")
+        if sqlView:
+            st.write(plot["pie"].getSQLQuery())
 
-            # pass data, query, and actioner parameters to the visualisation
+        # pass data, query, and actioner parameters to the visualisation
 
-            # go to new page to show plot? allow a keep and delete
-            # show code
-            # show sql
+        # go to new page to show plot? allow a keep and delete
+        # show code
+        # show sql
 
         # button to allow the user to accept or remove --> a button
 
         # show the answer
-        # st.pyplot(plot)
+        st.pyplot(plot["pie"].generate())
 
