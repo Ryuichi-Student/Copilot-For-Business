@@ -41,13 +41,13 @@ jobs:
         run: git lfs pull
 
       - name: Add Python to PATH
-        run: |
-          $pythonPath = "C:\actions-runner\_work\_tool\Python\3.9.13\x64" # Update this path
+        run: echo "C:\actions-runner\_work\_tool\Python\3.9.13\x64" >> $GITHUB_PATH
 
-#      - name: Check Python and PATH
-#        run: |
-#          C:\actions-runner\_work\_tool\Python\3.9.13\x64\python-3.9.13-amd64.exe --version
-#          echo $Env:PATH
+      - name: Check Python and PATH
+        run: |
+          echo $Env:PATH
+          echo $GITHUB_PATH
+          python --version
 #      - name: Set up Python ${{ matrix.python-version }}
 #        uses: actions/setup-python@v4
 #        with:
@@ -67,9 +67,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          C:\actions-runner\_work\_tool\Python\3.9.13\x64\python-3.9.13-amd64.exe -m pip install --upgrade pip
-          C:\actions-runner\_work\_tool\Python\3.9.13\x64\python-3.9.13-amd64.exe -m pip install pytest
-          C:\actions-runner\_work\_tool\Python\3.9.13\x64\python-3.9.13-amd64.exe -m pip install pytest-cov
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install pytest-cov
           pip install tox tox-gh-actions
 
       - name: Run tests with tox
