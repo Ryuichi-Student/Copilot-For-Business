@@ -164,6 +164,8 @@ class SQLGenerator:
                 raise QueryExecutionError(f"Sqlite3 Database Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
             except sqlite3.Error as e:
                 raise QueryExecutionError(f"Sqlite3 Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+            except RuntimeError as e:
+                raise QueryExecutionError(f"Single value error: {e}")
 
     def executeQuery(self, query):
         #Executes the SQL query and returns the results as a pandas DataFrame
