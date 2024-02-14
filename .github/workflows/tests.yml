@@ -46,7 +46,7 @@ jobs:
 
       - name: Check Python and PATH
         run: |
-          C:\Path\To\Python\python.exe --version
+          C:\actions-runner\_work\_tool\Python\3.9.13 --version
           echo $Env:PATH
 #      - name: Set up Python ${{ matrix.python-version }}
 #        uses: actions/setup-python@v4
