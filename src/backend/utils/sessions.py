@@ -28,7 +28,7 @@ class Session_Storage:
             session_name (str): The name of the session to create.
         """
         session_id = uuid.uuid4()
-        self.session_data[session_id] = {"name": session_name, "data": ""}
+        self.session_data[session_id] = {"name": session_name, "data": None}
         self.mru.appendleft(session_id)
         self.rerun()
 

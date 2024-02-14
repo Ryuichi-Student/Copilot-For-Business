@@ -1,3 +1,5 @@
+from concurrent.futures import as_completed
+
 from src.backend.actioner import Actioner
 from src.backend.database import SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
@@ -6,7 +8,7 @@ from src.backend.sql.generator import SQLGenerator
 # TODO: After we finish everything, we can start making this into more than 2 layers.
 # TODO: Parallelise actioncommands and sql query generation
 class Query:
-    def __init__(self, userQuery):
+    def __init__(self, userQuery, threadpool=None):
         self.userQuery = userQuery
 
         self.requirements = None
@@ -17,6 +19,7 @@ class Query:
         self.answer = ""
         self.plot = None
         self.df = None
+        self.threadpool = threadpool
 
     def set_requirements(self, actioner):
         if self.requirements is None:
@@ -24,14 +27,17 @@ class Query:
 
     def set_actionCommands(self, actioner):
         if self.actionCommands is None:
-            # Make this run in parallel
-            self.actionCommands = [actioner.get_action(req, self.userQuery) for req in self.requirements]
+            with self.threadpool:
+                futures = [self.threadpool.submit(actioner.get_action, req, self.userQuery) for req in self.requirements]
+                self.actionCommands = [future.result() for future in as_completed(futures)]
 
     def create_sql_query(self, db):
         if self.queries is None:
             self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, self.requirements) for actionCommand in self.actionCommands]
             # Make this run in parallel
-            self.queries = [sql.validateQuery(sql.parseQuery(sql.generateQuery())) for sql in self.sql_generators]
+            with self.threadpool:
+                futures = [self.threadpool.submit(sql.validateQuery, sql.parseQuery(sql.generateQuery())) for sql in self.sql_generators]
+                self.queries = [future.result() for future in as_completed(futures)]
 
     def get_df(self):
         if self.df is None:
