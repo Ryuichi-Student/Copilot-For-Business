@@ -41,12 +41,11 @@ jobs:
         run: git lfs pull
 
       - name: Add Python to PATH
-        run: echo "C:\actions-runner\_work\_tool\Python\3.9.13\x64" >> $GITHUB_PATH
+        run: $Env:PATH += "C:\actions-runner\_work\_tool\Python\3.9.13\x64"
 
       - name: Check Python and PATH
         run: |
           echo $Env:PATH
-          echo $GITHUB_PATH
           python --version
 #      - name: Set up Python ${{ matrix.python-version }}
 #        uses: actions/setup-python@v4
