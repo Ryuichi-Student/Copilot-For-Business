@@ -10,9 +10,6 @@ jobs:
   tests:
 #    runs-on: ${{ matrix.os }}
     runs-on: self-hosted
-    defaults:
-      run:
-        shell: powershell
     if: >
       github.event_name == 'pull_request' || 
       (github.event_name == 'push' && 
@@ -43,19 +40,6 @@ jobs:
         if: steps.cache-lfs.outputs.cache-hit != 'true'
         run: git lfs pull
 
-      - name: Add Python to PATH
-        run: $Env:PATH += "C:\actions-runner\_work\_tool\Python\3.9.13\x64"
-
-      - name: Check Python and PATH
-        run: |
-          echo $Env:PATH
-          python --version
-#      - name: Set up Python ${{ matrix.python-version }}
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#          cache: 'pip'
-
       - name: Cache requirements
         id: cache-requirements
         uses: actions/cache@v2
@@ -69,10 +53,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install pytest
-          python -m pip install pytest-cov
-          pip install tox tox-gh-actions
+          C:\actions-runner\_work\_tool\Python\3.9.13\x64\python-3.9.13-amd64.exe -m C:\Users\leota\anaconda3\lib\site-packages\pip install --upgrade pip
+          C:\actions-runner\_work\_tool\Python\3.9.13\x64\python-3.9.13-amd64.exe -m C:\Users\leota\anaconda3\lib\site-packages\pip install pytest
+          C:\actions-runner\_work\_tool\Python\3.9.13\x64\python-3.9.13-amd64.exe -m C:\Users\leota\anaconda3\lib\site-packages\pip install pytest-cov
+          C:\Users\leota\anaconda3\lib\site-packages\pip install tox tox-gh-actions
 
       - name: Run tests with tox
         run: tox
