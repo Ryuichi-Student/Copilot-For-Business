@@ -45,10 +45,10 @@ jobs:
           $pythonPath = "C:\actions-runner\_work\_tool\Python\3.9.13" # Update this path
           echo "##vso[task.prependpath]$pythonPath"
 
-      - name: Add Python to PATH
+      - name: Check Python and PATH
         run: |
-          $pythonPath = "C:\Path\To\Python" # Update this path
-          echo "##vso[task.prependpath]$pythonPath"
+          Get-Command python
+          echo $Env:PATH
 #      - name: Set up Python ${{ matrix.python-version }}
 #        uses: actions/setup-python@v4
 #        with:
