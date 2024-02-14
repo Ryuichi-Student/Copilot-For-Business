@@ -13,7 +13,7 @@ def get_gpt_embedding(text):
     embedding = response.data[0].embedding
     return embedding
 
-def get_gpt_response(*messages, history=None, model="gpt-4-1106-preview", max_tokens=1500,
+def get_gpt_response(*messages, history=None, model="gpt-4-turbo-preview", max_tokens=1500,
                      jsonMode=False, stream=False, message_placeholder=None,
                      top_p=0.5, frequency_penalty=0, presence_penalty=0):
     if history is None: history = []
