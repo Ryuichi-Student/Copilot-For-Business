@@ -5,7 +5,7 @@ import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.backend.actioner import Actioner
-from src.backend.utils.database import SQLiteDatabase
+from src.backend.database import SQLiteDatabase
 
 
 

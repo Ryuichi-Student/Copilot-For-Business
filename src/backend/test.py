@@ -1,8 +1,7 @@
-from src.backend.utils.database import SQLiteDatabase
+from src.backend.database import SQLiteDatabase
 from src.backend.utils.gpt import get_gpt_response
 from src.backend.actioner import Actioner
-import sqlite3 as sql
-import pandas as pd
+
 
 def dummy_test():
     return "Backend is operational"
