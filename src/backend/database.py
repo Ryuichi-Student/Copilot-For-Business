@@ -5,25 +5,16 @@ import sqlite3
 import pandas as pd
 import pandasql as psql
 import json
+from src.backend.utils.clean_name import clean_name
 from src.backend.utils.gpt import *
 
 
 class Database(ABC):
-    def __init__(self, url: str, additionalMetadata: Optional[Dict[Any, Any]] = None):
-        self._url: str = url
+    def __init__(self, additionalMetadata: Optional[Dict[Any, Any]] = None):
         self._schema: Dict[str, List[Dict[str, Union[str, bool, int]]]] = self.getSchema()
         self._tableNames: List[str] = self.getTableNames()
         self._columnNames: List[str] = self.getColumnNames()
-        self._descriptionEmbeddings = self.getDescriptionEmbeddings()
         self.additionalMetadata: Dict[Any, Any] = additionalMetadata if additionalMetadata else {}
-
-    @property
-    def url(self) -> str:
-        return self._url
-    
-    @url.setter
-    def url(self, value: str) -> None:
-        self._url = value
 
     @property
     def schema(self) -> Dict[str, List[Dict[str, Union[str, bool, int]]]]:
@@ -36,26 +27,41 @@ class Database(ABC):
     @property
     def columnNames(self) -> List[str]:
         return self._columnNames
-    
-    @property
-    def descriptionEmbeddings(self) -> Dict[str, Dict[str, Union[str, List[float]]]]:
-        return self._descriptionEmbeddings
 
     @abstractmethod
     def to_str(self) -> str:
         pass
 
     @abstractmethod
-    def query(self, code: str, is_df: bool, is_single_value: bool) -> pd.DataFrame:
+    def query(self, code: str, is_df: bool, is_single_value: bool) -> Optional[Union[Any, pd.DataFrame]]:
         pass
 
     @abstractmethod
     def getSchema(self) -> Dict[str, List[Dict[str, Union[str, bool, int]]]]:
         pass
 
-    @abstractmethod
-    def getTextSchema(self) -> str:
-        pass
+    def getTextSchema(self, filterTableNames:Optional[List[str]] = None) -> str:
+        # Turns schema into text. Assumes self._schema has been filled
+        text_schema = ''
+        schema = self.schema
+        for table in schema:
+            if filterTableNames is not None:
+                if table not in filterTableNames:
+                    continue
+            text_schema += f'CREATE TABLE {table} (\n'
+            for column in schema[table]:
+                text_schema += f'  {column["column_name"]} {column["type"]}'
+                if not column['nullable']:
+                    text_schema += ' NOT NULL'
+                if column['default_value'] is not None:
+                    text_schema += f' DEFAULT {column["default_value"]}'
+                if column['is_primary']:
+                    text_schema += f' PRIMARY KEY'
+                if column['is_foreign']:
+                    text_schema += f' FOREIGN KEY REFERENCES {column["is_foreign"]}'
+                text_schema += ',\n'
+            text_schema += ');\n'
+        return text_schema
 
     @abstractmethod
     def getTableNames(self) -> List[str]:
@@ -65,13 +71,23 @@ class Database(ABC):
     def getColumnNames(self) -> List[str]:
         pass
 
-    @abstractmethod
-    def getDescriptionEmbeddings(self) -> Dict[str, Dict[str, Union[str, List[float]]]]:
-        pass
-
 class SQLiteDatabase(Database):
     def __init__(self, file_path, additionalMetadata=None):
-        super().__init__(file_path, additionalMetadata)
+        self._url = file_path
+        super().__init__(additionalMetadata)
+        self._descriptionEmbeddings = self.getDescriptionEmbeddings()
+    
+    @property
+    def url(self) -> str:
+        return self._url
+    
+    @url.setter
+    def url(self, value: str) -> None:
+        self._url = value
+    
+    @property
+    def descriptionEmbeddings(self) -> Dict[str, Dict[str, Union[str, List[float]]]]:
+        return self._descriptionEmbeddings
 
     def query(self, code, is_df = True, is_single_value = False):
 
@@ -136,30 +152,7 @@ class SQLiteDatabase(Database):
                     }
                     schema[table].append(column_info)
             return schema
-
-    def getTextSchema(self, filterTableNames:Optional[List[str]] = None) -> str:
-        # Turns schema into text. Assumes self._schema has been filled
-        text_schema = ''
-        schema = self.schema
-        for table in schema:
-            if filterTableNames is not None:
-                if table not in filterTableNames:
-                    continue
-            text_schema += f'CREATE TABLE {table} (\n'
-            for column in schema[table]:
-                text_schema += f'  {column["column_name"]} {column["type"]}'
-                if not column['nullable']:
-                    text_schema += ' NOT NULL'
-                if not column['default_value'] == None:
-                    text_schema += f' DEFAULT {column["default_value"]}'
-                if column['is_primary']:
-                    text_schema += f' PRIMARY KEY'
-                if column['is_foreign']:
-                    text_schema += f' FOREIGN KEY REFERENCES {column["is_foreign"]}'
-                text_schema += ',\n'
-            text_schema += ');\n'
-        return text_schema
-
+    
     def getTableNames(self) -> List[str]:
         with sqlite3.connect(self.url) as conn:
             return [row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")]
@@ -206,30 +199,46 @@ class SQLiteDatabase(Database):
         pass
 
 
-class CSVDatabase(Database):
-    def __init__(self, file_path, additionalMetadata=None):
-        super().__init__(file_path, additionalMetadata)
-        self.dataframe = pd.read_csv(self.url)
+class DataFrameDatabase(Database):
+    def __init__(self, dataframes: Dict[str, pd.DataFrame], additionalMetadata=None):
+        self._dataframes = {clean_name(req):df for req,df in dataframes.items()}
+        super().__init__(additionalMetadata)
+    
+    @property
+    def dataframes(self) -> Dict[str, pd.DataFrame]:
+        return self._dataframes
 
-    def query(self, code, is_df, is_single_value):
-        return psql.sqldf(code, locals())
+    def query(self, code, is_df = True, is_single_value = False):
+        df = psql.sqldf(code, self.dataframes)
+        if is_single_value and not df.shape == (1, 1):
+            raise RuntimeError("SQL query does not return single value, but single value expected")
+        if is_single_value:
+            return df.iloc[0, 0]
+        else:
+            return df
 
     def getSchema(self):
-        # Implement this method
-        pass
-
-    def getTextSchema(self):
-        # Implement this method
-        pass
+        schema : Dict[str, List[Dict[str, Union[str, bool, int]]]] = {}
+        for name, table in self.dataframes.items():
+            schema[name] = []
+            for col, col_type in zip(table.columns, table.dtypes):
+                column_info = {
+                    "column_name": col,
+                    "type": col_type,
+                    "is_primary": False,
+                    "is_foreign": False,
+                    "default_value": None,
+                    "nullable": True
+                }
+                schema[name].append(column_info)
+        return schema
 
     def getTableNames(self):
-        # Implement this method
-        pass
+        return self.dataframes.keys()
 
     def getColumnNames(self):
-        # Implement this method
-        pass
+        return [column for tname in self.tableNames for column in self.dataframes[tname].columns]
 
-    def getDescriptionEmbeddings(self):
+    def to_str(self):
         # Implement this method
         pass

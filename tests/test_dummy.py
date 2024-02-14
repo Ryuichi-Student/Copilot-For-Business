@@ -13,6 +13,3 @@ from src.backend.test import dummy_test
 def test_one():
     assert dummy_test() == "Backend is operational"
 
-if __name__ == "__main__":
-    test_one()
-

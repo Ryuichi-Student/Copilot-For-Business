@@ -3,10 +3,11 @@ import matplotlib.pyplot as plot
 from src.backend.visualisation.Visualisation import Visualisation
 
 class PieChart(Visualisation):
-    def __init__(self, title, data, query, categories, count):
-        super().__init__(title, data, query)
-        self.categories = categories
-        self.count = count
+    def __init__(self, data, query, info):
+        super().__init__(data, query, info)
+        self.title = info['title']
+        self.categories = info['categories']
+        self.count = info['count']
 
     # functions for the actioner
     @staticmethod

@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 import streamlit as st
 import json
 from src.backend.copilot import Copilot
-from src.backend.utils.visualiser import get_test_chart
+from src.backend.test import get_test_chart
 from src.backend.utils.sessions import Session_Storage
 
 
@@ -64,28 +64,20 @@ if current_session_id is not None:
         st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
 
         copilot.query(userQuery)
+        # pass actions to the sql generator
 
-        st.text(copilot.get_requirements(userQuery))
+        # pass data, query, and actioner parameters to the visualisation
 
-        # for each of the requirements get the required action
-        for action in copilot.get_actionCommands(userQuery):
-            # can only use them for the sql generator if its a success
-            if json.loads(action)['status'] == 'success':
-                st.text("success")
-            else:
-                st.text("failure")
-
-
-            # pass actions to the sql generator
-
-            # pass data, query, and actioner parameters to the visualisation
-
-            # go to new page to show plot? allow a keep and delete
-            # show code
-            # show sql
+        # go to new page to show plot? allow a keep and delete
+        # show code
+        # show sql
 
         # button to allow the user to accept or remove --> a button
 
-        # show the answer
-        # st.pyplot(plot)
+        plot = copilot.get_plot(userQuery)
+        answer = copilot.get_answer(userQuery)
+        if plot:
+            st.pyplot(plot)
+        if answer:
+            st.write(answer)
 
