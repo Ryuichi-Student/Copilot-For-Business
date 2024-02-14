@@ -1,5 +1,8 @@
 from src.backend.utils.database import SQLiteDatabase
 from src.backend.actioner import Actioner
+from src.backend.visualisation.BarChart import BarChart
+from src.backend.visualisation.PieChart import PieChart
+from src.backend.visualisation.LineChart import LineChart
 import json
 
 def workflow(userQuery):
@@ -18,6 +21,9 @@ def workflow(userQuery):
         # can only use them for the sql generator if its a success
         if json.loads(action)['status'] == 'success':
             # pass the right things to the sql generator
+            # get sql query and data frame
+
+            createVisualisation(json.loads(action))
             pass
 
         # pass actions to the sql generator
@@ -40,16 +46,20 @@ def workflow(userQuery):
 
 def createVisualisation(action):
     graph_type = action['graph_type']
-    if graph_type == PieChart.getChartName():
-        # pie chart object
-        # get stuff from actioner
-        pass
-    elif graph_type == BarChart.getChartName():
-        # bar chart object
-        pass
-    elif graph_type == LineChart.getChartName():
-        # line chart object
-        pass
-    else:
-        # other
-        pass
+    graph_info = action['graph_info']
+    title = graph_info['title']
+
+    # print("dfsjkldsfgjjhfkdshjkhadfskjdhjkfgadhadsjkhjkfsdjakldajfklasjfslkjfksldjfaldskjflkds")
+    # if graph_type == PieChart.getChartName():
+    #     # pie chart object
+    #     # get stuff from actioner
+        
+    # elif graph_type == BarChart.getChartName():
+    #     # bar chart object
+    #     pass
+    # elif graph_type == LineChart.getChartName():
+    #     # line chart object
+    #     pass
+    # else:
+    #     # other
+    #     pass
