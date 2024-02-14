@@ -22,7 +22,7 @@ jobs:
         python-version: [3.9.13]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
         with:
           lfs: true # Ensure Git LFS objects are checked out
 
@@ -40,6 +40,11 @@ jobs:
         if: steps.cache-lfs.outputs.cache-hit != 'true'
         run: git lfs pull
 
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Cache requirements
         id: cache-requirements
         uses: actions/cache@v2
@@ -53,10 +58,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          C:\Users\leota\anaconda3\lib\site-packages\pip install --upgrade pip
-          C:\Users\leota\anaconda3\lib\site-packages\pip install pytest
-          C:\Users\leota\anaconda3\lib\site-packages\pip install pytest-cov
-          C:\Users\leota\anaconda3\lib\site-packages\pip install tox tox-gh-actions
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install pytest-cov
+          pip install tox tox-gh-actions
 
       - name: Run tests with tox
         run: tox
