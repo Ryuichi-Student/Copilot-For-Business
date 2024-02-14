@@ -1,8 +1,40 @@
+import sqlvalidator
+import sqlite3
 from src.backend.utils.gpt import get_gpt_response
 from src.backend.database import Database
 from textwrap import dedent
 from typing import List, Dict, Any, Union
 import json
+
+
+class ResponseError(Exception):
+    pass
+class ResponseNotJSONError(ResponseError):
+    pass
+
+class ResponseContentMissingError(ResponseError):
+    pass
+
+class ResponseStatusError(ResponseError):
+    pass
+
+class Status_COLUMN_NOTIN_SCHEMA_Error(ResponseStatusError):
+    pass
+
+class Status_INVALID_ACTION_COMMAND_Error(ResponseStatusError):
+    pass
+
+class Status_GRAPH_INFO_NOT_APPLICABLE_Error(ResponseStatusError):
+    pass
+
+class InvalidQueryError(Exception):
+    pass
+
+class QueryValidationError(InvalidQueryError):
+    pass
+
+class QueryExecutionError(InvalidQueryError):
+    pass
 
 class SQLGenerator:
     #Core class for generating SQL queries.
@@ -12,6 +44,7 @@ class SQLGenerator:
         self.actionCommand = actionCommand
         self.graph_info = graph_info
         self.relevantColumns = relevantColumns
+        self.is_single_value: bool = False
 
     def generateQuery(self) -> Dict[str, Union[str, Any]]:
         #method to generate SQL queries.
@@ -38,14 +71,17 @@ class SQLGenerator:
               {
                   "status": "success",
                   "query": '''SQL_QUERY_HERE'''
+                  "is_single_value": "True/False"
               }
               Ensure "SQL_QUERY_HERE" accurately reflects the SQL command designed to address the action command, adhering to the database schema and incorporating the relevant columns and graph information as necessary.
+              
               For example:
                 when the action command is "Find the total number of customers who have made a purchase in the last 30 days", the relevant columns are "purchases.customer_id" and "purchases.purchase_date", and the graph information is "Bar Chart" with "customer_id" as the x-axis and "purchase_date" as the y-axis, the SQL query should be constructed to calculate the total number of customers who have made a purchase in the last 30 days and generate a bar chart based on the specified graph information. 
                 the JSON object should look like this:
                 {
                     "status": "success",
                     "query": '''SELECT COUNT(customer_id) FROM purchases WHERE purchase_date >= DATE('now', '-30 days')'''
+                    "is_single_value": "True"
                 }                    
 
         Note: When constructing SQL queries, consider all provided information, ensure syntax correctness, and validate that the query logically aligns with the action command's requirements and the database schema's constraints.
@@ -74,8 +110,31 @@ class SQLGenerator:
         gpt_response = json.loads(gpt_response)
         return gpt_response
 
-    def parseQuery(self, gpt_response):
+    def parseQuery(self, gpt_response: Dict[str, Any]):
         #extract Query from GPT response
+        if not isinstance(gpt_response, dict):
+            raise ResponseNotJSONError(f"GPT response is not a JSON object, but a {type(gpt_response)}")
+        if "status" not in gpt_response:
+            raise ResponseContentMissingError(f"Status field is missing from GPT response")
+        if gpt_response["status"] == "success":
+            if "query" not in gpt_response:
+                raise ResponseContentMissingError(f"Query field is missing from GPT response")
+            query = gpt_response["query"]
+            if "is_single_value" not in gpt_response:
+                raise ResponseContentMissingError(f"is_single_value field is missing from GPT response")
+            self.is_single_value = gpt_response["is_single_value"]=="True"
+            return query
+        elif gpt_response["status"] == "error":
+            if "error" not in gpt_response:
+                raise ResponseContentMissingError(f"Error field is missing from GPT response")
+            if gpt_response["error"] == "COLUMN_NOTIN_SCHEMA":
+                raise Status_COLUMN_NOTIN_SCHEMA_Error(f"Error: {gpt_response['message']}")
+            elif gpt_response["error"] == "INVALID_ACTION_COMMAND":
+                raise Status_INVALID_ACTION_COMMAND_Error(f"Error: {gpt_response['message']}")
+            elif gpt_response["error"] == "GRAPH_INFO_NOT_APPLICABLE":
+                raise Status_GRAPH_INFO_NOT_APPLICABLE_Error(f"Error: {gpt_response['message']}")
+            else:
+                raise ResponseStatusError(f"Error: {gpt_response['error']}")
 
         # query = gpt_response.splitlines()[0]
         #dostuff
@@ -84,15 +143,33 @@ class SQLGenerator:
     def validateQuery(self, query):
         #Validates the generated SQL query
         #returns None or raises Error
-        # if not query.lower().startswith("select"):
-        #     #raiseSomeError
-        #     pass
-        return query
+        sql_query = sqlvalidator.parse(query)
+        if not sql_query.is_valid():
+            raise QueryValidationError(f"SQL query is not valid: {sql_query.errors}")
+        else:
+            try:
+                self.database.query(query,is_df=False,is_single_value=self.is_single_value)
+            except sqlite3.OperationalError as e:
+                raise QueryExecutionError(f"Sqlite3 Operational Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+            except sqlite3.ProgrammingError as e:
+                raise QueryExecutionError(f"Sqlite3 Programming Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+            except sqlite3.IntegrityError as e:
+                raise QueryExecutionError(f"Sqlite3 Integrity Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+            except sqlite3.NotSupportedError as e:
+                raise QueryExecutionError(f"Sqlite3 Not Supported Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+            except sqlite3.DataError as e:
+                raise QueryExecutionError(f"Sqlite3 Data Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+            except sqlite3.InternalError as e:
+                raise QueryExecutionError(f"Sqlite3 Internal Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+            except sqlite3.DatabaseError as e:
+                raise QueryExecutionError(f"Sqlite3 Database Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+            except sqlite3.Error as e:
+                raise QueryExecutionError(f"Sqlite3 Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
 
     def executeQuery(self, query):
         #Executes the SQL query and returns the results as a pandas DataFrame
         try:
-            df = self.database.query(query)
+            df = self.database.query(query, is_df=True, is_single_value=self.is_single_value)
             return df
         except:
             #raiseSomeError
