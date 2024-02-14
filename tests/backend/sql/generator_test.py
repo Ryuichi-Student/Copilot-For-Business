@@ -32,8 +32,7 @@ class TestSQLGenerator:
         response = gen.generateQuery()
         print(response)
         assert isinstance(response, dict)
-        # TODO: FIX THIS!
-        # assert response["status"] == "success"
+        assert response["status"] == "success"
 
     def test_generate_error_COLUMNNOTINSCHEMA(self):
         relative_path = "databases/crm_refined_droppedtable.sqlite3"
