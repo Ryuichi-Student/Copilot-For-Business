@@ -62,6 +62,5 @@ jobs:
           pip install pytest
           pip install pytest-cov
           pip install tox tox-gh-actions
-          python -m pip install pandasql sqlvalidator
       - name: Run tests with tox
         run: tox
