@@ -9,6 +9,6 @@ def test_parse_query():
 
     sql_generator = SQLGenerator(None, None, None, None)
 
-    result = sql_generator._parseQuery("Mock GPT response")
+    result = sql_generator.parseQuery("Mock GPT response")
 
     assert isinstance(result, str)

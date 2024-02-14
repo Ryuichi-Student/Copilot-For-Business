@@ -1,6 +1,5 @@
-import pandas
 from src.backend.utils.gpt import get_gpt_response
-from src.backend.utils.database import Database
+from src.backend.database import Database
 from textwrap import dedent
 from typing import List, Dict, Any, Union
 import json
@@ -75,19 +74,20 @@ class SQLGenerator:
         gpt_response = json.loads(gpt_response)
         return gpt_response
 
-    def _parseQuery(self, gpt_response):
+    def parseQuery(self, gpt_response):
         #extract Query from GPT response
 
-        query = gpt_response.splitlines()[0]
+        # query = gpt_response.splitlines()[0]
         #dostuff
-        return query
+        return gpt_response
 
     def validateQuery(self, query):
         #Validates the generated SQL query
         #returns None or raises Error
-        if not query.lower().startswith("select"):
-            #raiseSomeError
-            pass
+        # if not query.lower().startswith("select"):
+        #     #raiseSomeError
+        #     pass
+        return query
 
     def executeQuery(self, query):
         #Executes the SQL query and returns the results as a pandas DataFrame
