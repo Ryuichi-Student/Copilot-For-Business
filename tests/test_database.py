@@ -1,10 +1,9 @@
-import sqlite3
 import sys
 import os
 from textwrap import dedent
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.backend.utils.database import SQLiteDatabase
+from src.backend.database import SQLiteDatabase
 import sqlite3 as sql
 
 

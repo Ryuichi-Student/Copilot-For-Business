@@ -12,6 +12,7 @@ if "CREATE_SESSION" not in st.session_state:
 st.header("Create/Delete Sessions")
 
 
+# Create a new session by clicking a button and entering a session name in the text box that appears
 if st.button("Create Session"):
     st.session_state.CREATE_SESSION = True
 
@@ -21,6 +22,7 @@ if st.session_state.CREATE_SESSION:
         st.session_state.CREATE_SESSION = False
         sessions.create_session(session_name)
 
+# View the sessions that you have made and delete sessions by clicking the "X" button.
 st.write("## Current Sessions")
 
 for session_id in sessions.get_sessions():
@@ -30,3 +32,5 @@ for session_id in sessions.get_sessions():
     with col2:
         if st.button("X", key=session_id):
             sessions.delete_session(session_id)
+
+# TODO: Add undo functionality
