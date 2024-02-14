@@ -2,13 +2,8 @@ import os, sys
 import pytest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-<<<<<<< HEAD
-from src.backend.sql.generator import SQLGenerator
-from src.backend.database import SQLiteDatabase
-=======
 from src.backend.sql.generator import SQLGenerator, ResponseError, ResponseNotJSONError, ResponseContentMissingError, ResponseStatusError, Status_COLUMN_NOTIN_SCHEMA_Error, Status_INVALID_ACTION_COMMAND_Error, Status_GRAPH_INFO_NOT_APPLICABLE_Error, InvalidQueryError, QueryValidationError, QueryExecutionError
-from src.backend.utils.database import SQLiteDatabase
->>>>>>> 6dcc286e9b5d4214c2a5215cdfb419d62d372441
+from src.backend.database import SQLiteDatabase
 
 
 class TestSQLGenerator:
@@ -38,7 +33,6 @@ class TestSQLGenerator:
         print(response)
         assert isinstance(response, dict)
         assert response["status"] == "success"
-
 
     def test_generate_error_COLUMNNOTINSCHEMA(self):
         relative_path = "databases/crm_refined_droppedtable.sqlite3"
