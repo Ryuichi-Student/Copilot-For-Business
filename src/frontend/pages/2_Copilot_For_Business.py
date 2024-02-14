@@ -19,6 +19,7 @@ def display_session_ui():
     if not sessions:
         st.write("No sessions available")
         current_session_id = None
+        copilot = None
     else:
         current_session_id = st.selectbox(
             label="Select a session:",
@@ -26,10 +27,15 @@ def display_session_ui():
             format_func=lambda x: session_manager.get_session_data(x)['name'],
             index=0  # Automatically switch to the most recent session ID
         )
-
-        session_manager.update_session_data(current_session_id)
+        copilot = session_manager.get_session_data(current_session_id)['data']
+        if copilot is None:
+            # TODO: Choose what databases to allow the model to retrieve data from
+            copilot = Copilot(db='databases/crm_refined.sqlite3', dbtype='sqlite')
+            session_manager.update_session_data(current_session_id, data=copilot)
+        else:
+            session_manager.update_session_data(current_session_id)
     print(f"New session: {current_session_id}")
-    return current_session_id
+    return current_session_id, copilot
 
 
 # title
@@ -40,7 +46,7 @@ st.header("Copilot for Business")
 # TODO: Load from persistent storage
 if "session_storage" not in st.session_state:
     st.session_state.session_storage = Session_Storage(st.rerun)
-current_session_id = display_session_ui()
+current_session_id, copilot = display_session_ui()
 
 
 if current_session_id is not None:
@@ -52,8 +58,6 @@ if current_session_id is not None:
     if userQuery:
         # display the user's entered prompt
         st.text(userQuery)
-
-        copilot = Copilot(db='databases/crm_refined.sqlite3', dbtype='sqlite')
 
         copilot.query(userQuery)
 
