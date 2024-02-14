@@ -39,6 +39,7 @@ jobs:
       - name: Fetch LFS objects if needed
         if: steps.cache-lfs.outputs.cache-hit != 'true'
         run: git lfs pull
+
       - name: Add Python to PATH
         run: |
           $pythonPath = "C:\actions-runner\_work\_tool\Python\3.9.13" # Update this path
