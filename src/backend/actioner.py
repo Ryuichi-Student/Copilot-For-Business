@@ -35,6 +35,7 @@ class Actioner:
             ("system", system_prompt),
             ("user", query)
         )
+
         return(response.split(','))
 
     def get_action(self, requirement: str, query: str):
@@ -71,7 +72,8 @@ class Actioner:
                     graph_info: {str(visualisation_class.getChartParametersForActioner())}
 
             ''')
-        print(system_prompt)
+        print("Getting action for requirement: ", requirement)
+        # print(system_prompt)
         response = get_gpt_response(
             ("system", system_prompt),
             ("user", dedent(f'''\

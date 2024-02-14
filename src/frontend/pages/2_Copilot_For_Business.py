@@ -38,26 +38,30 @@ def display_session_ui():
     return current_session_id, copilot
 
 
-# title
-st.header("Copilot for Business")
-
-
-# Session data
-# TODO: Load from persistent storage
-if "session_storage" not in st.session_state:
-    st.session_state.session_storage = Session_Storage(st.rerun)
-current_session_id, copilot = display_session_ui()
+col1, col2 = st.columns([8, 2])
+with col1:
+    # title
+    st.header("Copilot for Business")
+with col2:
+    # Session data
+    # TODO: Load from persistent storage
+    if "session_storage" not in st.session_state:
+        st.session_state.session_storage = Session_Storage(st.rerun)
+    current_session_id, copilot = display_session_ui()
 
 
 if current_session_id is not None:
-    # all the user to enter a prompt
-    userQuery = st.chat_input("Enter your question")
+    # Extend to being more of a chat or asking the same copilot a question.
+    if copilot.UserQueries:
+        # Get a random question from the user queries for now
+        userQuery = copilot.get_random_query().userQuery
+    else:
+        userQuery = st.chat_input("Enter your question")
 
-
-    # put this in a separate file
     if userQuery:
+        # TODO: Do more formatting
         # display the user's entered prompt
-        st.text(userQuery)
+        st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
 
         copilot.query(userQuery)
 
