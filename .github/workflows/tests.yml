@@ -19,7 +19,7 @@ jobs:
       matrix:
 #        os: [macos-latest]
         os: [windows-latest]
-        python-version: [3.9]
+        python-version: [3.9.13]
 
     steps:
       - uses: actions/checkout@v4
@@ -44,6 +44,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Cache requirements
         id: cache-requirements
