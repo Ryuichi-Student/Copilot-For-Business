@@ -46,7 +46,7 @@ class Database(ABC):
         pass
 
     @abstractmethod
-    def query(self, code: str) -> pd.DataFrame:
+    def query(self, code: str, is_df: bool, is_single_value: bool) -> pd.DataFrame:
         pass
 
     @abstractmethod
@@ -73,9 +73,39 @@ class SQLiteDatabase(Database):
     def __init__(self, file_path, additionalMetadata=None):
         super().__init__(file_path, additionalMetadata)
 
-    def query(self, code):
-        with sqlite3.connect(self.url) as conn:
-            return pd.read_sql_query(code, conn)
+    def query(self, code, is_df = True, is_single_value = False):
+
+        def check_single_value(cursor):
+            first_result = cursor.fetchone()
+            if first_result is not None:
+                next_result = cursor.fetchone()
+                return len(first_result) == 1 and next_result is None
+            return False
+        
+        with sqlite3.connect("file:"+self.url+'?mode=ro', uri=True) as conn:
+            if is_df:
+                try:
+                    df = pd.read_sql_query(code, conn)
+                    if is_single_value and not df.shape == (1, 1):
+                        raise RuntimeError("SQL query does not return single value, but single value expected")
+                    if is_single_value:
+                        return df.iloc[0, 0]
+                    else:
+                        return df
+                except sqlite3.Error as e:
+                    raise e
+            else:
+                cursor = conn.cursor()
+                try:
+                    cursor_result = cursor.execute(code)
+                    if is_single_value and not check_single_value(cursor_result):
+                        raise RuntimeError("SQL query does not return single value, but single value expected")
+                except sqlite3.Error as e:
+                    raise e
+                except Exception as e:
+                    raise e
+                finally:
+                    conn.rollback()
 
     def getSchema(self):
         # print(f"URL: {self.url}")
@@ -181,7 +211,7 @@ class CSVDatabase(Database):
         super().__init__(file_path, additionalMetadata)
         self.dataframe = pd.read_csv(self.url)
 
-    def query(self, code):
+    def query(self, code, is_df, is_single_value):
         return psql.sqldf(code, locals())
 
     def getSchema(self):
@@ -203,4 +233,3 @@ class CSVDatabase(Database):
     def getDescriptionEmbeddings(self):
         # Implement this method
         pass
-
