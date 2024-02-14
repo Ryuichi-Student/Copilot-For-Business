@@ -3,10 +3,11 @@ import matplotlib.pyplot as plot
 from src.backend.visualisation.Visualisation import Visualisation
 
 class BarChart(Visualisation):
-    def __init__(self, title, data, query, xaxis, yaxis):
-        super().__init__(title, data, query)
-        self.x_axis = xaxis
-        self.y_axis = yaxis
+    def __init__(self, data, query, info):
+        super().__init__(data, query, info)
+        self.title = info['title']
+        self.x_axis = info['x_axis']
+        self.y_axis = info['y_axis']
     
     # functions for the actioner
     @staticmethod
