@@ -1,9 +1,8 @@
-import json
 from textwrap import dedent
-from src.backend.utils.database import Database
+from src.backend.database import Database
 from src.backend.utils.gpt import get_gpt_response
 from src.backend.visualisation import visualisation_subclasses
-import pandas as pd
+
 
 # https://community.openai.com/t/cheat-sheet-mastering-temperature-and-top-p-in-chatgpt-api/172683
 
@@ -133,8 +132,3 @@ class Actioner:
 
 
         return response
-
-    class Action:
-        """
-
-        """

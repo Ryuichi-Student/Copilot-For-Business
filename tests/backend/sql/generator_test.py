@@ -1,9 +1,8 @@
-import sqlite3 as sql
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 from src.backend.sql.generator import SQLGenerator
-from src.backend.utils.database import SQLiteDatabase
+from src.backend.database import SQLiteDatabase
 
 
 class TestSQLGenerator:

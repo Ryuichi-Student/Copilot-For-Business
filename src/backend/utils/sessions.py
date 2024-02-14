@@ -3,6 +3,7 @@ from collections import deque
 from typing import Any, Dict, List
 
 
+# TODO: Load from and save to persistent storage
 class Session_Storage:
     """
         A class for managing sessions with a focus on maintaining a most-recently-used (MRU) order.
@@ -11,7 +12,8 @@ class Session_Storage:
             session_data (dict): Stores session information indexed by session ID.
             mru (deque): A double-ended queue to track session IDs in MRU order.
             to_delete (set): A set of session IDs marked for deletion.
-        """
+    """
+
     def __init__(self, rerun):
         self.session_data = {}
         self.mru = deque()
@@ -54,22 +56,30 @@ class Session_Storage:
         Returns:
             list: A list of session IDs in most-recently-used order.
         """
-        seen = set()
-        if self.to_delete:
-            while self.mru:
-                session_id = self.mru.popleft()
-                if session_id in seen:
-                    continue
-                else:
-                    seen.add(session_id)
-
-                if session_id not in self.to_delete:
-                    self.mru.append(session_id)
-                else:
-                    self.to_delete.remove(session_id)
+        self.update_sessions()
         return list(self.mru)
 
-    def get_session_data(self, session_id: uuid.UUID) -> Dict[str, Any]:
+    def update_sessions(self) -> None:
+        """
+        Cleans up the MRU list by removing any sessions marked for deletion.
+        :return:
+        """
+        seen = set()
+        new = deque()
+        while self.mru:
+            session_id = self.mru.popleft()
+            if session_id in seen:
+                continue
+            else:
+                seen.add(session_id)
+
+            if session_id not in self.to_delete:
+                new.append(session_id)
+            else:
+                self.to_delete.remove(session_id)
+        self.mru = new
+
+    def get_session_data(self, session_id: uuid.UUID, update=False) -> Dict[str, Any]:
         """
         Retrieves the data for a given session.
 
@@ -81,9 +91,13 @@ class Session_Storage:
         """
         if session_id not in self.session_data:
             return None
+
+        if update:
+            self.update_sessions()
+
         return self.session_data[session_id]
 
-    def update_session_data(self, session_id: uuid.UUID, data: Any) -> None:
+    def update_session_data(self, session_id: uuid.UUID, data: Any = None) -> None:
         """
         Updates the data for a given session and ensures the session is marked as most recently used.
 
@@ -91,6 +105,10 @@ class Session_Storage:
             session_id (UUID): The unique identifier of the session to update.
             data: The new data to store in the session.
         """
-        self.session_data[session_id]["data"] = data
+        if data is not None:
+            self.session_data[session_id]["data"] = data
         if self.mru[0] != session_id:
             self.mru.appendleft(session_id)
+            self.update_sessions()
+
+            self.rerun()
