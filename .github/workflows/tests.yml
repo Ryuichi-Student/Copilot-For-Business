@@ -42,11 +42,11 @@ jobs:
 
       - name: Add Python to PATH
         run: |
-          $pythonPath = "C:\actions-runner\_work\_tool\Python\3.9.13" # Update this path
+          $pythonPath = "C:\actions-runner\_work\_tool\Python\3.9.13\x64" # Update this path
 
       - name: Check Python and PATH
         run: |
-          C:\actions-runner\_work\_tool\Python\3.9.13 --version
+          C:\actions-runner\_work\_tool\Python\3.9.13\x64\python-3.9.13-amd64.exe --version
           echo $Env:PATH
 #      - name: Set up Python ${{ matrix.python-version }}
 #        uses: actions/setup-python@v4
