@@ -108,7 +108,7 @@ class Copilot:
             print("---------------------Getting dataframes----------------------")
             query.get_dfs(threadpool=self.threadpool)
             print("---------------------Getting plot----------------------")
-            dfs_database = DataFrameDatabase(query.dfs)
+            dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
             query.get_plot(Actioner(dfs_database), dfs_database)
 
         return self.UserQueries[userQuery]
