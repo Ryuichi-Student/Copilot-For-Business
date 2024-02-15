@@ -1,8 +1,8 @@
 from src.backend.visualisation.Visualisation import Visualisation
 
 class NoChart(Visualisation):
-    def __init__(self, title, data, query):
-        super().__init__(title, data, query)
+    def __init__(self, data, query, info):
+        super().__init__(data, query, info)
 
     # functions for the actioner
     @staticmethod

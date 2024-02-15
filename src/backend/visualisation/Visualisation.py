@@ -4,8 +4,7 @@ import matplotlib
 from abc import ABC, abstractmethod
 
 class Visualisation(ABC):
-    def __init__(self, title, data, query):
-        self.title = title
+    def __init__(self, data, query, info):
         self.df: pd.DataFrame = data
         self.query = query
     

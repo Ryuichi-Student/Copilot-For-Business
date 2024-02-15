@@ -1,10 +1,15 @@
 import atexit
-from concurrent.futures import as_completed, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict
+
+import pandas as pd
+from pprint import pprint
 
 from src.backend.actioner import Actioner
-from src.backend.database import SQLiteDatabase
+from src.backend.database import SQLiteDatabase, DataFrameDatabase, Database
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation.PieChart import PieChart
+from src.backend.visualisation import visualisation_subclasses
 
 
 # TODO: After we finish everything, we can start making this into more than 2 layers.
@@ -20,20 +25,19 @@ class Query:
         self.sql_generators = None
         self.answer = ""
         self.plot = None
-        self.df = None
+        self.dfs = None
 
     def set_requirements(self, actioner):
         print(self.requirements)
         if self.requirements is None:
             self.requirements = actioner.get_requirements(self.userQuery)
 
-    def set_actionCommands(self, actioner, threadpool):
+    def set_actionCommands(self, actioner):
         if self.actionCommands is None:
             if self.requirements is None:
                 self.actionCommands = []
             else:
-                futures = [threadpool.submit(actioner.get_action, req, self.userQuery) for req in self.requirements]
-                self.actionCommands = [future.result() for future in futures]
+                self.actionCommands = [x for x in actioner.get_action(self.requirements) if x['status'] == 'success']
         print(f"ActionCommands: {self.actionCommands}")
 
     def create_sql_query(self, db, threadpool):
@@ -56,31 +60,31 @@ class Query:
 
         print(f"Queries: {self.queries}")
 
-    def execute_sql_queries(self):
-        if self.df is None:
-            if self.queries is None:
-                self.df = []
+    def execute_sql_queries(self, threadpool):
+        if self.dfs is None:
+            futures = [threadpool.submit(self.sql_generators[i].executeQuery, self.queries[i]) for i in range(len(self.queries))]
+            self.dfs = [future.result() for future in futures]
+        pprint(f"Dataframes: {self.dfs}")
+
+    def get_plot(self, actioner: Actioner, database: Database):
+        if self.plot is None and self.answer is None:
+            cmd = actioner.get_final_action(self.userQuery)
+            pprint(cmd)
+            graph_info = cmd['graph_info']
+            sql = SQLGenerator(database, cmd['command'], cmd['relevant_columns'], graph_info)
+            query = sql.getQuery()
+            pprint(query)
+            df = sql.executeQuery(query)
+            pprint(df)
+            if isinstance(df, pd.DataFrame):
+                vis = visualisation_subclasses[cmd['graph_type']](df, self.userQuery, graph_info)
+                self.plot = vis.generate()
             else:
-                self.df = [self.sql_generators[i].executeQuery(self.queries[i]) for i in range(len(self.queries))]
-        print(f"Dataframes: {self.df}")
-
-    def get_df(self):
-        if self.df is None:
-            # TODO: Ask GPT to now answer the question using the data that it now has.
-            pass
-        return self.df
-
-    # TODO: Implement the methods below without hard coding
-    def get_plot(self):
-        # TODO: Use the get_df method to get the data instead of the following
-        pie = PieChart("Customer value", self.df[0],
-                       "SELECT c.first || ' ' || COALESCE(c.middle || ' ', '') || c.last AS Client_Name, SUM(t.amount) AS Total_Spending FROM completedtrans t JOIN completedacct a ON t.account_id = a.account_id JOIN completeddisposition d ON a.account_id = d.account_id JOIN completedclient c ON d.client_id = c.client_id GROUP BY c.client_id ORDER BY Total_Spending DESC",
-                       "Client_Name", "Total_Spending")
-        self.plot = {"df": self.df, "pie": pie}
+                self.answer = df
         return self.plot
 
     def get_answer(self):
-        return
+        return self.answer
 
     def __dict__(self):
         """ JSON serialisable """
@@ -92,7 +96,7 @@ class Query:
             "sql_generators": self.sql_generators,
             "answer": self.answer,
             "plot": self.plot,
-            "df": self.df
+            "dfs": self.dfs
         }
 
 
@@ -101,7 +105,7 @@ class Copilot:
     def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5)):
         if dbtype == "sqlite":
             self.db = SQLiteDatabase(db)
-        self.UserQueries = {}
+        self.UserQueries: Dict[int, Query] = {}
         self.actioner = Actioner(self.db)
         self.threadpool = threadpool
         atexit.register(self.cleanup)
@@ -111,11 +115,11 @@ class Copilot:
         if userQuery not in self.UserQueries:
             query = self.UserQueries[userQuery] = Query(_userQuery)
             query.set_requirements(self.actioner)
-            query.set_actionCommands(self.actioner, threadpool=self.threadpool)
+            query.set_actionCommands(self.actioner)
             query.create_sql_query(self.db, threadpool=self.threadpool)
-            query.execute_sql_queries()
-            df = query.get_df()
-            query.get_plot()
+            query.execute_sql_queries(threadpool=self.threadpool)
+            dfs_database = DataFrameDatabase(query.dfs)
+            query.get_plot(Actioner(dfs_database), dfs_database)
 
         return self.UserQueries[userQuery]
 
@@ -131,8 +135,11 @@ class Copilot:
     def get_sql(self, query: str) -> list[str]:
         return self.UserQueries[hash(query)].queries
 
-    def get_df(self, query: str):
-        return self.UserQueries[hash(query)].df
+    def get_dfs(self, query: str):
+        return self.UserQueries[hash(query)].dfs
+
+    def get_answer(self, query: str):
+        return self.UserQueries[hash(query)].answer
 
     def get_plot(self, query: str):
         return self.UserQueries[hash(query)].plot
