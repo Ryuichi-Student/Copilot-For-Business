@@ -125,9 +125,6 @@ class Copilot:
     def get_dfs(self, query: str):
         return self.UserQueries[hash(query)].dfs
     
-    def get_plot(self, query: str):
-        return self.UserQueries[hash(query)].plot
-    
     def get_answer(self, query: str):
         return self.UserQueries[hash(query)].answer
 
