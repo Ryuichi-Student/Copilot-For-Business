@@ -1,5 +1,10 @@
 import matplotlib.pyplot as plot
 import pandas as pd
+import plotly.express as px
+
+# for running this file only
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from src.backend.visualisation.Visualisation import Visualisation
 
 class LineChart(Visualisation):
@@ -31,20 +36,22 @@ class LineChart(Visualisation):
             # handle
             return
         
-        x_axis = self.df[self.x_axis]
-        y_axis = self.df[self.y_axis]
+        fig = px.line(self.df, x=self.x_axis, y=self.y_axis, title=self.title)
+        
+        # x_axis = self.df[self.x_axis]
+        # y_axis = self.df[self.y_axis]
 
          # sets the size of the bar graph
-        fig = plot.figure(figsize=(10,6))
+        # fig = plot.figure(figsize=(10,6))
 
-        # plots a bar graph
-        plot.plot(x_axis, y_axis)
-        # sets the title of the graph
-        plot.title(self.title)
-        # sets the x and y axis labels
-        # TODO: change these to natural language/remove - they're just the data frame column names at the moment
-        plot.xlabel(self.x_axis)
-        plot.ylabel(self.y_axis)
+        # # plots a bar graph
+        # plot.plot(x_axis, y_axis)
+        # # sets the title of the graph
+        # plot.title(self.title)
+        # # sets the x and y axis labels
+        # # TODO: change these to natural language/remove - they're just the data frame column names at the moment
+        # plot.xlabel(self.x_axis)
+        # plot.ylabel(self.y_axis)
 
         return fig
 
@@ -58,3 +65,8 @@ class LineChart(Visualisation):
         else:
             return True
 
+# df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
+
+# chart = LineChart(df, "SELECT * FROM *", {"title": "title 1", "x_axis" : "lab", "y_axis" : "val"})
+# fig = chart.generate()
+# fig.show()

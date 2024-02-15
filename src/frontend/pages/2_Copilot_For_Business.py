@@ -65,16 +65,17 @@ if current_session_id is not None:
 
         # pass data, query, and actioner parameters to the visualisation
 
-        # go to new page to show plot? allow a keep and delete
         # show code
         # show sql
 
-        # button to allow the user to accept or remove --> a button
+        # button to allow the user to accept or remove
 
         plot = copilot.get_plot(userQuery)
         answer = copilot.get_answer(userQuery)
         if plot:
-            st.pyplot(plot)
+            config = {'displayModeBar': None}
+
+            st.plotly_chart(plot, config=config)
         if answer:
             st.write(answer)
 

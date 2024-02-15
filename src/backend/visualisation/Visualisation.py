@@ -1,7 +1,5 @@
 from typing import Dict
 import pandas as pd
-import matplotlib
-from abc import ABC, abstractmethod
 
 class Visualisation():
     def __init__(self, data, query, info):
