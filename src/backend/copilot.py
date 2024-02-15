@@ -131,6 +131,9 @@ class Copilot:
     def get_answer(self, query: str):
         return self.UserQueries[hash(query)].answer
 
+    def get_plot(self, query: str):
+        return self.UserQueries[hash(query)].plot
+
     def cleanup(self):
         print("Cleaning up threadpool")
         self.threadpool.shutdown(wait=False)

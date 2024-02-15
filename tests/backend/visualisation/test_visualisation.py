@@ -3,9 +3,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-# import bar graph class
 from src.backend.visualisation.BarChart import BarChart
-# import pie chart class
 from src.backend.visualisation.PieChart import PieChart
 from src.backend.visualisation.LineChart import LineChart
 
