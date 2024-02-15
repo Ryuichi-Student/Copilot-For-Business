@@ -1,6 +1,8 @@
-import pandas as pd
 import matplotlib.pyplot as plot
+import pandas as pd
+import plotly.express as px
 from src.backend.visualisation.Visualisation import Visualisation
+
 
 class BarChart(Visualisation):
     def __init__(self, data, query, info):
@@ -35,20 +37,25 @@ class BarChart(Visualisation):
             return
         
         # x and y axis variables
-        x_axis = self.df[self.x_axis]
-        y_axis = self.df[self.y_axis]
+        # x_axis = self.df[self.x_axis]
+        # y_axis = self.df[self.y_axis]
+
+
+
+        fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title)
+
 
         # sets the size of the bar graph
-        fig = plot.figure(figsize=(10,6))
+        # fig = plot.figure(figsize=(10,6))
 
-        # plots a bar graph
-        plot.bar(x_axis, y_axis)
-        # sets the title of the graph
-        plot.title(self.title)
-        # sets the x and y axis labels
-        # TODO: change these to natural language/remove - they're just the column names at the moment
-        plot.xlabel(self.x_axis)
-        plot.ylabel(self.y_axis)
+        # # plots a bar graph
+        # plot.bar(x_axis, y_axis)
+        # # sets the title of the graph
+        # plot.title(self.title)
+        # # sets the x and y axis labels
+        # # TODO: change these to natural language/remove - they're just the column names at the moment
+        # plot.xlabel(self.x_axis)
+        # plot.ylabel(self.y_axis)
 
         return fig
     
@@ -65,14 +72,12 @@ class BarChart(Visualisation):
         else:
             return True
     
-    def getSQLQuery(self) -> str:
-        return self.query
     
 
 
 
 # df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
+# bar = BarChart(df, "query", {'title': 'title1', 'x_axis': 'lab', 'y_axis': 'val'})
+# fig = bar.generate()
 
-# bar = BarChart("title 1", df, "SELECT * FROM *", "lab", "val")
-# bar.generate()
-# plot.show()
+# fig.show()
