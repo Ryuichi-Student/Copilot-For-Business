@@ -33,17 +33,36 @@ class Query:
                 self.actionCommands = []
             else:
                 futures = [threadpool.submit(actioner.get_action, req, self.userQuery) for req in self.requirements]
-                self.actionCommands = [future.result() for future in as_completed(futures)]
+                self.actionCommands = [future.result() for future in futures]
+        print(f"ActionCommands: {self.actionCommands}")
 
     def create_sql_query(self, db, threadpool):
+        def _make_query(sql):
+            q = sql.parseQuery(sql.generateQuery())
+            if sql.validateQuery(q):
+                return q
+            else:
+                print(f"Invalid SQL query: {q}")
+                return q
+
         if self.queries is None:
             if self.actionCommands is None or self.requirements is None:
                 self.sql_generators = []
                 self.queries = []
             else:
-                self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, list(self.requirements.keys())) for actionCommand in self.actionCommands]
-                futures = [threadpool.submit(sql.validateQuery, sql.parseQuery(sql.generateQuery())) for sql in self.sql_generators]
-                self.queries = [future.result() for future in as_completed(futures)]
+                self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, self.requirements) for actionCommand in self.actionCommands]
+                futures = [threadpool.submit(lambda: _make_query(sql)) for sql in self.sql_generators]
+                self.queries = [future.result() for future in futures]
+
+        print(f"Queries: {self.queries}")
+
+    def execute_sql_queries(self):
+        if self.df is None:
+            if self.queries is None:
+                self.df = []
+            else:
+                self.df = [self.sql_generators[i].executeQuery(self.queries[i]) for i in range(len(self.queries))]
+        print(f"Dataframes: {self.df}")
 
     def get_df(self):
         if self.df is None:
@@ -53,7 +72,10 @@ class Query:
 
     # TODO: Implement the methods below without hard coding
     def get_plot(self):
-        pie = PieChart("title 1", self.df, "SELECT * FROM *", "lab", "val")
+        # TODO: Use the get_df method to get the data instead of the following
+        pie = PieChart("Customer value", self.df[0],
+                       "SELECT c.first || ' ' || COALESCE(c.middle || ' ', '') || c.last AS Client_Name, SUM(t.amount) AS Total_Spending FROM completedtrans t JOIN completedacct a ON t.account_id = a.account_id JOIN completeddisposition d ON a.account_id = d.account_id JOIN completedclient c ON d.client_id = c.client_id GROUP BY c.client_id ORDER BY Total_Spending DESC",
+                       "Client_Name", "Total_Spending")
         self.plot = {"df": self.df, "pie": pie}
         return self.plot
 
@@ -91,6 +113,7 @@ class Copilot:
             query.set_requirements(self.actioner)
             query.set_actionCommands(self.actioner, threadpool=self.threadpool)
             query.create_sql_query(self.db, threadpool=self.threadpool)
+            query.execute_sql_queries()
             df = query.get_df()
             query.get_plot()
 

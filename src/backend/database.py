@@ -87,7 +87,7 @@ class SQLiteDatabase(Database):
                 try:
                     df = pd.read_sql_query(code, conn)
                     if is_single_value and not df.shape == (1, 1):
-                        raise RuntimeError("SQL query does not return single value, but single value expected")
+                        raise ValueError("SQL query does not return single value, but single value expected")
                     if is_single_value:
                         return df.iloc[0, 0]
                     else:
@@ -99,7 +99,7 @@ class SQLiteDatabase(Database):
                 try:
                     cursor_result = cursor.execute(code)
                     if is_single_value and not check_single_value(cursor_result):
-                        raise RuntimeError("SQL query does not return single value, but single value expected")
+                        raise ValueError("SQL query does not return single value, but single value expected")
                 except sqlite3.Error as e:
                     raise e
                 except Exception as e:

@@ -43,9 +43,7 @@ class PieChart(Visualisation):
         # set the title
         plot.title(self.title)
 
-
         return fig
-
 
     def validate(self):
         if self.categories not in self.df:
