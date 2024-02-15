@@ -23,5 +23,5 @@ def test_validatePieChart():
 # test validation from pie chart
 def test_validateLineChart():
     df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
-    pie = LineChart(df, "query", {'title': 'title1', 'x_axis': 'lab', 'y_axis': 'val'})
-    assert pie.validate()
+    line = LineChart(df, "query", {'title': 'title1', 'x_axis': 'lab', 'y_axis': 'val'})
+    assert line.validate()
