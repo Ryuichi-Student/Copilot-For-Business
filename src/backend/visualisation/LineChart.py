@@ -42,7 +42,7 @@ class LineChart(Visualisation):
         # sets the title of the graph
         plot.title(self.title)
         # sets the x and y axis labels
-        # TODO: change these to natural language/remove - they're just the column names at the moment
+        # TODO: change these to natural language/remove - they're just the data frame column names at the moment
         plot.xlabel(self.x_axis)
         plot.ylabel(self.y_axis)
 

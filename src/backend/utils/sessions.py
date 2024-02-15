@@ -1,6 +1,6 @@
 import uuid
 from collections import deque
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 # TODO: Load from and save to persistent storage
@@ -16,7 +16,7 @@ class Session_Storage:
 
     def __init__(self, rerun):
         self.session_data = {}
-        self.mru = deque()
+        self.mru: deque = deque()
         self.to_delete = set()
         self.rerun = rerun
 
@@ -65,7 +65,7 @@ class Session_Storage:
         :return:
         """
         seen = set()
-        new = deque()
+        new: deque = deque()
         while self.mru:
             session_id = self.mru.popleft()
             if session_id in seen:
@@ -79,7 +79,7 @@ class Session_Storage:
                 self.to_delete.remove(session_id)
         self.mru = new
 
-    def get_session_data(self, session_id: uuid.UUID, update=False) -> Dict[str, Any]:
+    def get_session_data(self, session_id: uuid.UUID, update=False) -> Optional[Dict[str, Any]]:
         """
         Retrieves the data for a given session.
 
