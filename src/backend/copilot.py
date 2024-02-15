@@ -31,14 +31,14 @@ class Query:
             pprint(self.requirements)
 
     def set_actionInfos(self, actioner: Actioner):
-        if self.actionInfos is None:
+        if self.actionInfos is None and self.requirements is not None:
             reqs = self.requirements
             actionInfos = actioner.get_action(reqs)
             self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'}
             pprint(self.actionInfos)
 
     def create_queries(self, db: Database, threadpool):
-        if self.queries is None:
+        if self.queries is None and self.actionInfos is not None:
             self.sql_generators = {req:SQLGenerator(db, cmd['command'], cmd['relevant_columns']) for req,cmd in self.actionInfos.items()}
             futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
             queries = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
@@ -47,7 +47,7 @@ class Query:
             pprint(self.queries)
 
     def get_dfs(self, threadpool):
-        if self.dfs is None:
+        if self.dfs is None and self.sql_generators is not None and self.queries is not None:
             futures = {req:threadpool.submit(self.sql_generators[req].executeQuery, query) for req,query in self.queries.items()}
             dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
             # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
@@ -65,7 +65,7 @@ class Query:
             df = sql.executeQuery(query)
             pprint(df)
             if isinstance(df, pd.DataFrame):
-                vis = visualisation_subclasses[cmd['graph_type']](df, self.userQuery, graph_info)
+                vis = visualisation_subclasses[cmd['graph_type']](df, query, graph_info)
                 self.plot = vis.generate()
             else:
                 self.answer = df
@@ -117,17 +117,29 @@ class Copilot:
         return self.UserQueries[list(self.UserQueries.keys())[0]]
 
     def get_requirements(self, query: str) -> list[str]:
-        return self.UserQueries[hash(query)].requirements
+        requirements = self.UserQueries[hash(query)].requirements
+        if requirements is not None:
+            return requirements
+        raise Exception("unknown query")
 
     def get_actionInfos(self, query: str) -> list[str]:
-        return self.UserQueries[hash(query)].actionInfos
+        actionInfos = self.UserQueries[hash(query)].actionInfos
+        if actionInfos is not None:
+            return actionInfos
+        raise Exception("unknown query")
 
     def get_sql(self, query: str) -> list[str]:
-        return self.UserQueries[hash(query)].queries
+        queries = self.UserQueries[hash(query)].queries
+        if queries is not None:
+            return queries
+        raise Exception("unknown query")
 
-    def get_dfs(self, query: str):
-        return self.UserQueries[hash(query)].dfs
-    
+    def get_dfs(self, query: str) -> dict[str, pd.DataFrame]:
+        dfs = self.UserQueries[hash(query)].dfs
+        if dfs is not None:
+            return dfs
+        raise Exception("unknown query")
+
     def get_answer(self, query: str):
         return self.UserQueries[hash(query)].answer
 
