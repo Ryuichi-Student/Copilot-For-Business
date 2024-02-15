@@ -1,76 +1,86 @@
 import atexit
-from concurrent.futures import as_completed, ThreadPoolExecutor
+import pandas as pd
+from pprint import pprint
+from typing import Dict
+from concurrent.futures import ThreadPoolExecutor
 
 from src.backend.actioner import Actioner
-from src.backend.database import SQLiteDatabase
+from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
-from src.backend.visualisation.PieChart import PieChart
+from src.backend.visualisation import visualisation_subclasses
 
 
 # TODO: After we finish everything, we can start making this into more than 2 layers.
-# TODO: Parallelise actioncommands and sql query generation
 class Query:
     def __init__(self, userQuery):
         self.userQuery = userQuery
 
         self.requirements = None
-        self.actionCommands = None
-        self.queries = None
+        self.actionInfos = None
 
         self.sql_generators = None
-        self.answer = ""
-        self.plot = None
-        self.df = None
+        self.queries = None
+        self.dfs = None
 
-    def set_requirements(self, actioner):
-        print(self.requirements)
+        self.answer = None
+        self.plot = None
+
+    def set_requirements(self, actioner: Actioner):
         if self.requirements is None:
             self.requirements = actioner.get_requirements(self.userQuery)
+            pprint(self.requirements)
 
-    def set_actionCommands(self, actioner, threadpool):
-        if self.actionCommands is None:
-            if self.requirements is None:
-                self.actionCommands = []
+    def set_actionInfos(self, actioner: Actioner):
+        if self.actionInfos is None and self.requirements is not None:
+            reqs = self.requirements
+            actionInfos = actioner.get_action(reqs)
+            self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'}
+            pprint(self.actionInfos)
+
+    def create_queries(self, db: Database, threadpool):
+        if self.queries is None and self.actionInfos is not None:
+            self.sql_generators = {req:SQLGenerator(db, cmd['command'], cmd['relevant_columns']) for req,cmd in self.actionInfos.items()}
+            futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
+            queries = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
+            # queries = {req:sql.getQuery() for req,sql in self.sql_generators.items()}
+            self.queries = {req:query for req,query in queries.items() if query is not None}
+            pprint(self.queries)
+
+    def get_dfs(self, threadpool):
+        if self.dfs is None and self.sql_generators is not None and self.queries is not None:
+            futures = {req:threadpool.submit(self.sql_generators[req].executeQuery, query) for req,query in self.queries.items()}
+            dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
+            # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
+            self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
+            pprint(self.dfs)
+
+    def get_plot(self, actioner: Actioner, database: Database):
+        if self.plot is None and self.answer is None:
+            cmd = actioner.get_final_action(self.userQuery)
+            pprint(cmd)
+            graph_info = cmd['graph_info']
+            sql = SQLGenerator(database, cmd['command'], cmd['relevant_columns'], graph_info)
+            query = sql.getQuery()
+            pprint(query)
+            df = sql.executeQuery(query)
+            pprint(df)
+            if isinstance(df, pd.DataFrame):
+                vis = visualisation_subclasses[cmd['graph_type']](df, query, graph_info)
+                self.plot = vis.generate()
             else:
-                futures = [threadpool.submit(actioner.get_action, req, self.userQuery) for req in self.requirements]
-                self.actionCommands = [future.result() for future in as_completed(futures)]
-
-    def create_sql_query(self, db, threadpool):
-        if self.queries is None:
-            if self.actionCommands is None or self.requirements is None:
-                self.sql_generators = []
-                self.queries = []
-            else:
-                self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, list(self.requirements.keys())) for actionCommand in self.actionCommands]
-                futures = [threadpool.submit(sql.validateQuery, sql.parseQuery(sql.generateQuery())) for sql in self.sql_generators]
-                self.queries = [future.result() for future in as_completed(futures)]
-
-    def get_df(self):
-        if self.df is None:
-            # TODO: Ask GPT to now answer the question using the data that it now has.
-            pass
-        return self.df
-
-    # TODO: Implement the methods below without hard coding
-    def get_plot(self):
-        pie = PieChart("title 1", self.df, "SELECT * FROM *", "lab", "val")
-        self.plot = {"df": self.df, "pie": pie}
-        return self.plot
-
-    def get_answer(self):
-        return
+                self.answer = df
 
     def __dict__(self):
         """ JSON serialisable """
         return {
             "userQuery": self.userQuery,
             "requirements": self.requirements,
-            "actionCommands": self.actionCommands,
-            "queries": self.queries,
+            "actionInfos": self.actionInfos,
             "sql_generators": self.sql_generators,
+            "queries": self.queries,
+            "dfs": self.dfs,
             "answer": self.answer,
             "plot": self.plot,
-            "df": self.df
         }
 
 
@@ -79,7 +89,7 @@ class Copilot:
     def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5)):
         if dbtype == "sqlite":
             self.db = SQLiteDatabase(db)
-        self.UserQueries = {}
+        self.UserQueries: Dict[int, Query] = {}
         self.actioner = Actioner(self.db)
         self.threadpool = threadpool
         atexit.register(self.cleanup)
@@ -87,12 +97,19 @@ class Copilot:
     def query(self, _userQuery):
         userQuery = hash(_userQuery)
         if userQuery not in self.UserQueries:
+            print("---------------------Creating a new query----------------------")
             query = self.UserQueries[userQuery] = Query(_userQuery)
+            print("---------------------Setting requirements----------------------")
             query.set_requirements(self.actioner)
-            query.set_actionCommands(self.actioner, threadpool=self.threadpool)
-            query.create_sql_query(self.db, threadpool=self.threadpool)
-            df = query.get_df()
-            query.get_plot()
+            print("---------------------Setting actionInfos----------------------")
+            query.set_actionInfos(self.actioner)
+            print("---------------------Creating queries----------------------")
+            query.create_queries(self.db, threadpool=self.threadpool)
+            print("---------------------Getting dataframes----------------------")
+            query.get_dfs(threadpool=self.threadpool)
+            print("---------------------Getting plot----------------------")
+            dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
+            query.get_plot(Actioner(dfs_database), dfs_database)
 
         return self.UserQueries[userQuery]
 
@@ -100,16 +117,31 @@ class Copilot:
         return self.UserQueries[list(self.UserQueries.keys())[0]]
 
     def get_requirements(self, query: str) -> list[str]:
-        return self.UserQueries[hash(query)].requirements
+        requirements = self.UserQueries[hash(query)].requirements
+        if requirements is not None:
+            return requirements
+        raise Exception("unknown query")
 
-    def get_actionCommands(self, query: str) -> list[str]:
-        return self.UserQueries[hash(query)].actionCommands
+    def get_actionInfos(self, query: str) -> list[str]:
+        actionInfos = self.UserQueries[hash(query)].actionInfos
+        if actionInfos is not None:
+            return actionInfos
+        raise Exception("unknown query")
 
     def get_sql(self, query: str) -> list[str]:
-        return self.UserQueries[hash(query)].queries
+        queries = self.UserQueries[hash(query)].queries
+        if queries is not None:
+            return queries
+        raise Exception("unknown query")
 
-    def get_df(self, query: str):
-        return self.UserQueries[hash(query)].df
+    def get_dfs(self, query: str) -> dict[str, pd.DataFrame]:
+        dfs = self.UserQueries[hash(query)].dfs
+        if dfs is not None:
+            return dfs
+        raise Exception("unknown query")
+
+    def get_answer(self, query: str):
+        return self.UserQueries[hash(query)].answer
 
     def get_plot(self, query: str):
         return self.UserQueries[hash(query)].plot

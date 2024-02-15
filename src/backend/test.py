@@ -1,6 +1,8 @@
-from src.backend.database import SQLiteDatabase
+import pandas as pd
+from src.backend.copilot import Copilot
+from src.backend.database import DataFrameDatabase
 from src.backend.utils.gpt import get_gpt_response
-from src.backend.actioner import Actioner
+from src.backend.visualisation.PieChart import PieChart
 
 
 def dummy_test():
@@ -15,12 +17,12 @@ def test_api(message_placeholder, prompt = "What is the capital of Japan?"):
     )
 
 def test_actioner_workflow(query):
-    db = SQLiteDatabase('databases/crm_refined.sqlite3')
-    actioner = Actioner(db)
-    requirements = actioner.get_requirements(query)
-    print(requirements)
-    command = actioner.get_action(requirements[0], query)
+    copilot = Copilot()
+    copilot.query(query)
 
-    return command
+def get_test_chart():
+    df = pd.DataFrame({'lab': ['A', 'X', 'D'], 'val': [10, 30, 20]})
 
-
+    pie = PieChart(df, "", {'title': 'title1', 'categories': 'lab', 'count': 'val'})
+    plot = pie.generate()
+    return df, pie, plot
