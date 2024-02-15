@@ -150,21 +150,21 @@ class SQLGenerator:
             try:
                 self.database.query(query,is_df=False,is_single_value=self.is_single_value)
             except sqlite3.OperationalError as e:
-                raise QueryExecutionError(f"Sqlite3 Operational Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+                raise QueryExecutionError(f"Sqlite3 Operational Error: {e}")
             except sqlite3.ProgrammingError as e:
-                raise QueryExecutionError(f"Sqlite3 Programming Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+                raise QueryExecutionError(f"Sqlite3 Programming Error: {e}")
             except sqlite3.IntegrityError as e:
-                raise QueryExecutionError(f"Sqlite3 Integrity Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+                raise QueryExecutionError(f"Sqlite3 Integrity Error: {e}")
             except sqlite3.NotSupportedError as e:
-                raise QueryExecutionError(f"Sqlite3 Not Supported Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+                raise QueryExecutionError(f"Sqlite3 Not Supported Error: {e}")
             except sqlite3.DataError as e:
-                raise QueryExecutionError(f"Sqlite3 Data Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+                raise QueryExecutionError(f"Sqlite3 Data Error: {e}")
             except sqlite3.InternalError as e:
-                raise QueryExecutionError(f"Sqlite3 Internal Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+                raise QueryExecutionError(f"Sqlite3 Internal Error: {e}")
             except sqlite3.DatabaseError as e:
-                raise QueryExecutionError(f"Sqlite3 Database Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+                raise QueryExecutionError(f"Sqlite3 Database Error: {e}")
             except sqlite3.Error as e:
-                raise QueryExecutionError(f"Sqlite3 Error: {e.sqlite_errorname}, {e.sqlite_errorcode}")
+                raise QueryExecutionError(f"Sqlite3 Error: {e}")
     
     def getQuery(self):
         try:

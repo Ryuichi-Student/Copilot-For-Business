@@ -9,9 +9,6 @@ from src.backend.test import get_test_chart
 from src.backend.utils.sessions import Session_Storage
 
 
-df, bar, plot = get_test_chart()
-
-
 def display_session_ui():
     session_manager = st.session_state.session_storage
     sessions = session_manager.get_sessions()
