@@ -201,7 +201,8 @@ class SQLiteDatabase(Database):
 
 class DataFrameDatabase(Database):
     def __init__(self, requirements: List[str], dataframes: List[pd.DataFrame], additionalMetadata=None):
-        self._dataframes = {clean_name(req): df for req, df in zip(requirements, dataframes)}
+        self._dataframes = {clean_name(req): df for req, df in zip(requirements, dataframes) if df is not None}
+        print(self._dataframes)
         super().__init__(additionalMetadata)
     
     @property

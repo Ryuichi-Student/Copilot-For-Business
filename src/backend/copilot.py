@@ -23,7 +23,7 @@ class Query:
         self.queries = None
 
         self.sql_generators = None
-        self.answer = ""
+        self.answer = None
         self.plot = None
         self.dfs = None
 
@@ -41,13 +41,6 @@ class Query:
         print(f"ActionCommands: {self.actionCommands}")
 
     def create_sql_query(self, db, threadpool):
-        def _make_query(sql):
-            q = sql.parseQuery(sql.generateQuery())
-            if sql.validateQuery(q):
-                return q
-            else:
-                print(f"Invalid SQL query: {q}")
-                return q
 
         if self.queries is None:
             if self.actionCommands is None or self.requirements is None:
@@ -55,7 +48,7 @@ class Query:
                 self.queries = []
             else:
                 self.sql_generators = [SQLGenerator(db, self.userQuery, actionCommand, self.requirements) for actionCommand in self.actionCommands]
-                futures = [threadpool.submit(lambda: _make_query(sql)) for sql in self.sql_generators]
+                futures = [threadpool.submit(lambda: sql.getQuery()) for sql in self.sql_generators]
                 self.queries = [future.result() for future in futures]
 
         print(f"Queries: {self.queries}")
@@ -79,6 +72,7 @@ class Query:
             if isinstance(df, pd.DataFrame):
                 vis = visualisation_subclasses[cmd['graph_type']](df, self.userQuery, graph_info)
                 self.plot = vis.generate()
+                pprint(self.plot)
             else:
                 self.answer = df
         return self.plot
@@ -113,13 +107,23 @@ class Copilot:
     def query(self, _userQuery):
         userQuery = hash(_userQuery)
         if userQuery not in self.UserQueries:
+            print("---------creating query--------")
             query = self.UserQueries[userQuery] = Query(_userQuery)
+            print("---------setting requirements--------")
             query.set_requirements(self.actioner)
+            print(query.requirements)
+            print("---------setting actions--------")
             query.set_actionCommands(self.actioner)
+            print("---------creating sql--------")
             query.create_sql_query(self.db, threadpool=self.threadpool)
+            print("---------executing sql--------")
             query.execute_sql_queries(threadpool=self.threadpool)
-            dfs_database = DataFrameDatabase(query.dfs)
-            query.get_plot(Actioner(dfs_database), dfs_database)
+            print(query.dfs)
+            print("---------answering question--------")
+            dfs_database = DataFrameDatabase(query.requirements, query.dfs)
+            print("---------getting plot--------")
+            plot = query.get_plot(Actioner(dfs_database), dfs_database)
+            print(plot)
 
         return self.UserQueries[userQuery]
 

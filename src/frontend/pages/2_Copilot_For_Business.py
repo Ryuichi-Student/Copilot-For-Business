@@ -78,4 +78,4 @@ if current_session_id is not None:
 
         sqlView = st.toggle("Show SQL query")
         if sqlView:
-            st.write(plot["pie"].getSQLQuery())
+            st.write(plot.getSQLQuery())
