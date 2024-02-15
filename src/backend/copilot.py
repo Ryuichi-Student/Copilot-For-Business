@@ -2,7 +2,7 @@ import atexit
 import pandas as pd
 from pprint import pprint
 from typing import Dict
-from concurrent.futures import as_completed, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 
 from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
@@ -11,7 +11,6 @@ from src.backend.visualisation import visualisation_subclasses
 
 
 # TODO: After we finish everything, we can start making this into more than 2 layers.
-# TODO: Parallelise actionInfos and sql query generation
 class Query:
     def __init__(self, userQuery):
         self.userQuery = userQuery
@@ -39,20 +38,19 @@ class Query:
             pprint(self.actionInfos)
 
     def create_queries(self, db: Database, threadpool):
-        # TODO: Add concurrency. as_completed does not maintain the input order. Is there some way to maintain it?
         if self.queries is None:
             self.sql_generators = {req:SQLGenerator(db, cmd['command'], cmd['relevant_columns']) for req,cmd in self.actionInfos.items()}
-            # futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
-            # queries = {req:future.result() for req,future in zip(futures.keys(), as_completed(futures.values()))}
-            queries = {req:sql.getQuery() for req,sql in self.sql_generators.items()}
+            futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
+            queries = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
+            # queries = {req:sql.getQuery() for req,sql in self.sql_generators.items()}
             self.queries = {req:query for req,query in queries.items() if query is not None}
             pprint(self.queries)
 
     def get_dfs(self, threadpool):
         if self.dfs is None:
-            # futures = {req:threadpool.submit(self.sql_generators[req].executeQuery, query) for req,query in self.queries.items()}
-            # dataframes = {req:future.result() for req,future in zip(futures.keys(), as_completed(futures.values()))}
-            dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
+            futures = {req:threadpool.submit(self.sql_generators[req].executeQuery, query) for req,query in self.queries.items()}
+            dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
+            # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
             self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
             pprint(self.dfs)
 
@@ -71,7 +69,6 @@ class Query:
                 self.plot = vis.generate()
             else:
                 self.answer = df
-
 
     def __dict__(self):
         """ JSON serialisable """
@@ -100,11 +97,17 @@ class Copilot:
     def query(self, _userQuery):
         userQuery = hash(_userQuery)
         if userQuery not in self.UserQueries:
+            print("---------------------Creating a new query----------------------")
             query = self.UserQueries[userQuery] = Query(_userQuery)
+            print("---------------------Setting requirements----------------------")
             query.set_requirements(self.actioner)
+            print("---------------------Setting actionInfos----------------------")
             query.set_actionInfos(self.actioner)
+            print("---------------------Creating queries----------------------")
             query.create_queries(self.db, threadpool=self.threadpool)
+            print("---------------------Getting dataframes----------------------")
             query.get_dfs(threadpool=self.threadpool)
+            print("---------------------Getting plot----------------------")
             dfs_database = DataFrameDatabase(query.dfs)
             query.get_plot(Actioner(dfs_database), dfs_database)
 

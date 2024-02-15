@@ -78,3 +78,7 @@ if current_session_id is not None:
         if answer:
             st.write(answer)
 
+        sqlView = st.toggle("Show SQL", False)
+        if sqlView:
+            st.write(copilot.get_sql(userQuery))
+
