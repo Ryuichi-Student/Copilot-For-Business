@@ -6,6 +6,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import streamlit as st
+from src.backend.visualisation.LineChart import LineChart
 from src.backend.database import SQLiteDatabase
 from src.backend.test import *
 
@@ -15,6 +16,9 @@ from src.backend.test import *
 prompt = st.chat_input("Say something")
 if prompt:
     st.write(f"User has sent the following prompt: {prompt}")
-    command = test_actioner_workflow(prompt)
 
-    st.write(f"Backend has responded with the following command: {command}")
+    df, chart, _ = get_test_chart()
+    st.write(chart.getSQLQuery())
+    # command = test_actioner_workflow(prompt)
+
+    # st.write(f"Backend has responded with the following command: {command}")

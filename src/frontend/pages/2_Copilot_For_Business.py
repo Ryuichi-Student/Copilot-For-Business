@@ -73,13 +73,20 @@ if current_session_id is not None:
         plot = copilot.get_plot(userQuery)
         answer = copilot.get_answer(userQuery)
         if plot:
+            fig = plot.generate()
             config = {'displayModeBar': None}
 
-            st.plotly_chart(plot, config=config)
+            st.plotly_chart(fig, config=config)
         if answer:
             st.write(answer)
 
         sqlView = st.toggle("Show SQL", False)
         if sqlView:
-            st.write(copilot.get_sql(userQuery))
+            st.write(plot.getSQLQuery())
+        
+
+        print(plot.query)
+        print(copilot.get_sql(userQuery))
+        print(type(plot.query))
+        print(type(copilot.get_sql(userQuery)))
 

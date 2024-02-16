@@ -66,7 +66,7 @@ class Query:
             pprint(df)
             if isinstance(df, pd.DataFrame):
                 vis = visualisation_subclasses[cmd['graph_type']](df, query, graph_info)
-                self.plot = vis.generate()
+                self.plot = vis
             else:
                 self.answer = df
 
