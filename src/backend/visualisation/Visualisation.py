@@ -29,5 +29,12 @@ class Visualisation():
     def validate(self) -> bool:
         return True
     
-    def getSQLQuery(self) -> str:
-        return self.query
+    def getSQLQuery(self):
+        # make this better
+        # do an sql formatter function to explain to the user?
+        description = (f'''
+            This data used to create this chart was fetched using the following SQL query:
+            
+            {self.query}
+        ''')
+        return description
