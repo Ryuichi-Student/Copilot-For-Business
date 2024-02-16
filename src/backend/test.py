@@ -23,6 +23,6 @@ def test_actioner_workflow(query):
 def get_test_chart():
     df = pd.DataFrame({'lab': ['A', 'X', 'D'], 'val': [10, 30, 20]})
 
-    pie = PieChart(df, "", {'title': 'title1', 'categories': 'lab', 'count': 'val'})
+    pie = PieChart(df, "SELECT id, count, firstname FROM database1", {'title': 'title1', 'categories': 'lab', 'count': 'val'})
     plot = pie.generate()
     return df, pie, plot
