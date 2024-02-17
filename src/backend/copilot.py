@@ -100,6 +100,8 @@ class Copilot:
         atexit.register(self.cleanup)
 
     def query(self, _userQuery):
+        if self.status_placeholder is None:
+            raise Exception("status_placeholder is not set")
         userQuery = hash(_userQuery)
         if userQuery not in self.UserQueries:
             with self.status_placeholder:
