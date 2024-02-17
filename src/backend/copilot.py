@@ -1,4 +1,6 @@
 import atexit
+import time
+
 import pandas as pd
 from pprint import pprint
 from typing import Dict
@@ -8,6 +10,8 @@ from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
+
+import streamlit as st
 
 
 # TODO: After we finish everything, we can start making this into more than 2 layers.
@@ -92,24 +96,36 @@ class Copilot:
         self.UserQueries: Dict[int, Query] = {}
         self.actioner = Actioner(self.db)
         self.threadpool = threadpool
+        self.status_placeholder = None
         atexit.register(self.cleanup)
 
     def query(self, _userQuery):
         userQuery = hash(_userQuery)
         if userQuery not in self.UserQueries:
-            print("---------------------Creating a new query----------------------")
-            query = self.UserQueries[userQuery] = Query(_userQuery)
-            print("---------------------Setting requirements----------------------")
-            query.set_requirements(self.actioner)
-            print("---------------------Setting actionInfos----------------------")
-            query.set_actionInfos(self.actioner)
-            print("---------------------Creating queries----------------------")
-            query.create_queries(self.db, threadpool=self.threadpool)
-            print("---------------------Getting dataframes----------------------")
-            query.get_dfs(threadpool=self.threadpool)
-            print("---------------------Getting plot----------------------")
-            dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
-            query.get_plot(Actioner(dfs_database), dfs_database)
+            with self.status_placeholder:
+                print("---------------------Creating a new query----------------------")
+                st.write("Understanding the assignment")
+                query = self.UserQueries[userQuery] = Query(_userQuery)
+
+                print("---------------------Setting requirements----------------------")
+                query.set_requirements(self.actioner)
+
+                print("---------------------Setting actionInfos----------------------")
+                st.write("Figuring out what to do")
+                query.set_actionInfos(self.actioner)
+
+                print("---------------------Creating queries----------------------")
+                st.write("Creating subqueries")
+                query.create_queries(self.db, threadpool=self.threadpool)
+
+                print("---------------------Getting dataframes----------------------")
+                st.write("Gathering required data")
+                query.get_dfs(threadpool=self.threadpool)
+
+                print("---------------------Getting plot----------------------")
+                st.write("Getting an answer")
+                dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
+                query.get_plot(Actioner(dfs_database), dfs_database)
 
         return self.UserQueries[userQuery]
 
@@ -149,3 +165,6 @@ class Copilot:
     def cleanup(self):
         print("Cleaning up threadpool")
         self.threadpool.shutdown(wait=False)
+
+    def set_status_placeholder(self, animation_placeholder):
+        self.status_placeholder = animation_placeholder
