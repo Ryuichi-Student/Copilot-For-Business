@@ -18,7 +18,7 @@ class PieChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a pie chart is most suitable to represent the data."
+        return "This should be chosen when a pie chart is most suitable to represent the data, for example to compare parts of a whole and percentages."
 
     @staticmethod
     def getChartParametersForActioner():
