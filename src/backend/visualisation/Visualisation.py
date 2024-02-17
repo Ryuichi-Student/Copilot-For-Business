@@ -1,5 +1,7 @@
 from typing import Dict
 import pandas as pd
+from src.backend.utils.gpt import get_gpt_response
+
 
 class Visualisation():
     def __init__(self, data, query, info):
@@ -26,6 +28,12 @@ class Visualisation():
     def generate(self):
         pass
     
+    # limits data frame to the top 10 bars
+    def topn(self, n):
+        limit = self.df.nlargest(10, self.y_axis)
+        self.modifiedDF = limit
+    
+
     def validate(self) -> bool:
         return True
     
@@ -33,7 +41,7 @@ class Visualisation():
         # make this better
         # do an sql formatter function to explain to the user?
         description = (f'''
-            This data used to create this chart was fetched using the following SQL query:
+            The data used to create this chart was fetched using the following SQL query:
             
             {self.query}
         ''')

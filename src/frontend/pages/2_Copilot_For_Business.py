@@ -73,6 +73,7 @@ if current_session_id is not None:
         plot = copilot.get_plot(userQuery)
         answer = copilot.get_answer(userQuery)
         if plot:
+            plot.topn(10)
             fig = plot.generate()
             config = {'displayModeBar': None}
 
@@ -83,10 +84,3 @@ if current_session_id is not None:
         sqlView = st.toggle("Show SQL", False)
         if sqlView:
             st.write(plot.getSQLQuery())
-        
-
-        print(plot.query)
-        print(copilot.get_sql(userQuery))
-        print(type(plot.query))
-        print(type(copilot.get_sql(userQuery)))
-

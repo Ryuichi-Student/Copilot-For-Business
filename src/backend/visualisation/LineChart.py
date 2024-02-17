@@ -20,7 +20,7 @@ class LineChart(Visualisation):
     
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a line chart is most suitable to represent the data, for example to display continuous numerical data."
+        return "This should be chosen when a line chart is most suitable to represent the data, for example to display continuous numerical data or change over time."
 
     @staticmethod
     def getChartParametersForActioner():
