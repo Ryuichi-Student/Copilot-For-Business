@@ -1,8 +1,12 @@
 from openai import OpenAI
 import dotenv
+import atexit
+import tiktoken
+
 
 config = dotenv.dotenv_values(".env")
 client = OpenAI(api_key=config['OPENAI_API_KEY'])
+
 
 def get_gpt_embedding(text):
     # calls openai embedding endpoint
@@ -13,6 +17,24 @@ def get_gpt_embedding(text):
     embedding = response.data[0].embedding
     return embedding
 
+
+total_tokens_used = 0
+
+
+def track_tokens(func):
+    """
+    Decorator to track the number of tokens used by the GPT API.
+    """
+    def wrapper(*args, **kwargs):
+        global total_tokens_used
+        response, prompt_tokens, output_tokens = func(*args, **kwargs)
+        total_tokens_used += prompt_tokens + output_tokens
+        print(f"Prompt tokens: {prompt_tokens}, Output tokens: {output_tokens}, Total tokens used this session: {total_tokens_used}")
+        return response
+    return wrapper
+
+
+@track_tokens
 def get_gpt_response(*messages, history=None, model="gpt-4-turbo-preview", max_tokens=1500,
                      jsonMode=False, stream=False, message_placeholder=None,
                      top_p=0.5, frequency_penalty=0, presence_penalty=0):
@@ -29,20 +51,53 @@ def get_gpt_response(*messages, history=None, model="gpt-4-turbo-preview", max_t
         presence_penalty = presence_penalty
     )
     if not stream:
-        return gpt_response.choices[0].message.content
+        return gpt_response.choices[0].message.content, gpt_response.usage.prompt_tokens, gpt_response.usage.completion_tokens
     else:
         if message_placeholder is None:
             raise Exception("No stream placeholder!")
-        return get_stream(gpt_response, message_placeholder, "".join(history))
+
+        response, output_tokens = get_stream(gpt_response, message_placeholder, "".join(history))
+        prompt_tokens = num_tokens_from_string(" ".join(msg["content"] for msg in messages))
+        return response, prompt_tokens, output_tokens
+
 
 def get_stream(gpt_response, message_placeholder, full_response=""):
+    tokens = 0
     for response in gpt_response:
         try:
-            full_response += "" if response.choices[0].delta.content is None else response.choices[0].delta.content
+            if response.choices[0].delta.content is None:
+                continue
+            delta = response.choices[0].delta.content
+            full_response += delta
+            tokens += num_tokens_from_string(delta)
             message_placeholder.markdown(full_response + "▌")
         except Exception as e:
             print(response)
             print(f"error: {e}")
             continue
     message_placeholder.markdown(full_response)
-    return full_response
+    return full_response, tokens
+
+
+def num_tokens_from_string(string: str, encoding_name: str = "cl100k_base") -> int:
+    # CLIP 100k base encoding is used by for the GPT-4 models
+    encoding = tiktoken.get_encoding(encoding_name)
+    num_tokens = len(encoding.encode(string))
+    return num_tokens
+
+
+@atexit.register
+def record_gpt_token_usage():
+    """
+    Records the total number of tokens used by the GPT API.
+    """
+    global total_tokens_used
+    if total_tokens_used > 0:
+        with open("gpt_token_usage.txt", "a") as f:
+            f.write(f"{total_tokens_used}\n")
+
+    with open("gpt_token_usage.txt", "r") as f:
+        tokens = f.readlines()
+        total = sum([int(token) for token in tokens])
+        print(f"Total tokens used: {total}")
+        print(f"Total tokens used this session: {total_tokens_used}")
