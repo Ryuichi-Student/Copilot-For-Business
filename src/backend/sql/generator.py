@@ -339,7 +339,7 @@ class SQLGenerator:
         is_svs = []
         for query_obj in response["SQL_queries"]:
             try:
-                query, is_single_value = self.parseQuery(query_obj)
+                query, is_single_value = self.parseQuery(query_obj) # type: ignore
                 self.validateQuery(query, is_single_value)
                 queries.append(query)
                 is_svs.append(is_single_value)
