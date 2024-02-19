@@ -176,10 +176,13 @@ class SQLGenerator:
             print(e)
             return None
     
-    def executeQuery(self, query):
+    def executeQuery(self, query, is_Final = False):
         #Executes the SQL query and returns the results as a pandas DataFrame
         try:
-            df = self.database.query(query, is_df=True, is_single_value=self.is_single_value)
+            if is_Final:
+                df = self.database.query(query, is_df=True, is_single_value=self.is_single_value)
+            else:
+                df = self.database.query(query, is_df=True, is_single_value=False)
             return df
         except Exception as e:
             print(e)

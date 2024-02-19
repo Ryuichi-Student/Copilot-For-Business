@@ -62,7 +62,7 @@ class Query:
             sql = SQLGenerator(database, cmd['command'], cmd['relevant_columns'], graph_info)
             query = sql.getQuery()
             pprint(query)
-            df = sql.executeQuery(query)
+            df = sql.executeQuery(query, is_Final=True)
             pprint(df)
             if isinstance(df, pd.DataFrame):
                 vis = visualisation_subclasses[cmd['graph_type']](df, query, graph_info)
