@@ -38,7 +38,7 @@ class Query:
         if self.actionInfos is None and self.requirements is not None:
             reqs = self.requirements
             actionInfos = actioner.get_action(reqs)
-            self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'}
+            self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'} # type: ignore
             pprint(self.actionInfos)
 
     def create_queries(self, db: Database, threadpool):
@@ -66,14 +66,14 @@ class Query:
             cmd = actioner.get_final_action(self.userQuery)
             pprint(cmd)                
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
-            sql = SQLGenerator(database, [cmd['command']], [cmd['relevant_columns']], [graph_meta])
+            sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
             queries, is_svs = sql.getQueries()
-            query, is_sv = queries[0], is_svs[0]
+            query, is_sv = queries[0] if queries[0] is not None else "", is_svs[0] if is_svs[0] is not None else False
             pprint(query)
             df = sql.executeQuery(query, is_single_value=is_sv)
             pprint(df)
             if isinstance(df, pd.DataFrame):
-                vis = visualisation_subclasses[cmd['graph_type']](df, query, graph_meta["graph_info"])
+                vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
                 self.plot = vis.generate()
             else:
                 self.answer = df
