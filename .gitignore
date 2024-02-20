@@ -72,4 +72,7 @@ dmypy.json
 .vs
 
 # Uploads
-uploads/
+uploads/*.json
+uploads/*.sqlite3
+uploads/*.sqlite
+uploads/*.db
