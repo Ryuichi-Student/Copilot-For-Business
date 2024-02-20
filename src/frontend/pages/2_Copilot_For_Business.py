@@ -91,4 +91,4 @@ if current_session_id is not None:
 
         sqlView = st.toggle("Show SQL", False)
         if sqlView:
-            st.write(plot.getSQLQuery())
+            plot.formatSQL()

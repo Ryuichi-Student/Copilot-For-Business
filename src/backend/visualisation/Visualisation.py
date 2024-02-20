@@ -1,7 +1,8 @@
 from typing import Dict
 import pandas as pd
-import streamlit as st
 import re
+import streamlit as st
+
 
 class Visualisation():
     def __init__(self, data, query, info):
@@ -44,14 +45,14 @@ class Visualisation():
     def getSQLQuery(self):
         # make this better
         # do an sql formatter function to explain to the user?
-        description = (f'''
-            The data used to create this chart was fetched using the following SQL query:
+        # description = (f'''
+        #     The data used to create this chart was fetched using the following SQL query:
             
-            {self.query}
-        ''')
-        return description
+        #     {self.query}
+        # ''')
+        return self.query
     
-    def displayFormattedSQL(self):
+    def formatSQL(self):
         # display a formatted sql query
         
         # split text on uppercase words
@@ -59,10 +60,11 @@ class Visualisation():
         # splits the query based on uppercase and following words
         # phrases = re.findall('[A-Z]*[^A-Z]*', sql)
 
-        # splits the sql query by uppercase words (commads) and others
+        # splits the sql query by uppercase words (commands) and others
         splitByCommand = re.findall('[A-Z]*|[^A-Z]*', sql)
         
-        formatted = ''
+        formatted = 'The data used to create this chart was fetched using the following SQL query:\n\n'
+
         for string in splitByCommand:
             if string.isupper():
                 formatted += f':orange[{string}]'

@@ -20,7 +20,7 @@ if prompt:
     df, chart, vis = get_test_chart()
     st.write(chart.getSQLQuery())
     # st.plotly_chart(chart.generate())
-    chart.displayFormattedSQL()
+    chart.formatSQL()
     # command = test_actioner_workflow(prompt)
 
     # st.write(f"Backend has responded with the following command: {command}")
