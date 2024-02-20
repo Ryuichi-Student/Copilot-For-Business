@@ -6,3 +6,8 @@ pytest==8.0.0
 setuptools==58.0.4
 setuptools==69.0.3
 sqlvalidator==0.0.20
+numpy==1.23.5
+openai==1.12.0
+python-dotenv==1.0.1
+sqlvalidator==0.0.20
+streamlit==1.30.0
