@@ -1,6 +1,9 @@
 import streamlit as st
 from src.backend.utils.sessions import Session_Storage
 
+import sqlite3
+import os
+
 # TODO: Load from persistent storage
 if "session_storage" not in st.session_state:
     st.session_state.session_storage = Session_Storage(st.rerun)
@@ -34,3 +37,53 @@ for session_id in sessions.get_sessions():
             sessions.delete_session(session_id)
 
 # TODO: Add undo functionality
+
+
+# Upload a database file
+            
+def get_db_upload():
+    uploaded_file = st.file_uploader("Choose a file", type=["sqlite3", "db", "pdf"])
+
+    if uploaded_file is not None:
+
+        file_content = uploaded_file.read()
+    
+        # Check if file already exists
+        condition = True
+        count = 2
+        while condition:
+            # if file exists
+            if os.path.exists(f"uploads/{uploaded_file.name}"):
+                uploaded_file.name = f"{uploaded_file.name.split('.')[0]}_{count}.{uploaded_file.name.split('.')[1]}"
+                count += 1
+            else:
+                condition = False
+
+        with open(f"uploads/{uploaded_file.name}", "wb") as f:
+            f.write(file_content)
+
+
+        try:
+            # Open the file with sqlite3
+            conn = sqlite3.connect(f"uploads/{uploaded_file.name}")
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            print("Connected")
+            conn.close()
+
+            st.success(f"Saved {uploaded_file.name} to databases folder")
+
+
+
+
+
+        except:
+            st.error(f"Failed to save {uploaded_file.name} to databases folder")
+            st.error("Please upload a valid sqlite3 database file")
+            conn.close()
+            # Delete the file
+            os.remove(f"uploads/{uploaded_file.name}")
+
+
+
+get_db_upload()
