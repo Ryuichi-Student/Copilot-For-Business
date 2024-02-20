@@ -26,6 +26,6 @@ def get_test_chart():
     index = ['snail', 'pig', 'elephant', 'rabbit', 'giraffe', 'coyote', 'horse']
     df = pd.DataFrame({'speed': speed, 'lifespan': lifespan, 'lab' : index})
 
-    pie = PieChart(df, "SELECT id, count, firstname FROM database1", {'title': 'title of the chart', 'categories': 'lab', 'count': 'speed'})
+    pie = PieChart(df, "SELECT total_amount_spent_on_orders_per_client.client_id, (total_amount_spent_on_orders_per_client.total_amount + total_amount_spent_on_transactions_per_client.total_amount + total_loan_amount_per_client.total_amount) AS total_value FROM total_amount_spent_on_orders_per_client JOIN total_amount_spent_on_transactions_per_client ON total_amount_spent_on_orders_per_client.client_id = total_amount_spent_on_transactions_per_client.client_id JOIN total_loan_amount_per_client ON total_amount_spent_on_orders_per_client.client_id = total_loan_amount_per_client.client_id ORDER BY total_value DESC", {'title': 'title of the chart', 'categories': 'lab', 'count': 'speed'})
     plot = pie.generate()
     return df, pie, plot
