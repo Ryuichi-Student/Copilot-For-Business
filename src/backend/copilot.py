@@ -10,11 +10,8 @@ from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
-<<<<<<< HEAD
 from src.backend.generalised_answer import general_answer_gen
-=======
 from src.backend.utils.clean_name import clean_name
->>>>>>> 6bf30c7a5d135abd9fed6e1257989dd8d0ffd5fc
 
 import streamlit as st
 
@@ -34,7 +31,6 @@ class Query:
         self.answer = None
         self.plot = None
         self.generalised_answer = None
-        self.vis = None
 
     def set_requirements(self, actioner: Actioner):
         if self.requirements is None:
@@ -89,22 +85,16 @@ class Query:
             df = sql.executeQuery(query, is_single_value=is_sv)
             pprint(df)
             if isinstance(df, pd.DataFrame):
-<<<<<<< HEAD
-                vis = visualisation_subclasses[cmd['graph_type']](df, query, graph_info)
-                self.vis = vis
-                self.plot = vis.generate()
-=======
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
                 self.plot = vis
->>>>>>> 6bf30c7a5d135abd9fed6e1257989dd8d0ffd5fc
             else:
                 self.answer = df
     
     def get_generalised_answer(self):
         if self.generalised_answer is None:
-            if not self.vis is None:
-                pprint(str(self.vis))
-                answer_gen = general_answer_gen(str(self.vis),self.userQuery)
+            if self.plot is not None:
+                pprint(str(self.plot))
+                answer_gen = general_answer_gen(str(self.plot),self.userQuery)
                 self.generalised_answer = answer_gen.getAnswer()
 
 

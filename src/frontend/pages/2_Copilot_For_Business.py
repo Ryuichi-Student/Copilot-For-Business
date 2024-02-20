@@ -111,5 +111,4 @@ if current_session_id is not None:
         if sqlView:
             st.write(copilot.get_sql(userQuery))
         st.write(copilot.get_generalised_answer(userQuery))
-
-            plot.formatSQL()
+        plot.formatSQL()
