@@ -1,8 +1,8 @@
 matplotlib==3.6.3
-numpy==1.23.5
-openai==1.12.0
 pandas==2.2.0
 pandasql==0.7.3
-python-dotenv==1.0.1
+plotly==5.19.0
+pytest==8.0.0
+setuptools==58.0.4
+setuptools==69.0.3
 sqlvalidator==0.0.20
-streamlit==1.30.0
