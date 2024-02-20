@@ -73,11 +73,19 @@ if current_session_id is not None:
         plot = copilot.get_plot(userQuery)
         answer = copilot.get_answer(userQuery)
         if plot:
-            plot.topn(10)
             fig = plot.generate()
             config = {'displayModeBar': None}
 
+            # displays the chart created
             st.plotly_chart(fig, config=config)
+
+            # adds a toggle to show the top 10 values of the dataframe only
+            if plot.dfLength > 10:
+                topN = st.toggle("Show top 10 values only", False)
+                if topN: plot.topn(10, topN)
+                else: plot.topn(10, topN)
+
+
         if answer:
             st.write(answer)
 
