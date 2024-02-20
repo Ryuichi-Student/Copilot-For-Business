@@ -1,9 +1,12 @@
 import sqlvalidator
 import sqlite3
+import pandas as pd
 from src.backend.utils.gpt import get_gpt_response
 from src.backend.database import Database
+from pprint import pprint
+from src.backend.visualisation import visualisation_subclasses
 from textwrap import dedent
-from typing import List, Dict, Any, Union, Optional
+from typing import List, Dict, Any, Union, Optional, Tuple
 import json
 
 
@@ -39,72 +42,235 @@ class QueryExecutionError(InvalidQueryError):
 class SQLGenerator:
     #Core class for generating SQL queries.
 
-    def __init__(self, database: Database, actionCommand: str, relevantColumns: List[str], graph_info: Optional[Dict[str, Union[str, Dict[str,str]]]] = None):
+    def __init__(self, database: Database, actionCommands: List[str], relevantColumns: List[List[str]], graph_infos: List[Optional[Dict[str, Union[str, Dict[str,str]]]]] = []):
         self.database = database
-        self.actionCommand = actionCommand
-        self.graph_info = graph_info
+        self.actionCommands = actionCommands
+        self.graph_infos = graph_infos
         self.relevantColumns = relevantColumns
-        self.is_single_value: bool = False
 
-    def generateQuery(self) -> Dict[str, Union[str, Any]]:
+    def generateQuery(self) -> Dict[str, List]:
         #method to generate SQL queries.
         system_prompt = dedent('''\
-            As an SQL expert, your task is to generate SQL queries for users based on a provided database schema, an action command, relevant columns, and any specified graph information. Follow these steps to ensure accurate and effective SQL query generation:
+            As an SQL expert, your objective is to generate a list of SQL query objects tailored to user requests. These requests are based on a specified database schema, a set of action commands, relevant columns, and, when applicable, graph information that aligns with each action command.
 
-            1. Analyze the given database schema, action command, relevant columns, and graph information.
-            2. Determine if it is feasible to construct an SQL query that fulfills the action command:
-            a. If the request cannot be fulfilled, return a JSON object with the status 'error' and an 'error' field specifying the reason. Use one of the predefined error values for clarity:
-                {
-                    "status": "error",
-                    "error": "ERROR_DESCRIPTION"
-                    "message": "ERROR_MESSAGE"
-                }
-                Replace "ERROR_DESCRIPTION" with:
-                - "COLUMN_NOTIN_SCHEMA" if the relevant columns are not present in the database schema and the column cannot be recreated.
-                - "INVALID_ACTION_COMMAND" if the action command cannot be executed due to logical reasons or missing information.
-                - "GRAPH_INFO_NOT_APPLICABLE" if the graph information provided cannot be applied to the query due to schema constraints or relevancy issues.
-                Replace "ERROR_MESSAGE" with a brief explanation of the error.
-                For example:
-                    when the action command is "Find the total number of customers who have made a purchase in the last 30 days", the relevant columns are "purchases.customer_id" and "purchases.purchase_date", and the graph information is "Pie Chart" with "customer_id" as the x-axis and "purchase_date" as the y-axis, the error should be "GRAPH_INFO_NOT_APPLICABLE" as a pie chart is not suitable for the given graph information.
+        Your response should be formatted as a JSON object containing an array of SQL query objects, structured as follows:
 
-            b. If the request can be fulfilled, construct and return a JSON object with the status 'success' and a 'query' field containing the SQL query. Make sure the SQL query is compatible with the DBMS SQLite3:
-                {
-                    "status": "success",
-                    "query": \'\'\'SQL_QUERY_HERE\'\'\'
-                    "is_single_value": "True/False"
-                }
-                Ensure "SQL_QUERY_HERE" accurately reflects the SQL command designed to address the action command, adhering to the database schema and incorporating the relevant columns and graph information as necessary. Make sure to only use columns given under relevant columns.
-                
-                For example:
-                    when the action command is "Find the total number of customers who have made a purchase in the last 30 days", the relevant columns are "purchases.customer_id" and "purchases.purchase_date", and the graph information is "Bar Chart" with "customer_id" as the x-axis and "purchase_date" as the y-axis, the SQL query should be constructed to calculate the total number of customers who have made a purchase in the last 30 days and generate a bar chart based on the specified graph information. 
-                    the JSON object should look like this:
+        {
+            "SQL_queries": []
+        }
+
+        Within this structure, each SQL query object corresponds to a specific action command, incorporating the relevant columns and any associated graph information. To ensure the generation of accurate and effective SQL query objects, please adhere to the following guidelines:
+
+        1. Comprehend the Request: Examine the database schema, action command, relevant columns, and graph information provided for each SQL query object.
+
+        2. Feasibility Check: Determine whether it's possible to construct an SQL query that meets the requirements of the action command. This process involves two scenarios:
+
+        - Infeasibility: If constructing a corresponding SQL query is not possible, update the JSON object for the current SQL query object to indicate an error. This should include a status of 'error', an error field with a predefined error value, and a message providing a brief error explanation. Use the following template:
+
+            {
+                "status": "error",
+                "error": "ERROR_DESCRIPTION",
+                "message": "ERROR_MESSAGE"
+            }
+
+            Replace ERROR_DESCRIPTION with one of the following, as appropriate:
+            - COLUMN_NOTIN_SCHEMA if the relevant columns are not in the database schema.
+            - INVALID_ACTION_COMMAND if the action command is logically unexecutable.
+            - GRAPH_INFO_NOT_APPLICABLE if the graph information does not suit the query context.
+
+            And ERROR_MESSAGE with a concise explanation of the issue.
+
+        - Feasibility: If the query can be constructed, the JSON object for the current SQL query object should reflect a status of 'success' and contain a query field with the SQL query. Ensure compatibility with SQLite3 and use backslashes to escape quotes within the query string. Include a is_single_value field to indicate if the query returns a single value ("True" or "False"). For example:
+
+            {
+                "status": "success",
+                "query": "SQL_QUERY_HERE",
+                "is_single_value": "True/False"
+            }
+
+            Ensure the query aligns with the action command, adhering to the database schema and incorporating relevant columns and graph information as necessary.
+
+        Key Considerations:
+
+        - Focus on the provided information to construct each SQL query object, ensuring the syntax is correct and logically aligns with the action command's requirements and the database schema's constraints.
+        - Use backslashes to escape quotes in the SQL query string.
+        - Your response should strictly contain the JSON object with "SQL_queries" field and a list of SQL query object conforming to the specified format. Avoid including extraneous information.
+        \
+        ''')
+        
+        actionCommandsDetails = []
+        for i, actionCommand in enumerate(self.actionCommands):
+            actionCommandStr = actionCommand
+            relevantColumnsStr = str(self.relevantColumns[i])  # convert list to string
+            graphInfoStr = "None" if self.graph_infos[i] is None else str(self.graph_infos[i])  # convert dict to string
+            
+            actionCommandsDetails.append(f'''
+            Here is the action command {i + 1}:
+            {actionCommandStr}
+
+            Here are the relevant columns for action command {i + 1}:
+            {relevantColumnsStr}
+
+            Here is the graph information for action command {i + 1}, if any:
+            {graphInfoStr}
+            ''')
+
+        actionCommandsDetailsStr = "\n".join(actionCommandsDetails)
+
+        user_prompt = dedent(f'''
+                    Here is the database schema:
+                    {self.database.getTextSchema()}
+
+                    {actionCommandsDetailsStr}
+
+                    Generate SQL queries that fulfill each action command, incorporate the relevant columns, and apply the graph information as necessary.
+                ''')
+
+        example_user_prompt_1 = dedent('''\
+            Here is the database schema:
+            CREATE TABLE completedorder (
+                order_id INTEGER PRIMARY KEY,
+                account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id),
+                amount REAL
+            );
+            CREATE TABLE completedtrans (
+                trans_id TEXT PRIMARY KEY,
+                account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id),
+                amount REAL,
+                balance REAL
+            );
+            CREATE TABLE completedacct (
+                account_id TEXT PRIMARY KEY,
+                frequency TEXT,
+                parseddate TEXT
+            );
+            CREATE TABLE completedclient (
+                client_id TEXT PRIMARY KEY,
+                name TEXT
+            );
+            CREATE TABLE completeddisposition (
+                disp_id TEXT PRIMARY KEY,
+                client_id TEXT FOREIGN KEY REFERENCES completedclient(client_id),
+                account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id)
+            );
+            
+            Here is the action command 1:
+            Retrieve the total amount of orders for each client.
+
+            Here are the relevant columns for action command 1:
+            ["completedclient.name", "completedclient.client_id", "completedorder.account_id", "completedorder.amount"]
+
+            Here is the graph information for action command 1, if any:
+            {
+                "graph_type": "Bar Chart", 
+                "graph_info": {"title": "Total Order Amount per Client", "x_axis": "client_id", "y_axis": "total_amount"}
+            }
+            
+            Here is the action command 2:
+            Count the number of transactions per account.
+
+            Here are the relevant columns for action command 2:
+            ["completedacct.account_id", "completedtrans.account_id"]
+
+            Here is the graph information for action command 2, if any:
+            {
+                "graph_type": "Pie Chart", 
+                "graph_info": {"title": "Transactions per Account", "x_axis": "account_id", "y_axis": "transaction_count"}
+            }
+            \
+        ''')
+
+        example_assistant_response_1 = dedent('''\
+            {
+                "SQL_queries": [
                     {
                         "status": "success",
-                        "query": \'\'\'SELECT COUNT(customer_id) FROM purchases WHERE purchase_date >= DATE('now', '-30 days')\'\'\'
-                        "is_single_value": "True"
-                    }                    
-
-            Note: When constructing SQL queries, consider all provided information, ensure syntax correctness, and validate that the query logically aligns with the action command's requirements and the database schema's constraints.
-            Note: make sure to use backslash to escape the necessary quotes in the query string.
-            Note: please return only the JSON object with the status and the query field. Do not include any additional information in the response.\
+                        "query": "SELECT completedclient.name, completedclient.client_id, SUM(completedorder.amount) AS total_amount FROM completedclient JOIN completeddisposition ON completedclient.client_id = completeddisposition.client_id JOIN completedorder ON completeddisposition.account_id = completedorder.account_id GROUP BY completedclient.client_id",
+                        "is_single_value": "False"
+                    },
+                    {
+                        "status": "success",
+                        "query": "SELECT completedacct.account_id, COUNT(completedtrans.trans_id) AS transaction_count FROM completedacct JOIN completedtrans ON completedacct.account_id = completedtrans.account_id GROUP BY completedacct.account_id",
+                        "is_single_value": "False"
+                    }
+                ]
+            }
         ''')
-        user_prompt = dedent(f'''\
+
+        example_user_prompt_2 = dedent('''\
             Here is the database schema:
-            {self.database.getTextSchema()}
+            CREATE TABLE completedorder (
+                order_id INTEGER PRIMARY KEY,
+                account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id),
+                amount REAL
+            );
+            CREATE TABLE completedtrans (
+                trans_id TEXT PRIMARY KEY,
+                account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id),
+                amount REAL,
+                balance REAL
+            );
+            CREATE TABLE completedacct (
+                account_id TEXT PRIMARY KEY,
+                frequency TEXT,
+                parseddate TEXT
+            );
+            CREATE TABLE completedclient (
+                client_id TEXT PRIMARY KEY,
+                name TEXT
+            );
+            CREATE TABLE completeddisposition (
+                disp_id TEXT PRIMARY KEY,
+                client_id TEXT FOREIGN KEY REFERENCES completedclient(client_id),
+                account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id)
+            );
+            
+            Here is the action command 1:
+            Find the total amount of loans for each client.
 
-            Here is the action command:
-            {json.dumps(self.actionCommand)}
+            Here are the relevant columns for action command 1:
+            ["completedclient.name", "completedclient.client_id", "completedloan.account_id", "completedloan.payments"]
+                            
+            Here is the graph information for action command 1, if any:
+            {
+                "graph_type": "Bar Chart", 
+                "graph_info": {"title": "Total Loan Amount per Client", "x_axis": "client_id", "y_axis": "total_amount"}
+            }
+            
+            Here is the action command 2:
+            Find the order id of the highest order amount.
+                                       
+            Here are the relevant columns for action command 2:
+            ["completedorder.order_id", "completedorder.amount"]
 
-            Here are the relevant columns:
-            {self.relevantColumns}
-
-            Here is the graph information if any:
-            {"None" if self.graph_info is None else self.graph_info}
-
-            Generate an SQL query that fulfills the action command, incorporates the relevant columns, and applies the graph information as necessary.\
+            Here is the graph information for action command 2, if any:
+            None
+            \
         ''')
+
+        example_assistant_response_2 = dedent('''\
+            {
+                "SQL_queries": [
+                    {
+                        "status": "error",
+                        "error": "COLUMN_NOTIN_SCHEMA",
+                        "message": "The completedloan.account_id and completedloan.payments columns are not in the database schema. Please provide valid columns."
+                    },
+                    {
+                        "status": "success",
+                        "query": "SELECT completedorder.order_id FROM completedorder WHERE completedorder.amount = (SELECT MAX(completedorder.amount) FROM completedorder)",
+                        "is_single_value": "True"
+                    }
+                ]
+            }
+        ''')
+
         gpt_response = get_gpt_response(
             ("system", system_prompt),
+            ("user", example_user_prompt_1),
+            ("assistant", example_assistant_response_1),
+            ("user", example_user_prompt_2),
+            ("assistant", example_assistant_response_2),
             ("user", user_prompt),
             jsonMode = True,
             top_p = 0.2
@@ -112,7 +278,7 @@ class SQLGenerator:
         gpt_response = json.loads(gpt_response)
         return gpt_response
 
-    def parseQuery(self, gpt_response: Dict[str, Any]):
+    def parseQuery(self, gpt_response: Dict[str, Any]) -> Optional[Tuple[str,bool]]:
         #extract Query from GPT response
         if not isinstance(gpt_response, dict):
             raise ResponseNotJSONError(f"GPT response is not a JSON object, but a {type(gpt_response)}")
@@ -124,8 +290,8 @@ class SQLGenerator:
             query = gpt_response["query"]
             if "is_single_value" not in gpt_response:
                 raise ResponseContentMissingError(f"is_single_value field is missing from GPT response")
-            self.is_single_value = gpt_response["is_single_value"]=="True"
-            return query
+            is_single_value = gpt_response["is_single_value"]=="True"
+            return (query, is_single_value)
         elif gpt_response["status"] == "error":
             if "error" not in gpt_response:
                 raise ResponseContentMissingError(f"Error field is missing from GPT response")
@@ -137,10 +303,11 @@ class SQLGenerator:
                 raise Status_GRAPH_INFO_NOT_APPLICABLE_Error(f"Error: {gpt_response['message']}")
             else:
                 raise ResponseStatusError(f"Error: {gpt_response['error']}")
+        else:
+            raise ResponseStatusError(f"Error: {gpt_response['error']}")
+    
 
-        return gpt_response
-
-    def validateQuery(self, query):
+    def validateQuery(self, query: str, is_single_value: bool = False):
         #Validates the generated SQL query
         #returns None or raises Error
         sql_query = sqlvalidator.parse(query)
@@ -148,7 +315,7 @@ class SQLGenerator:
             raise QueryValidationError(f"SQL query is not valid: {sql_query.errors}")
         else:
             try:
-                self.database.query(query,is_df=False,is_single_value=self.is_single_value)
+                self.database.query(query, is_df=False, is_single_value=is_single_value)
             except sqlite3.OperationalError as e:
                 raise QueryExecutionError(f"Sqlite3 Operational Error: {e}")
             except sqlite3.ProgrammingError as e:
@@ -166,21 +333,28 @@ class SQLGenerator:
             except sqlite3.Error as e:
                 raise QueryExecutionError(f"Sqlite3 Error: {e}")
     
-    def getQuery(self):
-        try:
-            response = self.generateQuery()
-            query = self.parseQuery(response)
-            self.validateQuery(query)
-            return query
-        except Exception as e:
-            print(e)
-            return None
+    def getQueries(self)-> Tuple[List[Optional[str]], List[Optional[bool]]]:
+        response = self.generateQuery()
+        queries = []
+        is_svs = []
+        for query_obj in response["SQL_queries"]:
+            try:
+                query, is_single_value = self.parseQuery(query_obj) # type: ignore
+                self.validateQuery(query, is_single_value)
+                queries.append(query)
+                is_svs.append(is_single_value)
+            except Exception as e:
+                pprint(f"{type(e).__name__}: {e}")
+                queries.append(None)
+                is_svs.append(None)
+        return (queries, is_svs)
+
     
-    def executeQuery(self, query):
+    def executeQuery(self, query: str, is_single_value = False) -> Optional[Union[pd.DataFrame, Any]]:
         #Executes the SQL query and returns the results as a pandas DataFrame
         try:
-            df = self.database.query(query, is_df=True, is_single_value=self.is_single_value)
+            df = self.database.query(query, is_df=True, is_single_value=is_single_value)
             return df
         except Exception as e:
-            print(e)
+            pprint(f"{type(e).__name__}: {e}")
             return None

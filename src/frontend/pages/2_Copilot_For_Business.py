@@ -1,11 +1,12 @@
 import sys
 import os
+
+from streamlit.components.v1 import html
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 import streamlit as st
-import json
 from src.backend.copilot import Copilot
-from src.backend.test import get_test_chart
 from src.backend.utils.sessions import Session_Storage
 
 
@@ -35,6 +36,13 @@ def display_session_ui():
     return current_session_id, copilot
 
 
+def display_loading(animation_placeholder):
+    frame = st.session_state.loading_frame
+    if not frame:
+        return
+    animation_placeholder.image(frame)
+
+
 col1, col2 = st.columns([8, 2])
 with col1:
     # title
@@ -45,7 +53,6 @@ with col2:
     if "session_storage" not in st.session_state:
         st.session_state.session_storage = Session_Storage(st.rerun)
     current_session_id, copilot = display_session_ui()
-
 
 if current_session_id is not None:
     # Extend to being more of a chat or asking the same copilot a question.
@@ -59,7 +66,9 @@ if current_session_id is not None:
         # TODO: Do more formatting
         # display the user's entered prompt
         st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
-
+        status_placeholder = st.empty()
+        status = status_placeholder.status("Thinking...")
+        copilot.set_status_placeholder(status)
         copilot.query(userQuery)
         # pass actions to the sql generator
 
@@ -72,6 +81,9 @@ if current_session_id is not None:
 
         plot = copilot.get_plot(userQuery)
         answer = copilot.get_answer(userQuery)
+
+        status_placeholder.empty()
+
         if plot:
             fig = plot.generate()
             config = {'displayModeBar': None}
