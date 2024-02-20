@@ -30,6 +30,14 @@ class BarChart(Visualisation):
     def getChartParameterDescription():
         return "'title' should contain a string of most suitable title for the bar chart. 'x_axis' should contain a string of the column name that should be used as the x axis of the bar chart. 'y_axis' should contain a string of the column name that should be used as the y axis of the bar chart."
     
+    # sets the database to show the top n values by y axis depending on a bool
+    def topn(self, n, show):
+        if not show:
+            limit = self.df.nlargest(n, self.y_axis)
+            self.modifiedDF = limit
+        else:
+            self.modifiedDF = self.df
+
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
     def generate(self):
         if not self.validate():
