@@ -54,6 +54,7 @@ def upload_progress(args, upload_placeholder=None, upload_placeholder2=None):
         if upload_status == upload_end:
             upload_status = 0
             upload_placeholder.empty()
+            upload_placeholder2.empty()
         print(upload_status, upload_end)
     else:
         upload_status += 1
