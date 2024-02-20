@@ -10,7 +10,11 @@ from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
+<<<<<<< HEAD
 from src.backend.generalised_answer import general_answer_gen
+=======
+from src.backend.utils.clean_name import clean_name
+>>>>>>> 6bf30c7a5d135abd9fed6e1257989dd8d0ffd5fc
 
 import streamlit as st
 
@@ -23,7 +27,7 @@ class Query:
         self.requirements = None
         self.actionInfos = None
 
-        self.sql_generators = None
+        self.sql_generator = None
         self.queries = None
         self.dfs = None
 
@@ -41,40 +45,58 @@ class Query:
         if self.actionInfos is None and self.requirements is not None:
             reqs = self.requirements
             actionInfos = actioner.get_action(reqs)
-            self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'}
+            self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'} # type: ignore
             pprint(self.actionInfos)
 
     def create_queries(self, db: Database, threadpool):
         if self.queries is None and self.actionInfos is not None:
-            self.sql_generators = {req:SQLGenerator(db, cmd['command'], cmd['relevant_columns']) for req,cmd in self.actionInfos.items()}
-            futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
-            queries = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
+            # self.sql_generators = {req:SQLGenerator(db, cmd['command'], cmd['relevant_columns']) for req,cmd in self.actionInfos.items()}
+            action_commands, relevant_cols = [cmd['command'] for cmd in self.actionInfos.values()], [cmd["relevant_columns"] for cmd in self.actionInfos.values()]
+            self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, [None]*len(self.actionInfos))
+            queries, _ = self.sql_generator.getQueries()
+            # futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
+            # queries = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
             # queries = {req:sql.getQuery() for req,sql in self.sql_generators.items()}
-            self.queries = {req:query for req,query in queries.items() if query is not None}
+            self.queries = {req:query for req,query in zip(self.actionInfos.keys(), queries) if query is not None}
             pprint(self.queries)
 
     def get_dfs(self, threadpool):
-        if self.dfs is None and self.sql_generators is not None and self.queries is not None:
-            futures = {req:threadpool.submit(self.sql_generators[req].executeQuery, query) for req,query in self.queries.items()}
+        if self.dfs is None and self.sql_generator is not None and self.queries is not None:
+            futures = {req:threadpool.submit(self.sql_generator.executeQuery, query) for req,query in self.queries.items()}
             dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
             # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
-            self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
+            # crashes is this isn't a dataframe because its a single value
+            self.dfs = {}
+            for req, df in dataframes.items():
+                if isinstance(df, pd.DataFrame):
+                    if df is not None and not df.empty:
+                        self.dfs[req] = df
+                else:
+                    newdf = pd.DataFrame({clean_name(req): [df]})
+                    self.dfs[req] = newdf
+            # self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
             pprint(self.dfs)
 
     def get_plot(self, actioner: Actioner, database: Database):
         if self.plot is None and self.answer is None:
             cmd = actioner.get_final_action(self.userQuery)
-            pprint(cmd)
-            graph_info = cmd['graph_info']
-            sql = SQLGenerator(database, cmd['command'], cmd['relevant_columns'], graph_info)
-            query = sql.getQuery()
+            pprint(cmd)                
+            graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
+            sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
+            queries, is_svs = sql.getQueries()
+            query, is_sv = queries[0] if queries[0] is not None else "", is_svs[0] if is_svs[0] is not None else False
             pprint(query)
-            df = sql.executeQuery(query, is_Final=True)
+            df = sql.executeQuery(query, is_single_value=is_sv)
             pprint(df)
             if isinstance(df, pd.DataFrame):
+<<<<<<< HEAD
                 vis = visualisation_subclasses[cmd['graph_type']](df, query, graph_info)
                 self.vis = vis
                 self.plot = vis.generate()
+=======
+                vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
+                self.plot = vis
+>>>>>>> 6bf30c7a5d135abd9fed6e1257989dd8d0ffd5fc
             else:
                 self.answer = df
     
@@ -87,13 +109,14 @@ class Query:
 
 
 
+
     def __dict__(self):
         """ JSON serialisable """
         return {
             "userQuery": self.userQuery,
             "requirements": self.requirements,
             "actionInfos": self.actionInfos,
-            "sql_generators": self.sql_generators,
+            "sql_generator": self.sql_generator,
             "queries": self.queries,
             "dfs": self.dfs,
             "answer": self.answer,

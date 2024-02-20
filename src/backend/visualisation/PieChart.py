@@ -1,5 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plot
+import plotly.express as px
+
 from src.backend.visualisation.Visualisation import Visualisation
 
 class PieChart(Visualisation):
@@ -16,7 +18,7 @@ class PieChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a pie chart is most suitable to represent the data."
+        return "This should be chosen when a pie chart is most suitable to represent the data, for example to compare parts of a whole and percentages."
 
     @staticmethod
     def getChartParametersForActioner():
@@ -26,27 +28,36 @@ class PieChart(Visualisation):
     def getChartParameterDescription():
         return "'title' should contain a string of the most suitable title for the pie chart. 'categories' should contain a string of the column name that should be used as the segment labels of the pie chart. 'count' should contain a string of the column name that should be used as the total count of occurrences of each of the segments of the pie chart."
 
+    # sets the database to show the top n values by y axis depending on a bool
+    def topn(self, n, show):
+        if not show:
+            limit = self.df.nlargest(n, self.count)
+            self.modifiedDF = limit
+        else:
+            self.modifiedDF = self.df
+
     def generate(self):
         if not self.validate():
             # handle this
             print("data invalid")
             return
+
+
+        fig = px.pie(self.df, names=self.categories, values=self.count, title=self.title)
         
         # gets the segment and count data from the dataframe
-        segments = self.df[self.categories]
-        percentages = self.df[self.count]
+        # segments = self.df[self.categories]
+        # percentages = self.df[self.count]
 
-        # set size of the figure
-        fig = plot.figure(figsize=(4,4))
+        # # set size of the figure
+        # fig = plot.figure(figsize=(4,4))
 
-        # plot a pie chart
-        plot.pie(percentages, labels=segments)
-        # set the title
-        plot.title(self.title)
-
+        # # plot a pie chart
+        # plot.pie(percentages, labels=segments)
+        # # set the title
+        # plot.title(self.title)
 
         return fig
-
 
     def validate(self):
         if self.categories not in self.df:
@@ -59,12 +70,10 @@ class PieChart(Visualisation):
             # both categories and and the count are in the dataframe
             return True
     
-    def getSQLQuery(self) -> str:
-        return self.query
 
 
 # df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
 
-# bar = PieChart("title 1", df, "SELECT * FROM *", "lab", "val")
-# bar.generate()
-# plot.show()
+# chart = PieChart(df, "SELECT * FROM *", {"title": "title 1", "categories" : "lab", "count" : "val"})
+# fig = chart.generate()
+# fig.show()
