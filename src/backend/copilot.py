@@ -8,6 +8,7 @@ from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
+from src.backend.utils.clean_name import clean_name
 
 
 # TODO: After we finish everything, we can start making this into more than 2 layers.
@@ -41,7 +42,7 @@ class Query:
         if self.queries is None and self.actionInfos is not None:
             self.sql_generators = {req:SQLGenerator(db, cmd['command'], cmd['relevant_columns']) for req,cmd in self.actionInfos.items()}
             futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
-            queries = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
+            queries = {req:future.result() for req,future in futures.items()}
             # queries = {req:sql.getQuery() for req,sql in self.sql_generators.items()}
             self.queries = {req:query for req,query in queries.items() if query is not None}
             pprint(self.queries)
@@ -49,15 +50,25 @@ class Query:
     def get_dfs(self, threadpool):
         if self.dfs is None and self.sql_generators is not None and self.queries is not None:
             futures = {req:threadpool.submit(self.sql_generators[req].executeQuery, query) for req,query in self.queries.items()}
-            dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
+            dataframes = {req:future.result() for req,future in futures.items()}
             # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
-            self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
+            # crashes is this isn't a dataframe because its a single value
+            self.dfs = {}
+            for req, df in dataframes.items():
+                if isinstance(df, pd.DataFrame):
+                    if df is not None and not df.empty:
+                        self.dfs[req] = df
+                else:
+                    newdf = pd.DataFrame({clean_name(req): [df]})
+                    self.dfs[req] = newdf
+            # self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
             pprint(self.dfs)
 
     def get_plot(self, actioner: Actioner, database: Database):
         if self.plot is None and self.answer is None:
             cmd = actioner.get_final_action(self.userQuery)
             pprint(cmd)
+            # crashes when get_final_action gives the DATA_NOT_FOUND error
             graph_info = cmd['graph_info']
             sql = SQLGenerator(database, cmd['command'], cmd['relevant_columns'], graph_info)
             query = sql.getQuery()
@@ -69,6 +80,7 @@ class Query:
                 self.plot = vis
             else:
                 self.answer = df
+
 
     def __dict__(self):
         """ JSON serialisable """

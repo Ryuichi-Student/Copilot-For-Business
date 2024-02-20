@@ -7,6 +7,7 @@ class Visualisation():
     def __init__(self, data, query, info):
         self.df: pd.DataFrame = data
         self.query = query
+        self.dfLength = len(data.index)
     
     @staticmethod
     def getChartName() -> str:
@@ -29,9 +30,12 @@ class Visualisation():
         pass
     
     # limits data frame to the top 10 bars
-    def topn(self, n):
-        limit = self.df.nlargest(10, self.y_axis)
-        self.modifiedDF = limit
+    def topn(self, n, show):
+        if not show:
+            limit = self.df.nlargest(n, self.y_axis)
+            self.modifiedDF = limit
+        else:
+            self.modifiedDF = self.df
     
 
     def validate(self) -> bool:
@@ -46,3 +50,7 @@ class Visualisation():
             {self.query}
         ''')
         return description
+
+
+
+
