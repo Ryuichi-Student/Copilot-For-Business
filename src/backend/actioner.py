@@ -1,7 +1,7 @@
 import json
 import pandas as pd
 from pprint import pprint
-from typing import List, Dict
+from typing import List, Dict, Any, Union
 from textwrap import dedent
 from src.backend.database import Database
 from src.backend.utils.gpt import get_gpt_response
@@ -105,7 +105,7 @@ class Actioner:
         response_json = json.loads(response)
         return response_json['requirements']
 
-    def get_action(self, requirements: list[str]):
+    def get_action(self, requirements: list[str])-> Dict[str, List[Dict[str, Any]]]:
         system_prompt = dedent('''\
             You are a data consultant, giving advice to the user. You will be provided with a list of datapoints which need to be extracted from a database. The database schema will be provided. Respond with details on how to extract each data.
             
@@ -227,7 +227,7 @@ class Actioner:
         response_json = json.loads(response)
         return response_json['action_infos']
     
-    def get_final_action(self, query: str):
+    def get_final_action(self, query: str) -> Dict[str, Union[str, List[str], Dict[str, str]]]:
         system_prompt = dedent('''\
             You are a data consultant, giving advice to the user. You will be provided with a question regarding some data in a database. All required information to answer the question should be in the database. The database schema will be provided. Respond with details on how to answer the question.
 
