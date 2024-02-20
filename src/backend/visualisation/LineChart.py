@@ -30,6 +30,15 @@ class LineChart(Visualisation):
     def getChartParameterDescription():
         return "'title' should contain a string of most suitable title for the line chart. 'x_axis' should contain a string of the column name that should be used as the x axis of the line chart. 'y_axis' should contain a string of the column name that should be used as the y axis of the line chart."
 
+    # sets the database to show the top n values by y axis depending on a bool
+    def topn(self, n, show):
+        if not show:
+            limit = self.df.nlargest(n, self.y_axis)
+            self.modifiedDF = limit
+        else:
+            self.modifiedDF = self.df
+
+    
     def generate(self):
         if not self.validate():
             # data and column names don't match

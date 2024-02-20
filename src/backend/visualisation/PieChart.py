@@ -28,6 +28,14 @@ class PieChart(Visualisation):
     def getChartParameterDescription():
         return "'title' should contain a string of the most suitable title for the pie chart. 'categories' should contain a string of the column name that should be used as the segment labels of the pie chart. 'count' should contain a string of the column name that should be used as the total count of occurrences of each of the segments of the pie chart."
 
+    # sets the database to show the top n values by y axis depending on a bool
+    def topn(self, n, show):
+        if not show:
+            limit = self.df.nlargest(n, self.count)
+            self.modifiedDF = limit
+        else:
+            self.modifiedDF = self.df
+
     def generate(self):
         if not self.validate():
             # handle this

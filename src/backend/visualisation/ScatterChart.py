@@ -26,6 +26,14 @@ class ScatterChart(Visualisation):
     def getChartParameterDescription():
         return "'title' should contain a string of the most suitable title for the scatter plot. 'x_axis' should contain a string of the column name that should be used as the x axis values of the scatter plot. 'y_axis' should contain a string of the column name that should be used as the y axis values of the scatter plot."
 
+    # sets the database to show the top n values by y axis depending on a bool
+    def topn(self, n, show):
+        if not show:
+            limit = self.df.nlargest(n, self.y_axis)
+            self.modifiedDF = limit
+        else:
+            self.modifiedDF = self.df
+
     def generate(self):
         if not self.validate():
             print("data is invalid")

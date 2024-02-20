@@ -32,11 +32,7 @@ class Visualisation():
     
     # limits data frame to the top 10 bars
     def topn(self, n, show):
-        if not show:
-            limit = self.df.nlargest(n, self.y_axis)
-            self.modifiedDF = limit
-        else:
-            self.modifiedDF = self.df
+        pass
     
 
     def validate(self) -> bool:
