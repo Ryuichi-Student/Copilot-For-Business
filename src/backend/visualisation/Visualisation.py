@@ -1,7 +1,7 @@
 from typing import Dict
 import pandas as pd
-from src.backend.utils.gpt import get_gpt_response
-
+import streamlit as st
+import re
 
 class Visualisation():
     def __init__(self, data, query, info):
@@ -50,7 +50,26 @@ class Visualisation():
             {self.query}
         ''')
         return description
+    
+    def displayFormattedSQL(self):
+        # display a formatted sql query
+        
+        # split text on uppercase words
+        sql = self.query
+        # splits the query based on uppercase and following words
+        # phrases = re.findall('[A-Z]*[^A-Z]*', sql)
 
+        # splits the sql query by uppercase words (commads) and others
+        splitByCommand = re.findall('[A-Z]*|[^A-Z]*', sql)
+        
+        formatted = ''
+        for string in splitByCommand:
+            if string.isupper():
+                formatted += f':orange[{string}]'
+            else:
+                formatted += string
+
+        st.write(formatted)
 
 
 
