@@ -48,6 +48,17 @@ def get_db_upload():
 
         file_content = uploaded_file.read()
     
+        # Check if file already exists
+        condition = True
+        count = 2
+        while condition:
+            # if file exists
+            if os.path.exists(f"uploads/{uploaded_file.name}"):
+                uploaded_file.name = f"{uploaded_file.name.split('.')[0]}_{count}.{uploaded_file.name.split('.')[1]}"
+                count += 1
+            else:
+                condition = False
+
         with open(f"uploads/{uploaded_file.name}", "wb") as f:
             f.write(file_content)
 
