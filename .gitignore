@@ -70,3 +70,9 @@ dmypy.json
 
 # Visual Studio Code
 .vs
+
+#Uploads
+uploads/*.json
+uploads/*.sqlite3
+uploads/*.sqlite
+uploads/*.db
