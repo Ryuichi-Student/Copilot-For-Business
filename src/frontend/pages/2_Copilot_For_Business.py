@@ -3,6 +3,7 @@ import os
 
 from streamlit.components.v1 import html
 
+from glob import glob
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 import streamlit as st
@@ -10,7 +11,9 @@ from src.backend.copilot import Copilot
 from src.backend.utils.sessions import Session_Storage
 
 
+
 def display_session_ui():
+    print("Displaying session UI")
     session_manager = st.session_state.session_storage
     sessions = session_manager.get_sessions()
 
@@ -28,7 +31,21 @@ def display_session_ui():
         copilot = session_manager.get_session_data(current_session_id)['data']
         if copilot is None:
             # TODO: Choose what databases to allow the model to retrieve data from
-            copilot = Copilot(db='databases/crm_refined.sqlite3', dbtype='sqlite')
+
+            list_of_databases = glob("databases/*.sqlite3")
+            list_of_databases.extend(glob("databases/*.db"))
+
+            list_of_databases.extend(glob("uploads/*.sqlite3"))
+            list_of_databases.extend(glob("uploads/*.db"))
+
+            # Should make this more dynamic
+            latest_db = max(list_of_databases, key=os.path.getctime)
+            print(f"Loading database: {latest_db}")
+
+            st.write(f"Loading database: {latest_db}")
+           
+
+            copilot = Copilot(db=latest_db, dbtype='sqlite')
             session_manager.update_session_data(current_session_id, data=copilot)
         else:
             session_manager.update_session_data(current_session_id)
