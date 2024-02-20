@@ -196,7 +196,7 @@ class SQLiteDatabase(Database):
             with open(description_url, 'w') as description_file:
                 json.dump(table_description_embeddings, description_file)
             if progress_callback is not None:
-                progress_callback(len(self.tableNames), len(self.tableNames))
+                progress_callback((len(self.tableNames), len(self.tableNames)))
         return table_description_embeddings
 
     def to_str(self):
