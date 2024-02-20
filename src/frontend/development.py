@@ -16,9 +16,11 @@ from src.backend.test import *
 prompt = st.chat_input("Say something")
 if prompt:
     st.write(f"User has sent the following prompt: {prompt}")
-
+    
     df, chart, vis = get_test_chart()
-    st.write(chart.getSQLQuery())
+
+    chart.query = "SELECT CustomerID AS ID, CustomerName AS Customer FROM Customers"
+    # st.write(chart.getSQLQuery())
     # st.plotly_chart(chart.generate())
     chart.formatSQL()
     # command = test_actioner_workflow(prompt)

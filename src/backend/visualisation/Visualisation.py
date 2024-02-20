@@ -54,20 +54,30 @@ class Visualisation():
         # split text on uppercase words
         sql = self.query
         # splits the query based on uppercase and following words
-        # phrases = re.findall('[A-Z]*[^A-Z]*', sql)
+        phrases = re.findall('[A-Z]*\s[^A-Z]*', sql)
 
         # splits the sql query by uppercase words (commands) and others
         splitByCommand = re.findall('[A-Z]*|[^A-Z]*', sql)
         
-        formatted = 'The data used to create this chart was fetched using the following SQL query:\n\n'
-
+        explained = 'The data used to create this chart was fetched using the following SQL query:\n\n'
+        
+        # if a string is a command then show it orange
         for string in splitByCommand:
             if string.isupper():
-                formatted += f':orange[{string}]'
+                explained += f':orange[{string}]'
             else:
-                formatted += string
+                explained += string
 
-        st.write(formatted)
+        # if there is an AS show this to the user
+        for i, phrase in enumerate(phrases):
+            # if there is an AS phrase
+            if phrase.startswith("AS "):
+                name = re.search('AS (.*)(,|$|\s)', phrase)
+                columns = re.search(', (.*)', phrases[i - 1])
+
+                explained += f'\n\nThe :blue[{name.group(1)}] values are generated from :blue[{columns}]'
+
+        st.write(explained)
 
 
 
