@@ -1,15 +1,12 @@
 import sys
 import os
-
-from streamlit.components.v1 import html
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 from glob import glob
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 import streamlit as st
 from src.backend.copilot import Copilot
 from src.backend.utils.sessions import Session_Storage
-
 
 
 def display_session_ui():
@@ -43,7 +40,6 @@ def display_session_ui():
             print(f"Loading database: {latest_db}")
 
             st.write(f"Loading database: {latest_db}")
-           
 
             copilot = Copilot(db=latest_db, dbtype='sqlite')
             session_manager.update_session_data(current_session_id, data=copilot)
@@ -51,13 +47,6 @@ def display_session_ui():
             session_manager.update_session_data(current_session_id)
     print(f"New session: {current_session_id}")
     return current_session_id, copilot
-
-
-def display_loading(animation_placeholder):
-    frame = st.session_state.loading_frame
-    if not frame:
-        return
-    animation_placeholder.image(frame)
 
 
 col1, col2 = st.columns([8, 2])
