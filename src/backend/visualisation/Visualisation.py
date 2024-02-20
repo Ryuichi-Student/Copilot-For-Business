@@ -33,3 +33,5 @@ class Visualisation():
     
     def getSQLQuery(self) -> str:
         return self.query
+
+    

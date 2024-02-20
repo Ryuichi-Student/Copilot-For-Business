@@ -10,6 +10,7 @@ from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
+from src.backend.generalised_answer import general_answer_gen
 
 import streamlit as st
 
@@ -28,6 +29,8 @@ class Query:
 
         self.answer = None
         self.plot = None
+        self.generalised_answer = None
+        self.vis = None
 
     def set_requirements(self, actioner: Actioner):
         if self.requirements is None:
@@ -70,9 +73,19 @@ class Query:
             pprint(df)
             if isinstance(df, pd.DataFrame):
                 vis = visualisation_subclasses[cmd['graph_type']](df, query, graph_info)
+                self.vis = vis
                 self.plot = vis.generate()
             else:
                 self.answer = df
+    
+    def get_generalised_answer(self):
+        if self.generalised_answer is None:
+            if not self.vis is None:
+                pprint(str(self.vis))
+                answer_gen = general_answer_gen(str(self.vis),self.userQuery)
+                self.generalised_answer = answer_gen.getAnswer()
+
+
 
     def __dict__(self):
         """ JSON serialisable """
@@ -128,6 +141,7 @@ class Copilot:
                 st.write("Getting an answer")
                 dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
                 query.get_plot(Actioner(dfs_database), dfs_database)
+                query.get_generalised_answer()
 
         return self.UserQueries[userQuery]
 
@@ -163,6 +177,9 @@ class Copilot:
 
     def get_plot(self, query: str):
         return self.UserQueries[hash(query)].plot
+
+    def get_generalised_answer(self, query: str):
+        return self.UserQueries[hash(query)].generalised_answer
 
     def cleanup(self):
         print("Cleaning up threadpool")
