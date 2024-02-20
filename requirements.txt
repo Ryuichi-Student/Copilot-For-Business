@@ -4,7 +4,6 @@ pandasql==0.7.3
 plotly==5.19.0
 pytest==8.0.0
 setuptools==58.0.4
-setuptools==69.0.3
 sqlvalidator==0.0.20
 numpy==1.23.5
 openai==1.12.0
