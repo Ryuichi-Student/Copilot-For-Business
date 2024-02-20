@@ -53,6 +53,7 @@ def upload_progress(args, upload_placeholder=None, upload_placeholder2=None):
         upload_status, upload_end = args
         if upload_status == upload_end:
             upload_status = 0
+            upload_end = 0
             upload_placeholder.empty()
             upload_placeholder2.empty()
         print(upload_status, upload_end)
