@@ -72,10 +72,10 @@ class Database(ABC):
         pass
 
 class SQLiteDatabase(Database):
-    def __init__(self, file_path, additionalMetadata=None):
+    def __init__(self, file_path, additionalMetadata=None, progress_callback=None):
         self._url = file_path
         super().__init__(additionalMetadata)
-        self._descriptionEmbeddings = self.getDescriptionEmbeddings()
+        self._descriptionEmbeddings = self.getDescriptionEmbeddings(progress_callback=progress_callback)
     
     @property
     def url(self) -> str:
@@ -163,7 +163,7 @@ class SQLiteDatabase(Database):
             column_names = [column_name for tname in self.tableNames for column_name in [row[1] for row in conn.execute(f"PRAGMA table_info(\"{tname}\")")]]
             return column_names
     
-    def getDescriptionEmbeddings(self, forceWrite=False):
+    def getDescriptionEmbeddings(self, forceWrite=False, progress_callback=None):
         """
         Get the embedding of each table in the database. If forceWrite is true will overwrite the embedding file.
         """
@@ -175,7 +175,10 @@ class SQLiteDatabase(Database):
             with open(description_url, 'r') as description_file:
                 table_description_embeddings = json.load(description_file)
         except FileNotFoundError:
+            if progress_callback is not None:
+                progress_callback((0, len(self.tableNames)))
             for table in self.tableNames:
+                progress_callback(table)
                 table_preview = self.query(f"SELECT * FROM \"{table}\" LIMIT 5").to_string(index=False)
                 system_prompt = dedent("""\
                     You are a data consultant, giving descriptions to tables. You will be provided with a preview of the first 5 rows of a table. Please come up with a short, concise description in one or two sentences that gives an accurate overview of the table.\
@@ -191,7 +194,9 @@ class SQLiteDatabase(Database):
                     'embedding': embedding
                 }
             with open(description_url, 'w') as description_file:
-                json.dump(table_description_embeddings, description_file)      
+                json.dump(table_description_embeddings, description_file)
+            if progress_callback is not None:
+                progress_callback(len(self.tableNames), len(self.tableNames))
         return table_description_embeddings
 
     def to_str(self):

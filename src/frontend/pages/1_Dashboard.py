@@ -1,6 +1,11 @@
-import streamlit as st
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+
+from src.backend.database import SQLiteDatabase
 from src.backend.utils.sessions import Session_Storage
 
+import streamlit as st
 import sqlite3
 import os
 
@@ -39,8 +44,28 @@ for session_id in sessions.get_sessions():
 # TODO: Add undo functionality
 
 
+upload_status, upload_end, table_name = 0, 0, ""
+
+
+def upload_progress(args, upload_placeholder=None, upload_placeholder2=None):
+    global upload_status, upload_end, table_name
+    if len(args) == 2:
+        upload_status, upload_end = args
+        if upload_status == upload_end:
+            upload_status = 0
+            upload_placeholder.empty()
+        print(upload_status, upload_end)
+    else:
+        upload_status += 1
+        table_name = args
+        print(upload_status, upload_end)
+    if upload_end:
+        upload_placeholder.progress(upload_status/upload_end)
+        upload_placeholder2.write(f"Analyzing table: {table_name}")
+
 # Upload a database file
-            
+
+
 def get_db_upload():
     uploaded_file = st.file_uploader("Choose a file", type=["sqlite3", "db", "pdf"])
 
@@ -62,7 +87,6 @@ def get_db_upload():
         with open(f"uploads/{uploaded_file.name}", "wb") as f:
             f.write(file_content)
 
-
         try:
             # Open the file with sqlite3
             conn = sqlite3.connect(f"uploads/{uploaded_file.name}")
@@ -71,19 +95,20 @@ def get_db_upload():
             print("Connected")
             conn.close()
 
-            st.success(f"Saved {uploaded_file.name} to databases folder")
+            # Preprocess Sqlite3 database
+            upload_placeholder = st.empty()
+            upload_placeholder.progress(0)
+            upload_placeholder2 = st.empty()
+            SQLiteDatabase(f"uploads/{uploaded_file.name}", progress_callback=lambda args: upload_progress(args, upload_placeholder, upload_placeholder2))
+            st.success(f"Saved {uploaded_file.name} to uploads folder")
 
-
-
-
-
-        except:
+        except Exception as e:
             st.error(f"Failed to save {uploaded_file.name} to databases folder")
             st.error("Please upload a valid sqlite3 database file")
             conn.close()
+            print(e)
             # Delete the file
             os.remove(f"uploads/{uploaded_file.name}")
-
 
 
 get_db_upload()
