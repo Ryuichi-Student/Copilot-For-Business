@@ -91,11 +91,10 @@ if current_session_id is not None:
 
         # pass data, query, and actioner parameters to the visualisation
 
-        # go to new page to show plot? allow a keep and delete
         # show code
         # show sql
 
-        # button to allow the user to accept or remove --> a button
+        # button to allow the user to accept or remove
 
         plot = copilot.get_plot(userQuery)
         answer = copilot.get_answer(userQuery)
@@ -103,11 +102,22 @@ if current_session_id is not None:
         status_placeholder.empty()
 
         if plot:
-            st.pyplot(plot)
+            fig = plot.generate()
+            config = {'displayModeBar': None}
+
+            # displays the chart created
+            st.plotly_chart(fig, config=config)
+
+            # adds a toggle to show the top 10 values of the dataframe only
+            if plot.dfLength > 10:
+                topN = st.toggle("Show top 10 values only", False)
+                if topN: plot.topn(10, topN)
+                else: plot.topn(10, topN)
+
+
         if answer:
             st.write(answer)
 
         sqlView = st.toggle("Show SQL", False)
         if sqlView:
-            st.write(copilot.get_sql(userQuery))
-
+            plot.formatSQL()

@@ -10,6 +10,7 @@ from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
+from src.backend.utils.clean_name import clean_name
 
 import streamlit as st
 
@@ -58,7 +59,16 @@ class Query:
             futures = {req:threadpool.submit(self.sql_generator.executeQuery, query) for req,query in self.queries.items()}
             dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
             # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
-            self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
+            # crashes is this isn't a dataframe because its a single value
+            self.dfs = {}
+            for req, df in dataframes.items():
+                if isinstance(df, pd.DataFrame):
+                    if df is not None and not df.empty:
+                        self.dfs[req] = df
+                else:
+                    newdf = pd.DataFrame({clean_name(req): [df]})
+                    self.dfs[req] = newdf
+            # self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
             pprint(self.dfs)
 
     def get_plot(self, actioner: Actioner, database: Database):
@@ -74,9 +84,10 @@ class Query:
             pprint(df)
             if isinstance(df, pd.DataFrame):
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
-                self.plot = vis.generate()
+                self.plot = vis
             else:
                 self.answer = df
+
 
     def __dict__(self):
         """ JSON serialisable """

@@ -21,8 +21,11 @@ def test_actioner_workflow(query):
     copilot.query(query)
 
 def get_test_chart():
-    df = pd.DataFrame({'lab': ['A', 'X', 'D'], 'val': [10, 30, 20]})
+    speed = [0.1, 17.5, 40, 48, 52, 69, 88]
+    lifespan = [2, 8, 70, 1.5, 25, 12, 28]
+    index = ['snail', 'pig', 'elephant', 'rabbit', 'giraffe', 'coyote', 'horse']
+    df = pd.DataFrame({'speed': speed, 'lifespan': lifespan, 'lab' : index})
 
-    pie = PieChart(df, "", {'title': 'title1', 'categories': 'lab', 'count': 'val'})
+    pie = PieChart(df, "SELECT id, count, firstname FROM database1", {'title': 'title of the chart', 'categories': 'lab', 'count': 'speed'})
     plot = pie.generate()
     return df, pie, plot
