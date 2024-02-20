@@ -76,3 +76,5 @@ uploads/*.json
 uploads/*.sqlite3
 uploads/*.sqlite
 uploads/*.db
+
+gpt_token_usage.txt
