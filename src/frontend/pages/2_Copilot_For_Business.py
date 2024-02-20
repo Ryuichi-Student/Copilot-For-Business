@@ -1,5 +1,6 @@
 import sys
 import os
+from glob import glob
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 import streamlit as st
@@ -8,8 +9,14 @@ from src.backend.copilot import Copilot
 from src.backend.test import get_test_chart
 from src.backend.utils.sessions import Session_Storage
 
+def get_db_upload():
+    uploaded_file = st.file_uploader("Choose a file", type=["sqlite3", "db"], )
+    if uploaded_file is not None:
+        with open(uploaded_file, 'wb') as f:
+            f.write(uploaded_file.getbuffer())
 
 def display_session_ui():
+    print("Displaying session UI")
     session_manager = st.session_state.session_storage
     sessions = session_manager.get_sessions()
 
@@ -27,7 +34,16 @@ def display_session_ui():
         copilot = session_manager.get_session_data(current_session_id)['data']
         if copilot is None:
             # TODO: Choose what databases to allow the model to retrieve data from
-            copilot = Copilot(db='databases/crm_refined.sqlite3', dbtype='sqlite')
+
+            # Call a routine which will load the latest database
+            get_db_upload()
+
+            list_of_databases = glob("databases/*.sqlite3")
+            latest_db = max(list_of_databases, key=os.path.getctime)
+            print(f"Loading database: {latest_db}")
+           
+
+            copilot = Copilot(db=latest_db, dbtype='sqlite')
             session_manager.update_session_data(current_session_id, data=copilot)
         else:
             session_manager.update_session_data(current_session_id)
