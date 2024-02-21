@@ -94,8 +94,10 @@ class Query:
         if self.generalised_answer is None:
             if self.plot is not None:
                 pprint(str(self.plot))
-                answer_gen = general_answer_gen(str(self.plot),self.userQuery)
-                self.generalised_answer = answer_gen.getAnswer()
+                answer_gen = general_answer_gen(str(self.plot),self.userQuery,True)
+            elif self.answer is not None:
+                answer_gen = general_answer_gen(str(self.answer),self.userQuery,False)
+            self.generalised_answer = answer_gen.getAnswer()
 
 
 
