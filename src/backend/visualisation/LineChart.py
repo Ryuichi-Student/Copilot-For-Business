@@ -74,6 +74,14 @@ class LineChart(Visualisation):
         else:
             return True
 
+    def __str__(self):
+        description = (f"LineChart:\n"
+                       f"Title: {self.title}\n"
+                       f"X-axis: {self.x_axis} (Column name used as the X axis)\n"
+                       f"Y-axis: {self.y_axis} (Column name used as the Y axis)\n"
+                       f"Data: {self.df}")
+        return description
+
 # df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
 
 # chart = LineChart(df, "SELECT * FROM *", {"title": "title 1", "x_axis" : "lab", "y_axis" : "val"})
