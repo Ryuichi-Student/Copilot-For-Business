@@ -8,7 +8,7 @@ import glob
 
 if __name__ == "__main__":
     # Connect to SQLite database
-    conn = sqlite3.connect('../../../databases/crm1.db')
+    conn = sqlite3.connect('../../../legacy/databases/crm1.db')
 
     # List all CSV files
     csv_files = glob.glob('*.csv')
