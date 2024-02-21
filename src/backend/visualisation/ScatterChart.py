@@ -52,6 +52,14 @@ class ScatterChart(Visualisation):
         else:
             return True
 
+    def __str__(self):
+        # Construct the string description
+        description = (f"Scatter Plot:\n"
+                       f"Title: {self.title}\n"
+                       f"X-axis: {self.x_axis} (Column name used for X axis values)\n"
+                       f"Y-axis: {self.y_axis} (Column name used for Y axis values)\n"
+                       f"Data: {self.df}")
+        return description
 
 # df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
 
