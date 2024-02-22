@@ -9,6 +9,8 @@ from src.backend.copilot import Copilot
 from src.backend.utils.sessions import Session_Storage
 from datetime import datetime
 
+if "set_name" not in st.session_state:
+    st.session_state.set_name = False
 
 def display_session_ui():
     print("Displaying session UI")
