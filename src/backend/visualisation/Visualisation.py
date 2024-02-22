@@ -54,28 +54,36 @@ class Visualisation():
         # split text on uppercase words
         sql = self.query
         # splits the query based on uppercase and following words
-        phrases = re.findall('[A-Z]*\s[^A-Z]*', sql)
+
+        # gets completely uppercase words from the string
+        commands = re.findall('([A-Z]+)\s', sql)
+        # st.write(commands)
 
         # splits the sql query by uppercase words (commands) and others
-        splitByCommand = re.findall('[A-Z]*|[^A-Z]*', sql)
+        # [A-Z]+|[^A-Z]+
+        
+        # splitBy = "|".join(commands)
+        splitByWord = re.split('\s', sql)
         
         explained = 'The data used to create this chart was fetched using the following SQL query:\n\n'
         
         # if a string is a command then show it orange
-        for string in splitByCommand:
+        for string in splitByWord:
             if string.isupper():
-                explained += f':orange[{string}]'
+                explained += f':orange[{string}] '
             else:
                 explained += string
+                explained += " "
 
         # if there is an AS show this to the user
-        for i, phrase in enumerate(phrases):
+        for i, word in enumerate(splitByWord):
             # if there is an AS phrase
-            if phrase.startswith("AS "):
-                name = re.search('AS (.*)(,|$|\s)', phrase)
-                columns = re.search(', (.*)', phrases[i - 1])
-
-                explained += f'\n\nThe :blue[{name.group(1)}] values are generated from :blue[{columns}]'
+            if word == "AS":
+                name = re.match('^[a-zA-Z0-9_.-]*', splitByWord[i + 1])
+                columns = re.match('^[a-zA-Z0-9_.-]*', splitByWord[i - 1])
+                
+                if name and columns:
+                    explained += f'\n\nThe :blue[{name.group(0)}] values are generated from :blue[{columns.group(0)}]'
 
         st.write(explained)
 

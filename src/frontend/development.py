@@ -19,7 +19,7 @@ if prompt:
     
     df, chart, vis = get_test_chart()
 
-    chart.query = "SELECT CustomerID AS ID, CustomerName AS Customer FROM Customers"
+    chart.query = "SELECT CustomerID AS id, CustomerName AS Customer FROM Customers INNER JOIN table2"
     # st.write(chart.getSQLQuery())
     # st.plotly_chart(chart.generate())
     chart.formatSQL()
