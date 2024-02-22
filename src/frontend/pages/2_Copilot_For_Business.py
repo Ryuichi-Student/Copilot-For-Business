@@ -29,7 +29,7 @@ def display_session_ui():
             options=sessions,
             format_func=lambda x: session_manager.get_session_data(x)['name'],
             index=0  # Automatically switch to the most recent session ID
-        )
+        ) # type: ignore
         copilot = session_manager.get_session_data(current_session_id)['data']
         if copilot is None:
             # TODO: Choose what databases to allow the model to retrieve data from
