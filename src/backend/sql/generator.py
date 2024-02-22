@@ -82,21 +82,17 @@ class SQLGenerator:
 
         - Feasibility: If the query can be constructed, the JSON object for the current SQL query object should reflect a status of 'success' and contain a query field with the SQL query. 
                 Ensure compatibility with SQLite3 and use backslashes to escape quotes within the query string. 
-                Include a is_single_value field to indicate if the query returns a single value ("True" or "False"). This should be "True" only when the query result is expected to produce a single row and a single column. 
-                If the sql query will produce multiple columns, single value should be False!!!!
                 For example:
 
             {
                 "status": "success",
-                "query": "SQL_QUERY_HERE",
-                "is_single_value": "True/False"
+                "query": "SQL_QUERY_HERE"
             }
 
             Ensure the query aligns with the action command, adhering to the database schema and incorporating relevant columns and graph information as necessary. 
             Always select the primary key column in the generated query to facilitate future join operations.
 
         Key Considerations:
-
         - Focus on the provided information to construct each SQL query object, ensuring the syntax is correct and logically aligns with the action command's requirements and the database schema's constraints.
         - Use backslashes to escape quotes in the SQL query string.
         - Your response should strictly contain the JSON object with "SQL_queries" field and a list of SQL query object conforming to the specified format. Avoid including extraneous information.
@@ -192,12 +188,10 @@ class SQLGenerator:
                     {
                         "status": "success",
                         "query": "SELECT completedclient.name, completedclient.client_id, SUM(completedorder.amount) AS total_amount FROM completedclient JOIN completeddisposition ON completedclient.client_id = completeddisposition.client_id JOIN completedorder ON completeddisposition.account_id = completedorder.account_id GROUP BY completedclient.client_id",
-                        "is_single_value": "False"
                     },
                     {
                         "status": "success",
                         "query": "SELECT completedacct.account_id, COUNT(completedtrans.trans_id) AS transaction_count FROM completedacct JOIN completedtrans ON completedacct.account_id = completedtrans.account_id GROUP BY completedacct.account_id",
-                        "is_single_value": "False"
                     }
                 ]
             }
@@ -265,7 +259,6 @@ class SQLGenerator:
                     {
                         "status": "success",
                         "query": "SELECT completedorder.order_id FROM completedorder WHERE completedorder.amount = (SELECT MAX(completedorder.amount) FROM completedorder)",
-                        "is_single_value": "True"
                     }
                 ]
             }
@@ -284,7 +277,7 @@ class SQLGenerator:
         gpt_response = json.loads(gpt_response)
         return gpt_response
 
-    def parseQuery(self, gpt_response: Dict[str, Any]) -> Optional[Tuple[str,bool]]:
+    def parseQuery(self, gpt_response: Dict[str, Any]) -> Optional[str]:
         #extract Query from GPT response
         if not isinstance(gpt_response, dict):
             raise ResponseNotJSONError(f"GPT response is not a JSON object, but a {type(gpt_response)}")
@@ -294,11 +287,7 @@ class SQLGenerator:
             if "query" not in gpt_response:
                 raise ResponseContentMissingError(f"Query field is missing from GPT response")
             query = gpt_response["query"]
-            if "is_single_value" not in gpt_response:
-                raise ResponseContentMissingError(f"is_single_value field is missing from GPT response")
-            is_single_value = gpt_response["is_single_value"]=="True"
-            pprint(query)
-            return (query, is_single_value)
+            return query
         elif gpt_response["status"] == "error":
             if "error" not in gpt_response:
                 raise ResponseContentMissingError(f"Error field is missing from GPT response")
@@ -314,53 +303,52 @@ class SQLGenerator:
             raise ResponseStatusError(f"Error: {gpt_response['error']}")
     
 
-    def validateQuery(self, query: str, is_single_value: bool = False):
+    def validateQuery(self, query: str):
         #Validates the generated SQL query
         #returns None or raises Error
-        sql_query = sqlvalidator.parse(query)
-        if not sql_query.is_valid():
-            raise QueryValidationError(f"SQL query is not valid: {sql_query.errors}")
-        else:
-            try:
-                self.database.query(query, is_df=False, is_single_value=is_single_value)
-            except sqlite3.OperationalError as e:
-                raise QueryExecutionError(f"Sqlite3 Operational Error: {e}")
-            except sqlite3.ProgrammingError as e:
-                raise QueryExecutionError(f"Sqlite3 Programming Error: {e}")
-            except sqlite3.IntegrityError as e:
-                raise QueryExecutionError(f"Sqlite3 Integrity Error: {e}")
-            except sqlite3.NotSupportedError as e:
-                raise QueryExecutionError(f"Sqlite3 Not Supported Error: {e}")
-            except sqlite3.DataError as e:
-                raise QueryExecutionError(f"Sqlite3 Data Error: {e}")
-            except sqlite3.InternalError as e:
-                raise QueryExecutionError(f"Sqlite3 Internal Error: {e}")
-            except sqlite3.DatabaseError as e:
-                raise QueryExecutionError(f"Sqlite3 Database Error: {e}")
-            except sqlite3.Error as e:
-                raise QueryExecutionError(f"Sqlite3 Error: {e}")
+        try:
+            self.database.query(query, is_df=False, is_single_value=False) 
+        except sqlite3.OperationalError as e:
+            raise QueryExecutionError(f"Sqlite3 Operational Error: {e}")
+        except sqlite3.ProgrammingError as e:
+            raise QueryExecutionError(f"Sqlite3 Programming Error: {e}")
+        except sqlite3.IntegrityError as e:
+            raise QueryExecutionError(f"Sqlite3 Integrity Error: {e}")
+        except sqlite3.NotSupportedError as e:
+            raise QueryExecutionError(f"Sqlite3 Not Supported Error: {e}")
+        except sqlite3.DataError as e:
+            raise QueryExecutionError(f"Sqlite3 Data Error: {e}")
+        except sqlite3.InternalError as e:
+            raise QueryExecutionError(f"Sqlite3 Internal Error: {e}")
+        except sqlite3.DatabaseError as e:
+            raise QueryExecutionError(f"Sqlite3 Database Error: {e}")
+        except sqlite3.Error as e:
+            raise QueryExecutionError(f"Sqlite3 Error: {e}")
     
-    def getQueries(self)-> Tuple[List[Optional[str]], List[Optional[bool]]]:
+    def getQueries(self)->List[Optional[str]]:
         response = self.generateQuery()
         queries = []
-        is_svs = []
+        if "SQL_queries" not in response:
+            raise ResponseContentMissingError(f"SQL_queries field is missing from GPT response")
+        if not isinstance(response["SQL_queries"], list):
+            raise ResponseContentMissingError(f"SQL_queries field is not a list in GPT response")
+        if len(response["SQL_queries"]) != len(self.actionCommands):
+            raise ResponseContentMissingError(f"Number of SQL queries does not match number of action commands")
         for query_obj in response["SQL_queries"]:
             try:
-                query, is_single_value = self.parseQuery(query_obj) # type: ignore
-                self.validateQuery(query, is_single_value)
+                query = self.parseQuery(query_obj) # type: ignore
+                self.validateQuery(query) # type: ignore
                 queries.append(query)
-                is_svs.append(is_single_value)
             except Exception as e:
                 pprint(f"{type(e).__name__}: {e}")
                 queries.append(None)
-                is_svs.append(None)
-        return (queries, is_svs)
+        return queries
 
     
-    def executeQuery(self, query: str, is_single_value = False) -> Optional[Union[pd.DataFrame, Any]]:
+    def executeQuery(self, query: str) -> Optional[Union[pd.DataFrame, Any]]:
         #Executes the SQL query and returns the results as a pandas DataFrame
         try:
-            df = self.database.query(query, is_df=True, is_single_value=is_single_value)
+            df = self.database.query(query, is_df=True, is_single_value=False)
             return df
         except Exception as e:
             pprint(f"{type(e).__name__}: {e}")
