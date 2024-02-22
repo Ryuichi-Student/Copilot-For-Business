@@ -90,8 +90,10 @@ if current_session_id is not None:
 
         # button to allow the user to accept or remove
 
+        if copilot.get_early_answer(userQuery):
+            st.write(copilot.get_early_answer(userQuery))
+
         plot = copilot.get_plot(userQuery)
-        #answer = copilot.get_answer(userQuery)
 
         status_placeholder.empty()
 
@@ -108,13 +110,11 @@ if current_session_id is not None:
                 if topN: plot.topn(10, topN)
                 else: plot.topn(10, topN)
 
-
-        #if answer:
-            #st.write(answer)
-
         sqlView = st.toggle("Show SQL", False)
         if sqlView:
             st.write(copilot.get_sql(userQuery))
             if plot:
                 plot.formatSQL()
-        st.write(copilot.get_generalised_answer(userQuery))
+
+        if copilot.get_generalised_answer(userQuery):
+            st.write(copilot.get_generalised_answer(userQuery))
