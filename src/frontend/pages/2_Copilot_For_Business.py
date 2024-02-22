@@ -12,6 +12,7 @@ from datetime import datetime
 if "set_name" not in st.session_state:
     st.session_state.set_name = False
 
+
 def display_session_ui():
     print("Displaying session UI")
     session_manager = st.session_state.session_storage
