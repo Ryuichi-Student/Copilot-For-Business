@@ -84,6 +84,8 @@ class Query:
             pprint(query)
             df = sql.executeQuery(query, is_single_value=is_sv)
             pprint(df)
+            pprint("hello")
+            pprint(is_sv)
             if isinstance(df, pd.DataFrame):
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
                 self.plot = vis
@@ -92,6 +94,7 @@ class Query:
     
     def get_generalised_answer(self):
         if self.generalised_answer is None:
+            print(self.answer)
             if self.plot is not None:
                 pprint(str(self.plot))
                 answer_gen = general_answer_gen(str(self.plot),self.userQuery,True)
