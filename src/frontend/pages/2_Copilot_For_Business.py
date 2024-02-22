@@ -11,7 +11,8 @@ from datetime import datetime
 
 if "set_name" not in st.session_state:
     st.session_state.set_name = False
-
+if "userQueryCache" not in st.session_state:
+    st.session_state.userQueryCache = None
 
 def display_session_ui():
     print("Displaying session UI")
@@ -19,12 +20,12 @@ def display_session_ui():
     sessions = session_manager.get_sessions()
 
     if not sessions:
-        st.write("No sessions available")
+        st.session_state.set_name = True
+        print("No sessions available, creating a default session")
 
         current_session_id = f"Default Session {  datetime.now().strftime('%H:%M') }"
         copilot = None
         session_manager.create_session(current_session_id)
-        st.session_state.set_name = True
 
     else:
         current_session_id = st.selectbox(
@@ -70,7 +71,10 @@ with col2:
 
 if current_session_id is not None:
     # Extend to being more of a chat or asking the same copilot a question.
-    if copilot.UserQueries:
+    if st.session_state.userQueryCache is not None:
+        userQuery = st.session_state.userQueryCache
+        st.session_state.userQueryCache = None
+    elif copilot.UserQueries:
         # Get a random question from the user queries for now
         userQuery = copilot.get_random_query().userQuery
     else:
@@ -78,13 +82,17 @@ if current_session_id is not None:
 
     if userQuery:
         # TODO: Do more formatting
-        # display the user's entered prompt
-        st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
-
         if st.session_state.set_name:
             st.session_state.set_name = False
+            st.session_state.userQueryCache = userQuery
             session_manager = st.session_state.session_storage
-            session_manager.update_session_name(current_session_id, userQuery)
+            placeholder = st.empty()
+            for x in session_manager.update_session_name(current_session_id, userQuery):
+                placeholder.text(x)
+            placeholder.empty()
+
+        # display the user's entered prompt
+        st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
 
         status_placeholder = st.empty()
         status = status_placeholder.status("Thinking...")
