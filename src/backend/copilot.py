@@ -29,6 +29,7 @@ class Query:
         self.queries = None
         self.dfs = None
 
+        self.early_answer = None
         self.answer = None
         self.plot = None
         self.generalised_answer = None
@@ -37,7 +38,7 @@ class Query:
         response = early_analysis(self.userQuery, db)
         pprint(response)
         if response["status"] == "schema":
-            self.answer = response["message"]
+            self.early_answer = response["message"]
             return True
         else:
             return False
@@ -59,7 +60,7 @@ class Query:
             # self.sql_generators = {req:SQLGenerator(db, cmd['command'], cmd['relevant_columns']) for req,cmd in self.actionInfos.items()}
             action_commands, relevant_cols = [cmd['command'] for cmd in self.actionInfos.values()], [cmd["relevant_columns"] for cmd in self.actionInfos.values()]
             self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, [None]*len(self.actionInfos))
-            queries, _ = self.sql_generator.getQueries()
+            queries = self.sql_generator.getQueries()
             # futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
             # queries = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
             # queries = {req:sql.getQuery() for req,sql in self.sql_generators.items()}
@@ -71,7 +72,6 @@ class Query:
             futures = {req:threadpool.submit(self.sql_generator.executeQuery, query) for req,query in self.queries.items()}
             dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
             # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
-            # crashes is this isn't a dataframe because its a single value
             self.dfs = {}
             for req, df in dataframes.items():
                 if isinstance(df, pd.DataFrame):
@@ -89,10 +89,10 @@ class Query:
             pprint(cmd)                
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
             sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
-            queries, is_svs = sql.getQueries()
-            query, is_sv = queries[0] if queries[0] is not None else "", is_svs[0] if is_svs[0] is not None else False
+            queries = sql.getQueries()
+            query = queries[0] if queries[0] is not None else ""
             pprint(query)
-            df = sql.executeQuery(query, is_single_value=is_sv)
+            df = sql.executeQuery(query)
             pprint(df)
             if isinstance(df, pd.DataFrame) and cmd['graph_type']!="No Chart":
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
@@ -201,8 +201,8 @@ class Copilot:
             return dfs
         raise Exception("unknown query")
 
-    def get_answer(self, query: str):
-        return self.UserQueries[hash(query)].answer
+    def get_early_answer(self, query: str):
+        return self.UserQueries[hash(query)].early_answer
 
     def get_plot(self, query: str):
         return self.UserQueries[hash(query)].plot
