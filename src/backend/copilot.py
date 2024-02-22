@@ -11,6 +11,7 @@ from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
 from src.backend.utils.clean_name import clean_name
+from src.backend.utils.early_analysis import early_analysis
 
 import streamlit as st
 
@@ -29,6 +30,15 @@ class Query:
 
         self.answer = None
         self.plot = None
+
+    def early_analysis(self, db: Database)-> bool:
+        response = early_analysis(self.userQuery, db)
+        pprint(response)
+        if response["status"] == "schema":
+            self.answer = response["message"]
+            return True
+        else:
+            return False
 
     def set_requirements(self, actioner: Actioner):
         if self.requirements is None:
@@ -123,6 +133,10 @@ class Copilot:
                 print("---------------------Creating a new query----------------------")
                 st.write("Understanding the assignment")
                 query = self.UserQueries[userQuery] = Query(_userQuery)
+
+                print("---------------------Early Analysis----------------------")
+                if query.early_analysis(self.db): # If the query can be answered by the schema
+                    return self.UserQueries[userQuery]
 
                 print("---------------------Setting requirements----------------------")
                 query.set_requirements(self.actioner)
