@@ -84,9 +84,7 @@ class Query:
             pprint(query)
             df = sql.executeQuery(query, is_single_value=is_sv)
             pprint(df)
-            pprint("hello")
-            pprint(is_sv)
-            if isinstance(df, pd.DataFrame):
+            if isinstance(df, pd.DataFrame) and cmd['graph_type']!="No Chart":
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
                 self.plot = vis
             else:
@@ -94,9 +92,7 @@ class Query:
     
     def get_generalised_answer(self):
         if self.generalised_answer is None:
-            print(self.answer)
             if self.plot is not None:
-                pprint(str(self.plot))
                 answer_gen = general_answer_gen(str(self.plot),self.userQuery,True)
             elif self.answer is not None:
                 answer_gen = general_answer_gen(str(self.answer),self.userQuery,False)
@@ -158,6 +154,7 @@ class Copilot:
                 print("---------------------Getting plot----------------------")
                 st.write("Getting an answer")
                 dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
+                pprint(dfs_database.getTextSchema())
                 query.get_plot(Actioner(dfs_database), dfs_database)
                 query.get_generalised_answer()
 

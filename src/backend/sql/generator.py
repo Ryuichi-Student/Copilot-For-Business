@@ -80,7 +80,11 @@ class SQLGenerator:
 
             And ERROR_MESSAGE with a concise explanation of the issue.
 
-        - Feasibility: If the query can be constructed, the JSON object for the current SQL query object should reflect a status of 'success' and contain a query field with the SQL query. Ensure compatibility with SQLite3 and use backslashes to escape quotes within the query string. Include a is_single_value field to indicate if the query returns a single value ("True" or "False"). Ensure that SQL queries flagged with is_single_value as "True" are rigorously tested or reviewed to confirm that under no circumstances will they produce more than a single cell. This is a strict requirement and must be adhered to without exceptions. For example:
+        - Feasibility: If the query can be constructed, the JSON object for the current SQL query object should reflect a status of 'success' and contain a query field with the SQL query. 
+                Ensure compatibility with SQLite3 and use backslashes to escape quotes within the query string. 
+                Include a is_single_value field to indicate if the query returns a single value ("True" or "False"). This should be "True" only when the query result is expected to produce a single row and a single column. 
+                If the sql query will produce multiple columns, single value should be False!!!!
+                For example:
 
             {
                 "status": "success",
