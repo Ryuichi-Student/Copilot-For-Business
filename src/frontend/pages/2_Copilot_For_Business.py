@@ -9,6 +9,7 @@ from src.backend.copilot import Copilot
 from src.backend.utils.sessions import Session_Storage
 from datetime import datetime
 
+
 def display_session_ui():
     print("Displaying session UI")
     session_manager = st.session_state.session_storage
@@ -19,9 +20,8 @@ def display_session_ui():
 
         current_session_id = f"Default Session {  datetime.now().strftime('%H:%M') }"
         copilot = None
-        sess = st.session_state.session_storage
-        sess.create_session(current_session_id)
-
+        session_manager.create_session(current_session_id)
+        st.session_state.set_name = True
 
     else:
         current_session_id = st.selectbox(
@@ -29,7 +29,7 @@ def display_session_ui():
             options=sessions,
             format_func=lambda x: session_manager.get_session_data(x)['name'],
             index=0  # Automatically switch to the most recent session ID
-        ) # type: ignore
+        )  # type: ignore
         copilot = session_manager.get_session_data(current_session_id)['data']
         if copilot is None:
             # TODO: Choose what databases to allow the model to retrieve data from
@@ -77,6 +77,12 @@ if current_session_id is not None:
         # TODO: Do more formatting
         # display the user's entered prompt
         st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
+
+        if st.session_state.set_name:
+            st.session_state.set_name = False
+            session_manager = st.session_state.session_storage
+            session_manager.update_session_name(current_session_id, userQuery)
+
         status_placeholder = st.empty()
         status = status_placeholder.status("Thinking...")
         copilot.set_status_placeholder(status)

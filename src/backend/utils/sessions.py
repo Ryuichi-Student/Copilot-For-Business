@@ -1,6 +1,7 @@
 import uuid
 from collections import deque
 from typing import Any, Dict, List, Optional
+from src.backend.utils.gpt import get_gpt_response
 
 
 # TODO: Load from and save to persistent storage
@@ -112,3 +113,15 @@ class Session_Storage:
             self.update_sessions()
 
             self.rerun()
+
+    def update_session_name(self, session_id: str, query: str) -> None:
+        """
+        Uses the query to generate a name for the session and updates the session with the new name.
+
+        Args:
+            session_id (UUID): The unique identifier of the session to update.
+            query (str): The query to use for generating the session name.
+        """
+        name = get_gpt_response(("user", f"""I want to generate a name for a GPT session, based on the user's query. Write down a short name (and nothing else) that describes and summarises the query: "{query}"."""))
+        self.session_data[session_id]["name"] = name
+        self.rerun()
