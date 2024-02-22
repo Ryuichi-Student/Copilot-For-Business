@@ -7,7 +7,7 @@ from glob import glob
 import streamlit as st
 from src.backend.copilot import Copilot
 from src.backend.utils.sessions import Session_Storage
-
+from datetime import datetime
 
 def display_session_ui():
     print("Displaying session UI")
@@ -16,8 +16,13 @@ def display_session_ui():
 
     if not sessions:
         st.write("No sessions available")
-        current_session_id = None
+
+        current_session_id = f"Default Session {  datetime.now().strftime('%H:%M') }"
         copilot = None
+        sess = st.session_state.session_storage
+        sess.create_session(current_session_id)
+
+
     else:
         current_session_id = st.selectbox(
             label="Select a session:",
@@ -49,7 +54,7 @@ def display_session_ui():
     return current_session_id, copilot
 
 
-col1, col2 = st.columns([8, 2])
+col1, col2 = st.columns([7, 3])
 with col1:
     # title
     st.header("Copilot for Business")
