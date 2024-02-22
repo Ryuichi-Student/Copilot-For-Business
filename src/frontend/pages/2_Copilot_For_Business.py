@@ -114,29 +114,30 @@ if current_session_id is not None:
 
         if copilot.get_early_answer(userQuery):
             st.write(copilot.get_early_answer(userQuery))
+            status_placeholder.empty()
+        else:
+            plot = copilot.get_plot(userQuery)
 
-        plot = copilot.get_plot(userQuery)
+            status_placeholder.empty()
 
-        status_placeholder.empty()
-
-        if plot:
-            fig = plot.generate()
-            config = {'displayModeBar': None}
-
-            # displays the chart created
-            st.plotly_chart(fig, config=config)
-
-            # adds a toggle to show the top 10 values of the dataframe only
-            if plot.dfLength > 10:
-                topN = st.toggle("Show top 10 values only", False)
-                if topN: plot.topn(10, topN)
-                else: plot.topn(10, topN)
-
-        sqlView = st.toggle("Show SQL", False)
-        if sqlView:
-            st.write(copilot.get_sql(userQuery))
             if plot:
-                plot.formatSQL()
+                fig = plot.generate()
+                config = {'displayModeBar': None}
 
-        if copilot.get_generalised_answer(userQuery):
-            st.write(copilot.get_generalised_answer(userQuery))
+                # displays the chart created
+                st.plotly_chart(fig, config=config)
+
+                # adds a toggle to show the top 10 values of the dataframe only
+                if plot.dfLength > 10:
+                    topN = st.toggle("Show top 10 values only", False)
+                    if topN: plot.topn(10, topN)
+                    else: plot.topn(10, topN)
+
+            sqlView = st.toggle("Show SQL", False)
+            if sqlView:
+                st.write(copilot.get_sql(userQuery))
+                if plot:
+                    plot.formatSQL()
+
+            if copilot.get_generalised_answer(userQuery):
+                st.write(copilot.get_generalised_answer(userQuery))
