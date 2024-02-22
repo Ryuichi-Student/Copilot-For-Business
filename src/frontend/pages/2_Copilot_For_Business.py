@@ -90,12 +90,6 @@ if current_session_id is not None:
         status = status_placeholder.status("Thinking...")
         copilot.set_status_placeholder(status)
         copilot.query(userQuery)
-        # pass actions to the sql generator
-
-        # pass data, query, and actioner parameters to the visualisation
-
-        # show code
-        # show sql
 
         # button to allow the user to accept or remove
 
