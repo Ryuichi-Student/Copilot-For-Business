@@ -80,7 +80,7 @@ class SQLGenerator:
 
             And ERROR_MESSAGE with a concise explanation of the issue.
 
-        - Feasibility: If the query can be constructed, the JSON object for the current SQL query object should reflect a status of 'success' and contain a query field with the SQL query. Ensure compatibility with SQLite3 and use backslashes to escape quotes within the query string. Include a is_single_value field to indicate if the query returns a single value ("True" or "False"). For example:
+        - Feasibility: If the query can be constructed, the JSON object for the current SQL query object should reflect a status of 'success' and contain a query field with the SQL query. Ensure compatibility with SQLite3 and use backslashes to escape quotes within the query string. Include a is_single_value field to indicate if the query returns a single value ("True" or "False"). Ensure that SQL queries flagged with is_single_value as "True" are rigorously tested or reviewed to confirm that under no circumstances will they produce more than a single cell. This is a strict requirement and must be adhered to without exceptions. For example:
 
             {
                 "status": "success",
@@ -291,6 +291,7 @@ class SQLGenerator:
             if "is_single_value" not in gpt_response:
                 raise ResponseContentMissingError(f"is_single_value field is missing from GPT response")
             is_single_value = gpt_response["is_single_value"]=="True"
+            pprint(query)
             return (query, is_single_value)
         elif gpt_response["status"] == "error":
             if "error" not in gpt_response:
