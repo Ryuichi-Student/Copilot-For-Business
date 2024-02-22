@@ -95,6 +95,8 @@ class SQLGenerator:
         - Focus on the provided information to construct each SQL query object, ensuring the syntax is correct and logically aligns with the action command's requirements and the database schema's constraints.
         - Use backslashes to escape quotes in the SQL query string.
         - Your response should strictly contain the JSON object with "SQL_queries" field and a list of SQL query object conforming to the specified format. Avoid including extraneous information.
+        - Make sure to select primary key columns whenever necessary to ease the future join operations.
+        - Use the primary key and foreign key relationships to join the tables whenever necessary.
         \
         ''')
         
