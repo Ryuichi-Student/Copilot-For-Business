@@ -10,6 +10,7 @@ from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
+from src.backend.generalised_answer import general_answer_gen
 from src.backend.utils.clean_name import clean_name
 from src.backend.utils.early_analysis import early_analysis
 
@@ -30,6 +31,7 @@ class Query:
 
         self.answer = None
         self.plot = None
+        self.generalised_answer = None
 
     def early_analysis(self, db: Database)-> bool:
         response = early_analysis(self.userQuery, db)
@@ -92,11 +94,21 @@ class Query:
             pprint(query)
             df = sql.executeQuery(query, is_single_value=is_sv)
             pprint(df)
-            if isinstance(df, pd.DataFrame):
+            if isinstance(df, pd.DataFrame) and cmd['graph_type']!="No Chart":
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
                 self.plot = vis
             else:
                 self.answer = df
+    
+    def get_generalised_answer(self):
+        if self.generalised_answer is None:
+            if self.plot is not None:
+                answer_gen = general_answer_gen(str(self.plot),self.userQuery,True)
+            elif self.answer is not None:
+                answer_gen = general_answer_gen(str(self.answer),self.userQuery,False)
+            self.generalised_answer = answer_gen.getAnswer()
+
+
 
 
     def __dict__(self):
@@ -156,7 +168,9 @@ class Copilot:
                 print("---------------------Getting plot----------------------")
                 st.write("Getting an answer")
                 dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
+                pprint(dfs_database.getTextSchema())
                 query.get_plot(Actioner(dfs_database), dfs_database)
+                query.get_generalised_answer()
 
         return self.UserQueries[userQuery]
 
@@ -192,6 +206,9 @@ class Copilot:
 
     def get_plot(self, query: str):
         return self.UserQueries[hash(query)].plot
+
+    def get_generalised_answer(self, query: str):
+        return self.UserQueries[hash(query)].generalised_answer
 
     def cleanup(self):
         print("Cleaning up threadpool")
