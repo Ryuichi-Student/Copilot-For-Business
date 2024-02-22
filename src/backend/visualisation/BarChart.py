@@ -19,7 +19,7 @@ class BarChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a bar chart is most suitable to represent the data, for example compare numerical data between different groups."
+        return "This should be chosen when a bar chart is most suitable to represent the data, for example to compare numerical data between different groups."
     
     # returns a dictionary of the parameters required from the Actioner to create a BarChart object
     @staticmethod

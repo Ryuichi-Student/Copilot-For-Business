@@ -16,7 +16,7 @@ class ScatterChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a scatter plot is most suitable to represent the data."
+        return "This should be chosen when a scatter plot is most suitable to represent the data, for example to display the relationship between two varying variables."
 
     @staticmethod
     def getChartParametersForActioner():
