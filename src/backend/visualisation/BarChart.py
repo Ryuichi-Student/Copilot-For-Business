@@ -64,7 +64,18 @@ class BarChart(Visualisation):
         else:
             return True
     
-    
+    def getSQLQuery(self) -> str:
+        return self.query
+
+    def __str__(self):
+        
+        description = (f"BarChart:\n"
+                       f"Title: {self.title}\n"
+                       f"X-axis: {self.x_axis} (Column name used as the X axis)\n"
+                       f"Y-axis: {self.y_axis} (Column name used as the Y axis)\n"
+                       f"Data: {self.df}")
+        return description
+
 
 
 
