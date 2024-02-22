@@ -6,8 +6,8 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 import streamlit as st
-from src.backend.visualisation.LineChart import LineChart
-from src.backend.database import SQLiteDatabase
+# from src.backend.visualisation.LineChart import LineChart
+# from src.backend.database import SQLiteDatabase
 from src.backend.test import *
 
 # db = SQLiteDatabase('databases/crm_refined.sqlite3')
