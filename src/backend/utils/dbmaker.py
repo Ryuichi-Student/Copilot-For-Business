@@ -106,11 +106,8 @@ def db_checker():
     conn_orders.close()
 
 def join_dbs(databases:list[str]):
-    
     name = datetime.now().strftime("%Y%m%d%H%M%S")
     conn = sqlite3.connect(f"uploads/tempdb{name}.sqlite3")
-
-
 
     for db in databases:
         conn_db = sqlite3.connect(db)
