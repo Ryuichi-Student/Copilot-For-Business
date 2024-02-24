@@ -1,6 +1,6 @@
 """ Use this to create a SQLite database from a set of CSV files. """
 
-
+import streamlit as st
 import sqlite3
 import pandas as pd
 import glob
@@ -125,6 +125,15 @@ def join_dbs(databases:list[str]):
 
     return f"uploads/tempdb{name}.sqlite3"
 
+
+@st.cache_data
+def get_database_list():
+    list_of_databases = glob.glob("databases/*.sqlite3")
+    list_of_databases.extend(glob.glob("databases/*.db"))
+
+    list_of_databases.extend(glob.glob("uploads/*.sqlite3"))
+    list_of_databases.extend(glob.glob("uploads/*.db"))
+    return list_of_databases
 
 
 if __name__ == "__main__":
