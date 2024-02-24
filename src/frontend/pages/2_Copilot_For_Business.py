@@ -55,7 +55,8 @@ with st.sidebar:
 l = get_database_list()
 session_manager.update_config(current_session_id, {
     "selected_db": [] if not l else [max(l, key=os.path.getctime)],
-    "query": None
+    "query": None,
+    "finished": False
 }, overwrite=False)
 
 
@@ -134,18 +135,22 @@ if userQuery:
     st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
 
     status_placeholder = st.empty()
-    status = status_placeholder.status("Thinking...")
-    copilot.set_status_placeholder(status)
+    if not session_manager.get_config(current_session_id, "finished"):
+        status = status_placeholder.status("Thinking...")
+        copilot.set_status_placeholder(status)
     copilot.query(userQuery)
 
     # button to allow the user to accept or remove
 
     t = copilot.get_early_answer(userQuery)
     if t:
-        k = st.empty()
-        for x in stream(t):
-            k.write(x)
         status_placeholder.empty()
+        k = st.empty()
+        if session_manager.get_config(current_session_id, "finished"):
+            k.write(t)
+        else:
+            for x in stream(t):
+                k.write(x)
     else:
         plot = copilot.get_plot(userQuery)
 
@@ -172,5 +177,9 @@ if userQuery:
 
         t = copilot.get_generalised_answer(userQuery)
         if t:
-            for x in stream(t):
-                st.write(x)
+            if session_manager.get_config(current_session_id, "finished"):
+                st.write(t)
+            else:
+                for x in stream(t):
+                    st.write(x)
+    session_manager.update_config(current_session_id, {"finished": True})
