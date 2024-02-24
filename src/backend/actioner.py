@@ -109,6 +109,8 @@ class Actioner:
         return response_json['requirements']
 
     def get_action(self, requirements: list[str])-> Dict[str, List[Dict[str, Any]]]:
+
+        print(self.database.getTextSchema())
         
         system_prompt = dedent('''\
             You are a data consultant, giving advice to the user. You will be provided with a list of datapoints which need to be extracted from a database. The database schema will be provided. Respond with details on how to extract each data.
@@ -232,7 +234,6 @@ class Actioner:
         print(json.loads(response))
         response_json = json.loads(response)
         return response_json['action_infos']
-        return {}
     
     def get_final_action(self, query: str) -> Dict[str, Union[str, List[str], Dict[str, str]]]:
         system_prompt = dedent('''\
@@ -346,15 +347,15 @@ class Actioner:
         ''')
 
 
-        # response = get_gpt_response(
-        #     ("system", system_prompt),
-        #     ("user", example_user_prompt_1),
-        #     ("assistant", example_assistant_response_1),
-        #     ("user", example_user_prompt_2),
-        #     ("assistant", example_assistant_response_2),
-        #     ("user", user_prompt),
-        #     jsonMode = True,
-        #     top_p = 0.2
-        # )
-        # response_json = json.loads(response)
-        return {}
+        response = get_gpt_response(
+            ("system", system_prompt),
+            ("user", example_user_prompt_1),
+            ("assistant", example_assistant_response_1),
+            ("user", example_user_prompt_2),
+            ("assistant", example_assistant_response_2),
+            ("user", user_prompt),
+            jsonMode = True,
+            top_p = 0.2
+        )
+        response_json = json.loads(response)
+        return response_json
