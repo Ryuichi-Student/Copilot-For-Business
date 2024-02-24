@@ -116,9 +116,16 @@ def join_dbs(databases:list[str]):
 
     for db in databases:
         conn_db = sqlite3.connect(db)
+
+        # Add every table
         query = "SELECT * FROM sqlite_master WHERE type='table';"
         df = pd.read_sql_query(query, conn_db)
-        df.to_sql(db, conn, if_exists='append', index=False)
+
+        for table in df['name']:
+            df = pd.read_sql_query(f"SELECT * FROM {table}", conn_db)
+            df.to_sql(table, conn, if_exists='append', index=False)
+
+        
         conn_db.close()
 
     query = "SELECT * FROM sqlite_master WHERE type='table';"
