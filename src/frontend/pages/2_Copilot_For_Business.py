@@ -78,8 +78,8 @@ def display_session_ui():
         # Should make this more dynamic
         latest_db = max(list_of_databases, key=os.path.getctime)
 
-        # options = st.multiselect("Select databases to load", list_of_databases, st.session_state.selected_db)
-        # st.write(f"Loading database: {options}")
+        options = st.multiselect("Select databases to load", list_of_databases, st.session_state.selected_db)
+        st.write(f"Loading database: {options}")
 
         # print(f"Loading database: {options}")
 
@@ -94,7 +94,7 @@ def display_session_ui():
         # st.write(f"Loading database: {latest_db}")
         st.write(f"Loading database: {database}")
 
-        copilot = Copilot(db="uploads/tempdb20240224135224.sqlite3", dbtype='sqlite')
+        copilot = Copilot(db="uploads/tempdb20240224135927.sqlite3", dbtype='sqlite')
         session_manager.update_session_data(current_session_id, data=copilot)
     else:
         session_manager.update_session_data(current_session_id)
