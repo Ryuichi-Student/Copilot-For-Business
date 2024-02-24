@@ -22,7 +22,7 @@ class Session_Storage:
         self.to_delete = set()
         self.rerun = rerun
 
-    def create_session(self, session_name, rerun=True):
+    def create_session(self, session_name, rerun=True, autogenerate=True):
         """
         Creates a new session with the given name, stores it, and tracks it as the most recently used session.
 
@@ -33,6 +33,8 @@ class Session_Storage:
         session_id = uuid.uuid4()
         self.session_data[session_id] = {"name": session_name, "data": None}
         self.mru.append(session_id)
+        if not autogenerate:
+            self.session_data[session_id]["autogenerate"] = False
         if rerun:
             self.rerun()
 
@@ -136,13 +138,15 @@ class Session_Storage:
         yield f"Generated session: {x} "
         time.sleep(0.4)
 
-    def update_config(self, session_id: str, config: Dict[str, Any], overwrite=True) -> None:
+    def update_config(self, session_id: str, config: Dict[str, Any], overwrite=True, rerun=False) -> None:
         if overwrite:
             self.session_data[session_id] |= config
         else:
             for key in config:
                 if key not in self.session_data[session_id]:
                     self.session_data[session_id][key] = config[key]
+        if rerun:
+            self.rerun()
 
     def get_config(self, session_id: str, config_name) -> Dict[str, Any]:
         if config_name not in self.session_data[session_id]:
