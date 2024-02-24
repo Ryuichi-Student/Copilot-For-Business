@@ -178,7 +178,8 @@ class SQLiteDatabase(Database):
             if progress_callback is not None:
                 progress_callback((0, len(self.tableNames)))
             for table in self.tableNames:
-                progress_callback(table)
+                if progress_callback is not None:
+                    progress_callback(table)
                 table_preview = self.query(f"SELECT * FROM \"{table}\" LIMIT 5").to_string(index=False)
                 system_prompt = dedent("""\
                     You are a data consultant, giving descriptions to tables. You will be provided with a preview of the first 5 rows of a table. Please come up with a short, concise description in one or two sentences that gives an accurate overview of the table.\
