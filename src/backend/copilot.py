@@ -135,6 +135,12 @@ class Query:
 class Copilot:
     # TODO: Change this to use multiple databases.
     def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5)):
+        
+        if db is None:
+            raise Exception("No database provided")
+        else:
+            print(f"Using database: {db}=====================================================================================")
+
         if dbtype == "sqlite":
             self.db = SQLiteDatabase(db)
         self.UserQueries: Dict[int, Query] = {}
