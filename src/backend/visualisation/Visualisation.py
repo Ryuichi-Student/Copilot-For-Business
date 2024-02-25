@@ -27,6 +27,7 @@ class Visualisation():
         return ''
     
     # Generates the visualisation for the class. When the base class is used the title is displayed
+    @st.cache_data
     def generate(self):
         pass
     
