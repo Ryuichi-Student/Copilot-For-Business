@@ -19,7 +19,6 @@ from src.backend.utils.dbmaker import join_dbs, get_database_list
 from src.backend.utils.gpt import stream
 
 
-
 if "session_storage" not in st.session_state:
     st.session_state.session_storage = Session_Storage(st.rerun)
 session_manager = st.session_state.session_storage
@@ -49,21 +48,6 @@ def display_session_ui(p):
     print(f"New session: {current_session_id}")
     return current_session_id
 
-
-def create_copilot(current_session):
-    print("Creating copilot")
-    copilot = current_session['data']
-    if copilot is None:
-        print("Creating new copilot")
-        options = st.session_state.selected_db
-        print(options)
-        database = join_dbs(options)
-        st.write(f"Loading database: {database}")
-
-        # copilot = Copilot(db=f"{database}, dbtype='sqlite'")
-        copilot = Copilot(db=database, dbtype='sqlite')
-        session_manager.update_session_data(current_session_id, data=copilot)
-    return copilot
 
 
 col1, col2 = st.columns([7, 3])
@@ -153,6 +137,7 @@ def create_copilot():
         copilot = Copilot(db=f"{database}", dbtype='sqlite')
         session_manager.update_session_data(current_session_id, data=copilot)
     return copilot
+
 
 if userQuery:
     copilot = create_copilot()
