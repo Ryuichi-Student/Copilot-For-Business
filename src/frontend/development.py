@@ -19,7 +19,7 @@ if prompt:
     
     df, chart, vis = get_test_chart()
 
-    chart.query = "SELECT CustomerID AS id, CustomerName AS Customer FROM Customers INNER JOIN table2"
+    chart.query = "SELECT total_amount_spent_on_orders_per_client.client_id, (total_amount_spent_on_orders_per_client.total_amount + total_amount_spent_on_transactions_per_client.total_amount + total_loan_amount_per_client.total_amount) AS total_value FROM total_amount_spent_on_orders_per_client JOIN total_amount_spent_on_transactions_per_client ON total_amount_spent_on_orders_per_client.client_id = total_amount_spent_on_transactions_per_client.client_id JOIN total_loan_amount_per_client ON total_amount_spent_on_orders_per_client.client_id = total_loan_amount_per_client.client_id ORDER BY total_value DESC"
     # st.write(chart.getSQLQuery())
     # st.plotly_chart(chart.generate())
     chart.formatSQL()
