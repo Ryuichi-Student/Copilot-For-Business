@@ -53,32 +53,32 @@ class SQLGenerator:
         system_prompt = dedent('''\
             As an SQL expert, your objective is to generate a list of SQL query objects tailored to user requests. These requests are based on a specified database schema, a set of action commands, relevant columns, and, when applicable, graph information that aligns with each action command.
 
-        Your response should be formatted as a JSON object containing an array of SQL query objects, structured as follows:
-
-        {
-            "SQL_queries": []
-        }
-
-        Within this structure, each SQL query object corresponds to a specific action command, incorporating the relevant columns and any associated graph information. To ensure the generation of accurate and effective SQL query objects, please adhere to the following guidelines:
-
-        1. Comprehend the Request: Examine the database schema, action command, relevant columns, and graph information provided for each SQL query object.
-
-        2. Feasibility Check: Determine whether it's possible to construct an SQL query that meets the requirements of the action command. This process involves two scenarios:
-
-        - Infeasibility: If constructing a corresponding SQL query is not possible, update the JSON object for the current SQL query object to indicate an error. This should include a status of 'error', an error field with a predefined error value, and a message providing a brief error explanation. Use the following template:
+            Your response should be formatted as a JSON object containing an array of SQL query objects, structured as follows:
 
             {
-                "status": "error",
-                "error": "ERROR_DESCRIPTION",
-                "message": "ERROR_MESSAGE"
+                "SQL_queries": []
             }
 
-            Replace ERROR_DESCRIPTION with one of the following, as appropriate:
-            - COLUMN_NOTIN_SCHEMA if the relevant columns are not in the database schema.
-            - INVALID_ACTION_COMMAND if the action command is logically unexecutable.
-            - GRAPH_INFO_NOT_APPLICABLE if the graph information does not suit the query context.
+            Within this structure, each SQL query object corresponds to a specific action command, incorporating the relevant columns and any associated graph information. To ensure the generation of accurate and effective SQL query objects, please adhere to the following guidelines:
 
-            And ERROR_MESSAGE with a concise explanation of the issue.
+            1. Comprehend the Request: Examine the database schema, action command, relevant columns, and graph information provided for each SQL query object.
+
+            2. Feasibility Check: Determine whether it's possible to construct an SQL query that meets the requirements of the action command. This process involves two scenarios:
+
+            - Infeasibility: If constructing a corresponding SQL query is not possible, update the JSON object for the current SQL query object to indicate an error. This should include a status of 'error', an error field with a predefined error value, and a message providing a brief error explanation. Use the following template:
+
+                {
+                    "status": "error",
+                    "error": "ERROR_DESCRIPTION",
+                    "message": "ERROR_MESSAGE"
+                }
+
+                Replace ERROR_DESCRIPTION with one of the following, as appropriate:
+                - COLUMN_NOTIN_SCHEMA if the relevant columns are not in the database schema.
+                - INVALID_ACTION_COMMAND if the action command is logically unexecutable.
+                - GRAPH_INFO_NOT_APPLICABLE if the graph information does not suit the query context.
+
+                And ERROR_MESSAGE with a concise explanation of the issue.
 
         - Feasibility: If the query can be constructed, the JSON object for the current SQL query object should reflect a status of 'success' and contain a query field with the SQL query. 
                 Ensure compatibility with SQLite3 and use backslashes to escape quotes within the query string. 
@@ -271,6 +271,7 @@ class SQLGenerator:
             ("user", example_user_prompt_2),
             ("assistant", example_assistant_response_2),
             ("user", user_prompt),
+            gpt4 = True,
             jsonMode = True,
             top_p = 0.2
         )
