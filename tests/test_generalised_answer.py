@@ -1,5 +1,4 @@
 import os, sys
-import pytest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 from src.backend import generalised_answer
@@ -13,5 +12,5 @@ class TestGenralisedAnswer:
         is_graph = True
         instance = generalised_answer.general_answer_gen(graph_data, prompt, action_command, query, is_graph)
         response = instance.getAnswer()
-        self.assertTrue(bool(response))
-        self.assertIsInstance(response, str) 
+        assert response is not None
+        assert isinstance(response, str)
