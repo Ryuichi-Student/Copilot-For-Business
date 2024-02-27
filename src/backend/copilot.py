@@ -37,6 +37,8 @@ class Query:
         self.final_query = None
 
     def early_analysis(self, db: Database)-> bool:
+        pprint(db.getTextSchema())
+        print("&&&&&&&&&&&&&&&&&&")
         response = early_analysis(self.userQuery, db)
         pprint(response)
         if response["status"] == "schema":
@@ -134,15 +136,15 @@ class Query:
 
 class Copilot:
     # TODO: Change this to use multiple databases.
-    def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5)):
+    def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5), potential_embedded=[], non_embedded=[]):
         
         if db is None:
             raise Exception("No database provided")
         else:
-            print(f"Using database: {db}=====================================================================================")
+            print(f"Using database: {db}")
 
         if dbtype == "sqlite":
-            self.db = SQLiteDatabase(db)
+            self.db = SQLiteDatabase(db, potential_embedded=potential_embedded, non_embedded=non_embedded)
         self.UserQueries: Dict[int, Query] = {}
         self.actioner = Actioner(self.db)
         self.threadpool = threadpool

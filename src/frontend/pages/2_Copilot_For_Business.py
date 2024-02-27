@@ -57,11 +57,12 @@ def create_copilot(current_session):
         print("Creating new copilot")
         options = st.session_state.selected_db
         print(options)
-        database = join_dbs(options)
-        st.write(f"Loading database: {database}")
-
-        # copilot = Copilot(db=f"{database}, dbtype='sqlite'")
-        copilot = Copilot(db=database, dbtype='sqlite')
+        args = join_dbs(options)
+        if isinstance(args, dict):
+            copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"], non_embedded=args["not-embedded"])
+        else:
+            copilot = Copilot(db=f"{args}", dbtype='sqlite')
+        
         session_manager.update_session_data(current_session_id, data=copilot)
     return copilot
 
@@ -149,8 +150,11 @@ def create_copilot():
     if copilot is None:
         options = session_manager.get_config(current_session_id, "selected_db")
         print(options)
-        database = join_dbs(options)
-        copilot = Copilot(db=f"{database}", dbtype='sqlite')
+        args = join_dbs(options)
+        if isinstance(args, dict):
+            copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"], non_embedded=args["not-embedded"])
+        else:
+            copilot = Copilot(db=f"{args}", dbtype='sqlite')
         session_manager.update_session_data(current_session_id, data=copilot)
     return copilot
 
