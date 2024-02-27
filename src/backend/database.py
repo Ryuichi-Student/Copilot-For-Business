@@ -206,6 +206,7 @@ class SQLiteDatabase(Database):
                 response = get_gpt_response(
                     ("system", system_prompt),
                     ("user", table_preview),
+                    gpt4 = False,
                     top_p = 0.5, frequency_penalty = 0, presence_penalty = 0
                 )
                 embedding = get_gpt_embedding(response)
