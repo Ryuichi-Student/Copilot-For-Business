@@ -19,14 +19,14 @@ class Actioner:
         system_prompt = dedent("""\
             You are a data consultant, giving advice to the user. You will be provided with a question regarding some data stored in a database. The database schema will be provided.
 
-            Respond with the minimum list of datapoints required to answer the question. Limit the number of datapoints to a maximum of 5. If the question can be directly answered from the data in the database, reply with a single datapoint.
+            Respond with a list of datapoints required to answer the question. Datapoints should include all data required to answer the question. Limit the number of datapoints to a maximum of 10. If the question can be directly answered from the data in the database, reply with a single datapoint.
             
             Respond with the following JSON object.
             {
                 "requirements": []
             }
 
-            The "requirements" field should contain a list of string, each one corresponding with one of the data transformations.
+            The "requirements" field should contain a list of string, each one corresponding with one of the datapoints.
 
             Answer in a consistent style.\
         """)
@@ -58,11 +58,12 @@ class Actioner:
               account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id),
             );
             
-            The query to be answered is as follows: Who are my most valuable clients.\
+            The query to be answered is as follows: What are the names of my most valuable clients.\
         ''')
         example_assistant_response_1 = dedent('''\
             {
                 "requirements": [
+                    "names of each client"
                     "total number of orders per client",
                     "total number of transactions per client",
                     "total amount spent of orders per client",
@@ -100,6 +101,7 @@ class Actioner:
             ("user", example_user_prompt_2),
             ("assistant", example_assistant_response_2),
             ("user", user_prompt),
+            gpt4 = False,
             jsonMode = True
         )
         response_json = json.loads(response)
@@ -131,7 +133,7 @@ class Actioner:
                 "relevant_columns": []
             }
 
-            The 'command' field should contain actionable steps in an imperative mood to find the required information.
+            The 'command' field should contain actionable steps in an imperative mood to find the required information. Make sure that each table contains a relevant primary key for ease of joining in the future.
             
             The 'relevant_columns' field should contain a list of fields from the database which will be needed to generate SQL code to extract the data. Make sure each field is exactly as shown in the schema.
 
@@ -221,6 +223,7 @@ class Actioner:
             ("user", example_user_prompt_2),
             ("assistant", example_assistant_response_2),
             ("user", user_prompt),
+            gpt4 = False,
             jsonMode = True,
             top_p = 0.2
         )
@@ -230,13 +233,16 @@ class Actioner:
     def get_final_action(self, query: str) -> Dict[str, Union[str, List[str], Dict[str, str]]]:
         system_prompt = dedent('''\
             You are a data consultant, giving advice to the user. You will be provided with a question regarding some data in a database. All required information to answer the question should be in the database. The database schema will be provided. Respond with details on how to answer the question.
-
+                               
             First, determine whether it's possible to extract the information from the database. If not, respond with the following JSON object.
             
             {
                 "status": "error",
-                "error": "DATA_NOT_FOUND"
+                "error": "DATA_NOT_FOUND",
+                "message": ""
             }
+            
+            The 'message' filed should contain the reason for why the data cannot be found.
             
             If it's possible, respond with a JSON object of the following structure.
             
@@ -248,7 +254,7 @@ class Actioner:
                 "graph_info": {}
             }
 
-            The 'command' field should contain actionable steps in an imperative mood to find the required information.
+            The 'command' field should contain actionable steps in an imperative mood to find the required information. Assume if column names across tables are the same, they represent the same data and can be joined on.
             
             The 'relevant_columns' field should contain a list of columns from the dataframes which will be needed to generate SQL code to extract the data. Make sure each field is exactly as shown in the schema.
 
@@ -344,6 +350,7 @@ class Actioner:
             ("user", example_user_prompt_2),
             ("assistant", example_assistant_response_2),
             ("user", user_prompt),
+            gpt4 = False,
             jsonMode = True,
             top_p = 0.2
         )
