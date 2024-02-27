@@ -37,8 +37,6 @@ class Query:
         self.final_query = None
 
     def early_analysis(self, db: Database)-> bool:
-        pprint(db.getTextSchema())
-        print("&&&&&&&&&&&&&&&&&&")
         response = early_analysis(self.userQuery, db)
         pprint(response)
         if response["status"] == "schema":

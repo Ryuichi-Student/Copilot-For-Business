@@ -153,6 +153,7 @@ def create_copilot():
         if isinstance(args, dict):
             copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"], non_embedded=args["not-embedded"])
         else:
+            print(f"Creating new copilot with {args}")
             copilot = Copilot(db=f"{args}", dbtype='sqlite')
         session_manager.update_session_data(current_session_id, data=copilot)
     return copilot
