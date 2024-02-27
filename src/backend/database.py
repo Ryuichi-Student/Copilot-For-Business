@@ -72,10 +72,10 @@ class Database(ABC):
         pass
 
 class SQLiteDatabase(Database):
-    def __init__(self, file_path, additionalMetadata=None, progress_callback=None):
+    def __init__(self, file_path, additionalMetadata=None, progress_callback=None, potential_embedded=[], non_embedded=[]):
         self._url = file_path
         super().__init__(additionalMetadata)
-        self._descriptionEmbeddings = self.getDescriptionEmbeddings(progress_callback=progress_callback)
+        self._descriptionEmbeddings = self.getDescriptionEmbeddings(progress_callback=progress_callback, potential_embedded=potential_embedded, non_embedded=non_embedded)
     
     @property
     def url(self) -> str:
@@ -163,12 +163,31 @@ class SQLiteDatabase(Database):
             column_names = [column_name for tname in self.tableNames for column_name in [row[1] for row in conn.execute(f"PRAGMA table_info(\"{tname}\")")]]
             return column_names
     
-    def getDescriptionEmbeddings(self, forceWrite=False, progress_callback=None):
+    def getDescriptionEmbeddings(self, forceWrite=False, progress_callback=None, potential_embedded=[], non_embedded=[]):
         """
         Get the embedding of each table in the database. If forceWrite is true will overwrite the embedding file.
         """
-        description_url = f'{self.url}.json'
+        print(f"Potential embedded: {potential_embedded}")
+        tables_needed = []
         table_description_embeddings = {}
+        already_embedded = {}
+
+        # Get all the tables that are in embedded
+        for embedded in potential_embedded:
+            with open(embedded, 'r') as description_file:
+                table_description_embeddings = json.load(description_file)
+                already_embedded.update(table_description_embeddings)
+
+        for table in self.tableNames:
+            if table not in already_embedded:
+                tables_needed.append(table)
+        
+        print(f"Tables needed: {tables_needed}")
+        print(f"Already embedded: {already_embedded.keys()}")
+
+        
+        description_url = f'{self.url}.json'
+
         try:
             if forceWrite:
                 raise FileNotFoundError
@@ -177,7 +196,7 @@ class SQLiteDatabase(Database):
         except FileNotFoundError:
             if progress_callback is not None:
                 progress_callback((0, len(self.tableNames)))
-            for table in self.tableNames:
+            for table in tables_needed: # Should be tables_needed
                 if progress_callback is not None:
                     progress_callback(table)
                 table_preview = self.query(f"SELECT * FROM \"{table}\" LIMIT 5").to_string(index=False)
@@ -197,8 +216,34 @@ class SQLiteDatabase(Database):
 
             with open(description_url, 'w') as description_file:
                 json.dump(table_description_embeddings, description_file)
+            
 
-            print("=*==============================================")
+            # Want to save in specific database jsons as well
+            for target in non_embedded:
+
+                description_target_dump = {}
+
+                
+                # Basefile is just removing the .json a.sqlit3.json -> a.sqlit3
+                basefile = target.split(".json")[0]
+
+                # Get list of tables that are in the database
+                tables_in_db = []
+                conn_db = sqlite3.connect(basefile)
+                query = "SELECT * FROM sqlite_master WHERE type='table';"
+                df = pd.read_sql_query(query, conn_db)
+                for table in df['name']:
+                    tables_in_db.append(table)
+                    if table in table_description_embeddings:
+                        description_target_dump[table] = table_description_embeddings[table]
+                    else:
+                        raise Exception(f"Table {table} not in table_description_embeddings")
+                conn_db.close()
+
+                with open(target, 'w') as description_file:
+                    json.dump(description_target_dump, description_file)
+
+
 
             if progress_callback is not None:
                 progress_callback((len(self.tableNames), len(self.tableNames)))

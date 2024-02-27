@@ -6,6 +6,7 @@ import pandas as pd
 import glob
 import pandasql as ps
 from datetime import datetime
+import os
 
 
 def initialize_db():
@@ -107,8 +108,21 @@ def db_checker():
 
 def join_dbs(databases:list[str]):
 
+    list_of_embedded_databases = []
+    list_of_not_embedded_databases = []
+
+    # Check for embeddings
+    for db in databases:
+        
+        target_name = db + ".json"
+
+        if os.path.exists(target_name):
+            list_of_embedded_databases.append(target_name)    
+        else:
+            list_of_not_embedded_databases.append(target_name)
+
+
     if len(databases) == 1:
-        print("One databaseeeee")
         return databases[0]
 
     name = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -135,7 +149,7 @@ def join_dbs(databases:list[str]):
 
     conn.close()
 
-    return f"uploads/tempdb{name}.sqlite3"
+    return {"name": f"uploads/tempdb{name}.sqlite3", "embedded": list_of_embedded_databases, "not-embedded": list_of_embedded_databases }
 
 
 @st.cache_data
