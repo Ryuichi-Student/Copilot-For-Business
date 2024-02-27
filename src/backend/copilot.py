@@ -57,15 +57,11 @@ class Query:
             self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'} # type: ignore
             pprint(self.actionInfos)
 
-    def create_queries(self, db: Database, threadpool):
+    def create_queries(self, db: Database):
         if self.queries is None and self.actionInfos is not None:
-            # self.sql_generators = {req:SQLGenerator(db, cmd['command'], cmd['relevant_columns']) for req,cmd in self.actionInfos.items()}
             action_commands, relevant_cols = [cmd['command'] for cmd in self.actionInfos.values()], [cmd["relevant_columns"] for cmd in self.actionInfos.values()]
             self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, [None]*len(self.actionInfos))
             queries = self.sql_generator.getQueries()
-            # futures = {req:threadpool.submit(sql.getQuery) for req,sql in self.sql_generators.items()}
-            # queries = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
-            # queries = {req:sql.getQuery() for req,sql in self.sql_generators.items()}
             self.queries = {req:query for req,query in zip(self.actionInfos.keys(), queries) if query is not None}
             pprint(self.queries)
 
@@ -156,7 +152,7 @@ class Copilot:
         if userQuery not in self.UserQueries:
             with self.status_placeholder:
                 print("---------------------Creating a new query----------------------")
-                st.write("Understanding the assignment")
+                st.write("Understanding query")
                 query = self.UserQueries[userQuery] = Query(_userQuery)
 
                 print("---------------------Early Analysis----------------------")
@@ -167,19 +163,19 @@ class Copilot:
                 query.set_requirements(self.actioner)
 
                 print("---------------------Setting actionInfos----------------------")
-                st.write("Figuring out what to do")
+                st.write("Creating subqueries")
                 query.set_actionInfos(self.actioner)
 
                 print("---------------------Creating queries----------------------")
-                st.write("Creating subqueries")
-                query.create_queries(self.db, threadpool=self.threadpool)
+                st.write("Processing subqueries")
+                query.create_queries(self.db)
 
                 print("---------------------Getting dataframes----------------------")
                 st.write("Gathering required data")
                 query.get_dfs(threadpool=self.threadpool)
 
                 print("---------------------Getting plot----------------------")
-                st.write("Getting an answer")
+                st.write("Generating answer")
                 dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
                 pprint(dfs_database.getTextSchema())
                 query.get_plot(Actioner(dfs_database), dfs_database)
