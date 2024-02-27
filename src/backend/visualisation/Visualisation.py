@@ -92,8 +92,6 @@ class Visualisation():
 
                 # columns = re.match('(.*), ^[a-zA-Z0-9_.-]*', sql)
 
-                st.write(columns)
-
                 if name and columns:
                     explained += f'\n\nThe :blue[{name.group(0)}] values are generated from :blue[{columns}]'
 

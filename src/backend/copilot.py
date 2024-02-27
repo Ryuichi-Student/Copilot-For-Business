@@ -74,7 +74,10 @@ class Query:
     def get_plot(self, actioner: Actioner, database: Database):
         if self.plot is None and self.answer is None:
             cmd = actioner.get_final_action(self.userQuery)
-            pprint(cmd)                
+            pprint(cmd)
+            if "graph_type" not in cmd:
+                self.plot = None
+                return
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
             sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
             queries, is_svs = sql.getQueries()
