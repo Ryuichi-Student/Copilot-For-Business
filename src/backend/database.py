@@ -42,6 +42,9 @@ class Database(ABC):
 
     def getTextSchema(self, filterTableNames:Optional[List[str]] = None) -> str:
         # Turns schema into text. Assumes self._schema has been filled
+        
+
+
         text_schema = ''
         schema = self.schema
         for table in schema:
@@ -126,6 +129,10 @@ class SQLiteDatabase(Database):
     def getSchema(self):
         # print(f"URL: {self.url}")
         with sqlite3.connect(self.url) as conn:
+            
+            # PRAGMA database_list;
+            db_query = "PRAGMA database_list"
+            db_list = conn.execute(db_query).fetchall()
             # Get the list of tables
             tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
             tables = [row[0] for row in conn.execute(tables_query)]

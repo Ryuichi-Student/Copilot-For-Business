@@ -82,34 +82,19 @@ def db_splitter():
     conn_orders.commit()
     conn_events.commit()
 
-    # Print the new tables
-
     conn.close()
 
     # Close the connection
     conn_orders.close()
     conn_events.close()
 
-def db_checker():
 
-    root_dir = "C://Users/RamVi/Downloads/Copilot-For-Business/databases/"
-
-    group1 = "Orders_Group"
-    group2 = "Events_Group"
-
-    conn_orders = sqlite3.connect(f'{root_dir}{group1}.sqlite3')
-
-    query = "SELECT * FROM sqlite_master WHERE type='table';"
-    df_orders = pd.read_sql_query(query, conn_orders)
-
-    print(df_orders)
-
-    conn_orders.close()
 
 def join_dbs(databases:list[str]):
 
     list_of_embedded_databases = []
     list_of_not_embedded_databases = []
+
 
     # Check for embeddings
     for db in databases:
@@ -121,31 +106,93 @@ def join_dbs(databases:list[str]):
         else:
             list_of_not_embedded_databases.append(target_name)
 
+    print(list_of_embedded_databases)
+    print(list_of_not_embedded_databases)
+
+
 
     if len(databases) == 1:
         return databases[0]
 
     name = datetime.now().strftime("%Y%m%d%H%M%S")
     conn = sqlite3.connect(f"uploads/tempdb{name}.sqlite3")
+    cursor = conn.cursor()
 
-    # Need to make sure this does not 
+    foreign_keys = {}
+    primary_keys = {}
 
     for db in databases:
-        conn_db = sqlite3.connect(db)
+        alias = db.replace(".sqlite3", "").replace(".db", "").split("/")[-1].split("\\")[-1]
+        cursor.execute(f"ATTACH DATABASE '{db}' AS {alias}")
 
-        # Add every table
-        query = "SELECT * FROM sqlite_master WHERE type='table';"
-        df = pd.read_sql_query(query, conn_db)
+        # Get the foreign keys for each table
+        for table in cursor.execute(f"SELECT name FROM {alias}.sqlite_master WHERE type='table';").fetchall():
+            table_name = table[0]
+            cursor.execute(f"PRAGMA foreign_key_list({table_name})")
+            fkeys = cursor.fetchall()
+            foreign_keys[table_name] = fkeys
 
-        for table in df['name']:
-            df = pd.read_sql_query(f"SELECT * FROM {table}", conn_db)
-            df.to_sql(table, conn, if_exists='append', index=False)
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            pkeys = cursor.fetchall()
+            primary_keys[table_name] = pkeys
 
-        conn_db.close()
 
-    query = "SELECT * FROM sqlite_master WHERE type='table';"
-    df = pd.read_sql_query(query, conn)
 
+    cursor.execute("PRAGMA database_list")
+    databases_t = cursor.fetchall()
+    for db in databases_t:
+        cursor.execute(f"SELECT name FROM {db[1]}.sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+
+        # Iterate through each table and create it in the main database
+        for table in tables:
+            table_name = table[0]
+            
+            create_sql = f"CREATE TABLE {table_name} AS SELECT * FROM {table_name}"
+            cursor.execute(create_sql)
+            cursor.execute("PRAGMA foreign_keys = ON")
+
+
+        for table_name in tables:
+            table_name = table_name[0]
+
+
+            cursor.execute("PRAGMA foreign_keys = ON")
+            names = [p[1] for p in primary_keys[table_name]]
+            types = [p[2] for p in primary_keys[table_name]]
+            inner = f"{', '.join([f'{names[i]} {types[i]}' for i in range(len(names))])}"
+
+            for fkey in foreign_keys[table_name]:
+                from_col = fkey[3]
+                to_table = fkey[2]
+                to_col = fkey[4]
+
+
+                create_sql = f"""
+    CREATE TABLE temp_table ( {inner},  FOREIGN KEY ({from_col}) REFERENCES {to_table}({to_col}));
+    """
+            
+            
+                cursor.execute(create_sql)
+                cursor.execute(f"PRAGMA foreign_keys = OFF")
+                cursor.execute(f"INSERT INTO temp_table SELECT * FROM {table_name};")
+                cursor.execute(f"PRAGMA foreign_keys = ON")
+
+
+                # Check the foreign keys
+                cursor.execute('PRAGMA foreign_key_list(temp_table);')
+
+                # Delete old table and replace with new one
+                cursor.execute(f"DROP TABLE {table_name};")
+                cursor.execute(f"ALTER TABLE temp_table RENAME TO {table_name};")
+
+
+
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cursor.fetchall()
+
+    conn.commit()
+    cursor.close()
     conn.close()
 
     return {"name": f"uploads/tempdb{name}.sqlite3", "embedded": list_of_embedded_databases, "not-embedded": list_of_embedded_databases }
@@ -158,13 +205,16 @@ def get_database_list():
 
     list_of_databases.extend(glob.glob("uploads/*.sqlite3"))
     list_of_databases.extend(glob.glob("uploads/*.db"))
+
+    # Remove all databases starting with temp
+    list_of_databases = [db for db in list_of_databases if "temp" not in db]
+
     return list_of_databases
 
 
 if __name__ == "__main__":
-
-    db_checker()
-    print("Done")
+    
+    join_dbs(["databases/crm_refined.sqlite3", "databases/Orders_Group.sqlite3"])
 
 
 
