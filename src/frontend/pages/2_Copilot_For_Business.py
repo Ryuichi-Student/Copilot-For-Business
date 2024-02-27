@@ -159,6 +159,33 @@ def create_copilot():
     return copilot
 
 
+def handle_toggles_and_plot(current_session_id, userQuery):
+    # Assuming 'plot' is a conditionally defined object indicating plotting is enabled
+    if plot:
+        fig = plot.generate()
+        config = {'displayModeBar': False}
+        _plot_placeholder.plotly_chart(fig, config=config)
+
+        # Update for showing top 10 values toggle
+        if plot.dfLength > 10:
+            # Fetch current state and update it based on user interaction
+            current_topN_state = False if "topN" not in st.session_state else st.session_state.topN
+            topN = _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
+                                                   value=current_topN_state)
+
+            # Apply the top 10 filter based on toggle state
+            plot.topn(10, topN)
+
+    current_sqlView_state = False if "sqlView" not in st.session_state else st.session_state.sqlView
+    sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView", value=current_sqlView_state)
+
+    # Additional logic for displaying SQL and adjusting plot based on the SQL view state
+    if sqlView:
+        _sql_placeholder.write(copilot.get_sql(userQuery))
+        if plot:
+            plot.formatSQL()
+
+
 if userQuery:
     copilot = create_copilot()
 
@@ -182,6 +209,7 @@ if userQuery:
         if session_manager.get_config(current_session_id, "finished"):
             k.write(t)
         else:
+            session_manager.update_config(current_session_id, {"finished": True})
             for x in stream(t):
                 k.write(x)
     else:
@@ -201,30 +229,11 @@ if userQuery:
             if session_manager.get_config(current_session_id, "finished"):
                 _t.write(t)
             else:
+                session_manager.update_config(current_session_id, {"finished": True})
                 for x in stream(t):
                     _t.write(x)
+        else:
+            st.markdown("Copilot for Business was not able to generate an answer. Please try to refine your question to help")
 
-        if plot:
-            fig = plot.generate()
-            config = {'displayModeBar': None}
-
-            # displays the chart created
-            _plot_placeholder.plotly_chart(fig, config=config)
-
-            # adds a toggle to show the top 10 values of the dataframe only
-            if plot.dfLength > 10:
-                session_manager.update_config(current_session_id, {"allow_topn": False}, overwrite=False)
-                topN = _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN")
-                session_manager.update_config(current_session_id, {"allow_topn": topN})
-                plot.topn(10, session_manager.get_config(current_session_id, "allow_topn"))
-
-        session_manager.update_config(current_session_id, {"sqlView": False}, overwrite=False)
-        sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView")
-        session_manager.update_config(current_session_id, {"sqlView": sqlView})
-
-        if session_manager.get_config(current_session_id, "sqlView"):
-            _sql_placeholder.write(copilot.get_sql(userQuery))
-            if plot:
-                plot.formatSQL()
-
-    session_manager.update_config(current_session_id, {"finished": True})
+# none type has no attribute formatSQL
+        handle_toggles_and_plot(current_session_id, userQuery)
