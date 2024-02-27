@@ -128,6 +128,8 @@ def join_dbs(databases:list[str]):
     name = datetime.now().strftime("%Y%m%d%H%M%S")
     conn = sqlite3.connect(f"uploads/tempdb{name}.sqlite3")
 
+    # Need to make sure this does not 
+
     for db in databases:
         conn_db = sqlite3.connect(db)
 
@@ -139,13 +141,10 @@ def join_dbs(databases:list[str]):
             df = pd.read_sql_query(f"SELECT * FROM {table}", conn_db)
             df.to_sql(table, conn, if_exists='append', index=False)
 
-        
         conn_db.close()
 
     query = "SELECT * FROM sqlite_master WHERE type='table';"
     df = pd.read_sql_query(query, conn)
-
-    print(df)
 
     conn.close()
 
