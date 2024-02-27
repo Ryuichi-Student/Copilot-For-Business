@@ -86,6 +86,9 @@ class Query:
             cmd = actioner.get_final_action(self.userQuery)
             self.final_action = cmd
             pprint(cmd)
+            if "graph_type" not in cmd:
+                self.plot = None
+                return
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
             sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
             queries = sql.getQueries()
@@ -107,9 +110,6 @@ class Query:
             elif self.answer is not None:
                 answer_gen = general_answer_gen(str(self.answer),self.userQuery, self.final_action, self.final_query, False) # type: ignore
             self.generalised_answer = answer_gen.getAnswer()
-
-
-
 
     def __dict__(self):
         """ JSON serialisable """

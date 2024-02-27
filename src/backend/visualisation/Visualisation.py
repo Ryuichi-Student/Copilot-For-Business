@@ -55,20 +55,48 @@ class Visualisation():
         # split text on uppercase words
         sql = self.query
         # splits the query based on uppercase and following words
-        # phrases = re.findall('[A-Z]*[^A-Z]*', sql)
+
+        # gets completely uppercase words from the string
+        # commands = re.findall('([A-Z]+)\s', sql)
+        # st.write(commands)
 
         # splits the sql query by uppercase words (commands) and others
-        splitByCommand = re.findall('[A-Z]*|[^A-Z]*', sql)
+        # [A-Z]+|[^A-Z]+
         
-        formatted = 'The data used to create this chart was fetched using the following SQL query:\n\n'
-
-        for string in splitByCommand:
+        # splitBy = "|".join(commands)
+        splitByWord = re.split('\s', sql)
+        # splitByComma = re.split(', |[A-Z]+\s', sql)
+        
+        explained = 'The data used to create this chart was fetched using the following SQL query:\n\n'
+        
+        # if a string is a command then show it orange
+        for string in splitByWord:
             if string.isupper():
-                formatted += f':orange[{string}]'
+                explained += f':orange[{string}] '
             else:
-                formatted += string
+                explained += string
+                explained += " "
 
-        st.write(formatted)
+        # if there is an AS show this to the user
+        for i, word in enumerate(splitByWord):
+            # if there is an AS phrase
+            if word == "AS":
+                name = re.match('^[a-zA-Z0-9_.-]*', splitByWord[i + 1])
+                
+                columns = ""
+                for j in range (i - 1, 0, -1):
+                    # if there's no comma in the preceding word add it to the column
+                    if ',' not in splitByWord[j]:
+                        columns = splitByWord[j] + " " + columns
+                    else:
+                        break
+
+                # columns = re.match('(.*), ^[a-zA-Z0-9_.-]*', sql)
+
+                if name and columns:
+                    explained += f'\n\nThe :blue[{name.group(0)}] values are generated from :blue[{columns}]'
+
+        st.write(explained)
 
 
 
