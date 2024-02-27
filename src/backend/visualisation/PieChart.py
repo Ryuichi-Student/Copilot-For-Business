@@ -70,7 +70,14 @@ class PieChart(Visualisation):
             # both categories and and the count are in the dataframe
             return True
     
-
+    def __str__(self):
+        # Construct the string description
+        description = (f"PieChart:\n"
+                       f"Title: {self.title}\n"
+                       f"Categories: {self.categories} (Column used for segment labels)\n"
+                       f"Count: {self.count} (Column used for segment sizes)\n"
+                       f"Data: {self.df}")
+        return description
 
 # df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
 

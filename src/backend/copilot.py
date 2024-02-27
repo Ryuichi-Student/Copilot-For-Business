@@ -10,7 +10,9 @@ from src.backend.actioner import Actioner
 from src.backend.database import DataFrameDatabase, Database, SQLiteDatabase
 from src.backend.sql.generator import SQLGenerator
 from src.backend.visualisation import visualisation_subclasses
+from src.backend.generalised_answer import general_answer_gen
 from src.backend.utils.clean_name import clean_name
+from src.backend.utils.early_analysis import early_analysis
 
 import streamlit as st
 
@@ -27,8 +29,21 @@ class Query:
         self.queries = None
         self.dfs = None
 
+        self.early_answer = None
         self.answer = None
         self.plot = None
+        self.generalised_answer = None
+        self.final_action = None
+        self.final_query = None
+
+    def early_analysis(self, db: Database)-> bool:
+        response = early_analysis(self.userQuery, db)
+        pprint(response)
+        if response["status"] == "schema":
+            self.early_answer = response["message"]
+            return True
+        else:
+            return False
 
     def set_requirements(self, actioner: Actioner):
         if self.requirements is None:
@@ -46,7 +61,7 @@ class Query:
         if self.queries is None and self.actionInfos is not None:
             action_commands, relevant_cols = [cmd['command'] for cmd in self.actionInfos.values()], [cmd["relevant_columns"] for cmd in self.actionInfos.values()]
             self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, [None]*len(self.actionInfos))
-            queries, _ = self.sql_generator.getQueries()
+            queries = self.sql_generator.getQueries()
             self.queries = {req:query for req,query in zip(self.actionInfos.keys(), queries) if query is not None}
             pprint(self.queries)
 
@@ -55,7 +70,6 @@ class Query:
             futures = {req:threadpool.submit(self.sql_generator.executeQuery, query) for req,query in self.queries.items()}
             dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
             # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
-            # crashes is this isn't a dataframe because its a single value
             self.dfs = {}
             for req, df in dataframes.items():
                 if isinstance(df, pd.DataFrame):
@@ -70,19 +84,31 @@ class Query:
     def get_plot(self, actioner: Actioner, database: Database):
         if self.plot is None and self.answer is None:
             cmd = actioner.get_final_action(self.userQuery)
-            pprint(cmd)                
+            self.final_action = cmd
+            pprint(cmd)
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
             sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
-            queries, is_svs = sql.getQueries()
-            query, is_sv = queries[0] if queries[0] is not None else "", is_svs[0] if is_svs[0] is not None else False
+            queries = sql.getQueries()
+            query = queries[0] if queries[0] is not None else ""
+            self.final_query = query
             pprint(query)
-            df = sql.executeQuery(query, is_single_value=is_sv)
+            df = sql.executeQuery(query)
             pprint(df)
-            if isinstance(df, pd.DataFrame):
+            if isinstance(df, pd.DataFrame) and cmd['graph_type']!="No Chart":
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
                 self.plot = vis
             else:
                 self.answer = df
+    
+    def get_generalised_answer(self):
+        if self.generalised_answer is None:
+            if self.plot is not None:
+                answer_gen = general_answer_gen(str(self.plot),self.userQuery,self.final_action, self.final_query, True) # type: ignore
+            elif self.answer is not None:
+                answer_gen = general_answer_gen(str(self.answer),self.userQuery, self.final_action, self.final_query, False) # type: ignore
+            self.generalised_answer = answer_gen.getAnswer()
+
+
 
 
     def __dict__(self):
@@ -96,6 +122,9 @@ class Query:
             "dfs": self.dfs,
             "answer": self.answer,
             "plot": self.plot,
+            "generalised_answer": self.generalised_answer,
+            "final_action": self.final_action,
+            "final_query": self.final_query
         }
 
 
@@ -120,6 +149,10 @@ class Copilot:
                 st.write("Understanding query")
                 query = self.UserQueries[userQuery] = Query(_userQuery)
 
+                print("---------------------Early Analysis----------------------")
+                if query.early_analysis(self.db): # If the query can be answered by the schema
+                    return self.UserQueries[userQuery]
+
                 print("---------------------Setting requirements----------------------")
                 query.set_requirements(self.actioner)
 
@@ -138,7 +171,10 @@ class Copilot:
                 print("---------------------Getting plot----------------------")
                 st.write("Generating answer")
                 dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
+                pprint(dfs_database.getTextSchema())
                 query.get_plot(Actioner(dfs_database), dfs_database)
+                print("---------------------Getting generalised answer----------------------")
+                query.get_generalised_answer()
 
         return self.UserQueries[userQuery]
 
@@ -169,11 +205,14 @@ class Copilot:
             return dfs
         raise Exception("unknown query")
 
-    def get_answer(self, query: str):
-        return self.UserQueries[hash(query)].answer
+    def get_early_answer(self, query: str):
+        return self.UserQueries[hash(query)].early_answer
 
     def get_plot(self, query: str):
         return self.UserQueries[hash(query)].plot
+
+    def get_generalised_answer(self, query: str):
+        return self.UserQueries[hash(query)].generalised_answer
 
     def cleanup(self):
         print("Cleaning up threadpool")
