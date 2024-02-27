@@ -16,9 +16,13 @@ sql_commands = pd.DataFrame({
 })
 sql_commands = sql_commands.set_index('Commands')
 
+# header 1 - help
 st.header("Help")
+st.subheader("About")
+st.write("Copilot for Business takes your question and uses it with information from the database to try and find the most suitable plot to display an answer. The more specific your query, the more likely Copilot for Business is to be able to come up with an accurate and useful answer. The types of plot available are bar charts, line charts, pie charts and scatter charts.")
 
-st.header("SQL")
+# header 2 - sql with explanation of key sql commands
+st.subheader("SQL")
 st.write("When Copilot for Business displays the graph it has generated to answer your question it will give an option to show the SQL used to generate it. This SQL explains which columns from your database have been used and how they have been edited to generate the most suitable graph to answer your question. Here are some key words from an SQL statement and what they mean:")
 st.table(sql_commands)
 

@@ -52,7 +52,7 @@ def display_session_ui():
 col1, col2 = st.columns([8, 2])
 with col1:
     # title
-    st.header("Copilot for Business")
+    st.header("Ask a question")
 with col2:
     # Session data
     # TODO: Load from persistent storage
@@ -71,26 +71,21 @@ if current_session_id is not None:
     if userQuery:
         # TODO: Do more formatting
         # display the user's entered prompt
-        st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
+        st.text(f"USER:")
+        st.markdown(userQuery)
+        st.text("COPILOT FOR BUSINESS:")
         status_placeholder = st.empty()
         status = status_placeholder.status("Thinking...")
         copilot.set_status_placeholder(status)
         copilot.query(userQuery)
         # pass actions to the sql generator
 
-        # pass data, query, and actioner parameters to the visualisation
-
-        # show code
-        # show sql
-
-        # button to allow the user to accept or remove
-
         plot = copilot.get_plot(userQuery)
         answer = copilot.get_answer(userQuery)
 
         status_placeholder.empty()
 
-        # non type has no attribute formatSQL
+        # none type has no attribute formatSQL
         if plot:
             fig = plot.generate()
             config = {'displayModeBar': None}
@@ -103,11 +98,16 @@ if current_session_id is not None:
                 topN = st.toggle("Show top 10 values only", False)
                 if topN: plot.topn(10, topN)
                 else: plot.topn(10, topN)
+            
+            sqlView = st.toggle("Show SQL", False)
+            if sqlView:
+                plot.formatSQL()
 
-
-        if answer:
+        elif answer:
             st.write(answer)
+        
+        else:
+            st.markdown("Copilot for Business was not able to generate an answer. Please try to refine your command to help")
+        
 
-        sqlView = st.toggle("Show SQL", False)
-        if sqlView:
-            plot.formatSQL()
+
