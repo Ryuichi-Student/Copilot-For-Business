@@ -159,8 +159,7 @@ def create_copilot():
     return copilot
 
 
-def handle_toggles_and_plot(current_session_id, userQuery):
-    # Assuming 'plot' is a conditionally defined object indicating plotting is enabled
+def handle_toggles_and_plot(userQuery):
     if plot:
         fig = plot.generate()
         config = {'displayModeBar': False}
@@ -168,18 +167,15 @@ def handle_toggles_and_plot(current_session_id, userQuery):
 
         # Update for showing top 10 values toggle
         if plot.dfLength > 10:
-            # Fetch current state and update it based on user interaction
             current_topN_state = False if "topN" not in st.session_state else st.session_state.topN
             topN = _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
                                                    value=current_topN_state)
 
-            # Apply the top 10 filter based on toggle state
             plot.topn(10, topN)
 
     current_sqlView_state = False if "sqlView" not in st.session_state else st.session_state.sqlView
     sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView", value=current_sqlView_state)
 
-    # Additional logic for displaying SQL and adjusting plot based on the SQL view state
     if sqlView:
         _sql_placeholder.write(copilot.get_sql(userQuery))
         if plot:
@@ -236,4 +232,4 @@ if userQuery:
             st.markdown("Copilot for Business was not able to generate an answer. Please try to refine your question to help")
 
 # none type has no attribute formatSQL
-        handle_toggles_and_plot(current_session_id, userQuery)
+        handle_toggles_and_plot(userQuery)
