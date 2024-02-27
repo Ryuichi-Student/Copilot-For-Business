@@ -90,6 +90,7 @@ if current_session_id is not None:
 
         status_placeholder.empty()
 
+        # non type has no attribute formatSQL
         if plot:
             fig = plot.generate()
             config = {'displayModeBar': None}
