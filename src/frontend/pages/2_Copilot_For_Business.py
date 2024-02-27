@@ -52,7 +52,7 @@ def display_session_ui():
 col1, col2 = st.columns([8, 2])
 with col1:
     # title
-    st.header("Ask a question")
+    st.header("Ask a question...")
 with col2:
     # Session data
     # TODO: Load from persistent storage
@@ -71,9 +71,9 @@ if current_session_id is not None:
     if userQuery:
         # TODO: Do more formatting
         # display the user's entered prompt
-        st.text(f"USER:")
+        st.write(f":blue[USER:]")
         st.markdown(userQuery)
-        st.text("COPILOT FOR BUSINESS:")
+        st.write(":blue[COPILOT FOR BUSINESS:]")
         status_placeholder = st.empty()
         status = status_placeholder.status("Thinking...")
         copilot.set_status_placeholder(status)
@@ -107,7 +107,7 @@ if current_session_id is not None:
             st.write(answer)
         
         else:
-            st.markdown("Copilot for Business was not able to generate an answer. Please try to refine your command to help")
+            st.markdown("Copilot for Business was not able to generate an answer. Please try to refine your question to help")
         
 
 
