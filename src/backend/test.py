@@ -12,6 +12,7 @@ def test_api(message_placeholder, prompt = "What is the capital of Japan?"):
     return get_gpt_response(
         ("system", "You are a helpful assistant"),
         ("user", prompt),
+        gpt4 = False,
         stream=True,
         message_placeholder=message_placeholder
     )
