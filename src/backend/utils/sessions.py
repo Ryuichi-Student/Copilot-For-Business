@@ -13,11 +13,13 @@ class Session_Storage:
         Attributes:
             session_data (dict): Stores session information indexed by session ID.
             mru (deque): A double-ended queue to track session IDs in MRU order.
+            to_delete (set): A set of session IDs marked for deletion.
     """
 
     def __init__(self, rerun):
         self.session_data = {}
         self.mru: deque = deque()
+        self.to_delete = set()
         self.rerun = rerun
 
     def create_session(self, session_name, rerun=True, autogenerate=True):
@@ -29,8 +31,10 @@ class Session_Storage:
             session_name (str): The name of the session to create.
         """
         session_id = uuid.uuid4()
-        self.session_data[session_id] = {"name": session_name, "data": None, "autogenerate": autogenerate}
-        self.mru.appendleft(session_id)  # Directly add to the front for MRU
+        self.session_data[session_id] = {"name": session_name, "data": None}
+        self.mru.append(session_id)
+        if not autogenerate:
+            self.session_data[session_id]["autogenerate"] = False
         if rerun:
             self.rerun()
 
@@ -40,18 +44,15 @@ class Session_Storage:
 
         Args:
             session_id (UUID): The unique identifier of the session to delete.
+            rerun (function): A callback function to trigger UI rerun.
 
         Returns:
             bool: False if the session couldn't be deleted (session not found).
         """
         if session_id in self.session_data:
             del self.session_data[session_id]
-            try:
-                self.mru.remove(session_id)  # Direct removal from MRU
-            except ValueError:
-                pass  # In case session_id is not in MRU, which shouldn't happen but just in case
+            self.to_delete.add(session_id)
             self.rerun()
-            return True
         return False
 
     def get_sessions(self) -> List[uuid.UUID]:
@@ -61,9 +62,30 @@ class Session_Storage:
         Returns:
             list: A list of session IDs in most-recently-used order.
         """
+        self.update_sessions()
         return list(self.mru)
 
-    def get_session_data(self, session_id: uuid.UUID) -> Optional[Dict[str, Any]]:
+    def update_sessions(self) -> None:
+        """
+        Cleans up the MRU list by removing any sessions marked for deletion.
+        :return:
+        """
+        seen = set()
+        new: deque = deque()
+        while self.mru:
+            session_id = self.mru.popleft()
+            if session_id in seen:
+                continue
+            else:
+                seen.add(session_id)
+
+            if session_id not in self.to_delete:
+                new.append(session_id)
+            else:
+                self.to_delete.remove(session_id)
+        self.mru = new
+
+    def get_session_data(self, session_id: uuid.UUID, update=False) -> Optional[Dict[str, Any]]:
         """
         Retrieves the data for a given session.
 
@@ -73,7 +95,13 @@ class Session_Storage:
         Returns:
             Optional[dict]: The data associated with the session.
         """
-        return self.session_data.get(session_id)
+        if session_id not in self.session_data:
+            return None
+
+        if update:
+            self.update_sessions()
+
+        return self.session_data[session_id]
 
     def update_session_data(self, session_id: uuid.UUID, data: Any = None) -> None:
         """
@@ -83,14 +111,17 @@ class Session_Storage:
             session_id (UUID): The unique identifier of the session to update.
             data: The new data to store in the session.
         """
-        if session_id in self.session_data and data is not None:
+        if data is not None:
             self.session_data[session_id]["data"] = data
-            self.use_session(session_id)  # Ensures MRU is updated correctly
+        if self.mru[0] != session_id:
+            self.mru.appendleft(session_id)
+            self.update_sessions()
+
             self.rerun()
 
     def update_session_name(self, session_id: str, query: str) -> Iterable[str]:
         """
-        Uses the query to generate a name for the session and updates the session with the new name. Returns an iterable for streaming.
+        Uses the query to generate a name for the session and updates the session with the new name.
 
         Args:
             session_id (str): The unique identifier of the session to update.
@@ -108,23 +139,26 @@ class Session_Storage:
         time.sleep(0.4)
 
     def update_config(self, session_id: str, config: Dict[str, Any], overwrite=True, rerun=False) -> None:
-        if session_id in self.session_data:
-            if overwrite:
-                self.session_data[session_id].update(config)
-            else:
-                for key, value in config.items():
-                    self.session_data[session_id].setdefault(key, value)
+        if overwrite:
+            self.session_data[session_id] |= config
+        else:
+            for key in config:
+                if key not in self.session_data[session_id]:
+                    self.session_data[session_id][key] = config[key]
         if rerun:
             self.rerun()
 
     def get_config(self, session_id: uuid.UUID, config_name) -> Optional[Any]:
-        return self.session_data.get(session_id, {}).get(config_name)
+        if config_name not in self.session_data[session_id]:
+            return None
+        return self.session_data[session_id][config_name]
 
     def use_session(self, session_id: str) -> None:
-        if session_id in self.session_data:
-            self.mru.remove(session_id)
         self.mru.appendleft(session_id)
 
     @property
     def requires_autogenerated_session(self) -> bool:
-        return all(not session.get("autogenerate", False) for session in self.session_data.values())
+        s = self.get_sessions()
+        return not s or all(
+                not self.get_config(session, "autogenerate") for session in s
+        )
