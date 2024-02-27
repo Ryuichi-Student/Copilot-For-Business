@@ -69,7 +69,7 @@ def upload_progress(args, upload_placeholder=None, upload_placeholder2=None):
 
 
 def get_db_upload():
-    uploaded_file = st.file_uploader("Choose a file", type=["sqlite3", "db", "pdf"])
+    uploaded_file = st.file_uploader("Upload your database", type=["sqlite3", "db", "pdf"])
 
     if uploaded_file is not None:
 
