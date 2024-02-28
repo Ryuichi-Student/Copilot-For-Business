@@ -33,8 +33,6 @@ class Query:
         self.answer = None
         self.plot = None
         self.generalised_answer = None
-        self.final_action = None
-        self.final_query = None
 
     def early_analysis(self, db: Database)-> bool:
         response = early_analysis(self.userQuery, db)
@@ -88,13 +86,11 @@ class Query:
     def get_plot(self, actioner: Actioner, database: Database):
         if self.plot is None and self.answer is None:
             cmd = actioner.get_final_action(self.userQuery)
-            self.final_action = cmd
-            pprint(cmd)
+            pprint(cmd)                
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
             sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
             queries = sql.getQueries()
             query = queries[0] if queries[0] is not None else ""
-            self.final_query = query
             pprint(query)
             df = sql.executeQuery(query)
             pprint(df)
@@ -107,9 +103,9 @@ class Query:
     def get_generalised_answer(self):
         if self.generalised_answer is None:
             if self.plot is not None:
-                answer_gen = general_answer_gen(str(self.plot),self.userQuery,self.final_action, self.final_query, True) # type: ignore
+                answer_gen = general_answer_gen(str(self.plot),self.userQuery,True)
             elif self.answer is not None:
-                answer_gen = general_answer_gen(str(self.answer),self.userQuery, self.final_action, self.final_query, False) # type: ignore
+                answer_gen = general_answer_gen(str(self.answer),self.userQuery,False)
             self.generalised_answer = answer_gen.getAnswer()
 
 
@@ -126,9 +122,6 @@ class Query:
             "dfs": self.dfs,
             "answer": self.answer,
             "plot": self.plot,
-            "generalised_answer": self.generalised_answer,
-            "final_action": self.final_action,
-            "final_query": self.final_query
         }
 
 
@@ -177,7 +170,6 @@ class Copilot:
                 dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
                 pprint(dfs_database.getTextSchema())
                 query.get_plot(Actioner(dfs_database), dfs_database)
-                print("---------------------Getting generalised answer----------------------")
                 query.get_generalised_answer()
 
         return self.UserQueries[userQuery]
