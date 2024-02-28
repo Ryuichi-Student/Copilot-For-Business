@@ -1,6 +1,5 @@
-import matplotlib.pyplot as plot
-import pandas as pd
 import plotly.express as px
+from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
 
 
@@ -11,7 +10,9 @@ class BarChart(Visualisation):
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
         self.modifiedDF = data
-    
+        self._modifiedDF = None
+
+
     # functions for the actioner
     @staticmethod
     def getChartName():
@@ -33,8 +34,11 @@ class BarChart(Visualisation):
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
         if not show:
-            limit = self.df.nlargest(n, self.y_axis)
-            self.modifiedDF = limit
+            if self._modifiedDF is not None:
+                self.modifiedDF = self._modifiedDF
+            else:
+                limit = self.df.nlargest(n, self.y_axis)
+                self._modifiedDF = self.modifiedDF = limit
         else:
             self.modifiedDF = self.df
 
@@ -46,8 +50,7 @@ class BarChart(Visualisation):
             return
 
         fig = px.bar(self.modifiedDF, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
-
-        return fig
+        return FigureResampler(fig)
 
 
     # test for this that gives an invalid data frame
