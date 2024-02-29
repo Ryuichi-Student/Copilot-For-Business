@@ -1,6 +1,7 @@
-import matplotlib.pyplot as plot
-import pandas as pd
+import sys
+
 import plotly.express as px
+from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
 
 
@@ -11,7 +12,9 @@ class BarChart(Visualisation):
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
         self.modifiedDF = data
-    
+        self._modifiedDF = None
+
+
     # functions for the actioner
     @staticmethod
     def getChartName():
@@ -19,7 +22,7 @@ class BarChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a bar chart is most suitable to represent the data, for example compare numerical data between different groups."
+        return "This should be chosen when a bar chart is most suitable to represent the data, for example to compare numerical data between different groups."
     
     # returns a dictionary of the parameters required from the Actioner to create a BarChart object
     @staticmethod
@@ -33,8 +36,11 @@ class BarChart(Visualisation):
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
         if not show:
-            limit = self.df.nlargest(n, self.y_axis)
-            self.modifiedDF = limit
+            if self._modifiedDF is not None:
+                self.modifiedDF = self._modifiedDF
+            else:
+                limit = self.df.nlargest(n, self.y_axis)
+                self._modifiedDF = self.modifiedDF = limit
         else:
             self.modifiedDF = self.df
 
@@ -44,10 +50,13 @@ class BarChart(Visualisation):
             # return an error
             print("invalid data")
             return
-
         fig = px.bar(self.modifiedDF, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
-
-        return fig
+        fig.update_layout({
+            "plot_bgcolor": "rgba(0, 0, 0, 0)",
+            "paper_bgcolor": "rgba(0, 0, 0, 50)",
+        })
+        fig.write_image("plots/plot.jpeg")
+        return FigureResampler(fig)
 
 
     # test for this that gives an invalid data frame

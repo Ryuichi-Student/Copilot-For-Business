@@ -352,7 +352,6 @@ class Actioner:
             Provide details for extracting the following: {query}
         ''')
 
-
         response = get_gpt_response(
             ("system", system_prompt),
             ("user", example_user_prompt_1),
@@ -360,7 +359,7 @@ class Actioner:
             ("user", example_user_prompt_2),
             ("assistant", example_assistant_response_2),
             ("user", user_prompt),
-            gpt4 = False,
+            gpt4 = True,
             jsonMode = True,
             top_p = 0.2
         )
