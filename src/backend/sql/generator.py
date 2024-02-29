@@ -42,7 +42,7 @@ class QueryExecutionError(InvalidQueryError):
 class SQLGenerator:
     #Core class for generating SQL queries.
 
-    def __init__(self, database: Database, actionCommands: List[str], relevantColumns: List[List[str]], primary_keys: List[str], graph_infos: List[Optional[Dict[str, Union[str, Dict[str,str]]]]] = []):
+    def __init__(self, database: Database, actionCommands, relevantColumns, primary_keys, graph_infos = []):
         self.database = database
         self.actionCommands = actionCommands
         self.graph_infos = graph_infos
