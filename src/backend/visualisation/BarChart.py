@@ -1,3 +1,5 @@
+import sys
+
 import plotly.express as px
 from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
@@ -48,8 +50,12 @@ class BarChart(Visualisation):
             # return an error
             print("invalid data")
             return
-
         fig = px.bar(self.modifiedDF, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+        fig.update_layout({
+            "plot_bgcolor": "rgba(0, 0, 0, 0)",
+            "paper_bgcolor": "rgba(0, 0, 0, 50)",
+        })
+        fig.write_image("plots/plot.jpeg")
         return FigureResampler(fig)
 
 
