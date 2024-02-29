@@ -181,7 +181,7 @@ def create_copilot(): # type: ignore
         args = join_dbs(options)
         if isinstance(args, dict):
             copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"],
-                              non_embedded=args["not-embedded"])
+                              non_embedded=args["not-embedded"]) 
         else:
             print(f"Creating new copilot with {args}")
             copilot = Copilot(db=f"{args}", dbtype='sqlite')
