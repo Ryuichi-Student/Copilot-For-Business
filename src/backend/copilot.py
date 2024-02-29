@@ -107,9 +107,12 @@ class Query:
         if self.generalised_answer is None:
             if self.plot is not None:
                 answer_gen = general_answer_gen(str(self.plot),self.userQuery,self.final_action, self.final_query, True) # type: ignore
+                self.generalised_answer = answer_gen.getAnswer()
             elif self.answer is not None:
                 answer_gen = general_answer_gen(str(self.answer),self.userQuery, self.final_action, self.final_query, False) # type: ignore
-            self.generalised_answer = answer_gen.getAnswer()
+                self.generalised_answer = answer_gen.getAnswer()
+            else:
+                self.generalised_answer = None
 
     def __dict__(self):
         """ JSON serialisable """

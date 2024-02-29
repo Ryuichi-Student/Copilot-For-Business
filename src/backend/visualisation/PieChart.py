@@ -10,6 +10,7 @@ class PieChart(Visualisation):
         self.title = info['title']
         self.categories = info['categories']
         self.count = info['count']
+        self.modifiedDFs = {"data" : data}
 
     # functions for the actioner
     @staticmethod
@@ -30,11 +31,13 @@ class PieChart(Visualisation):
 
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
-        if not show:
-            limit = self.df.nlargest(n, self.count)
-            self.modifiedDF = limit
+        if "topn" not in self.modifiedDFs:
+            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.count)
+        
+        if show:
+            self.df = self.modifiedDFs["topn"]
         else:
-            self.modifiedDF = self.df
+            self.df = self.modifiedDFs["data"]
 
     def generate(self):
         if not self.validate():
