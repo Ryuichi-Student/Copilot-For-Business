@@ -17,6 +17,9 @@ import streamlit as st
 import sys
 import os
 
+import uuid
+import io
+
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
