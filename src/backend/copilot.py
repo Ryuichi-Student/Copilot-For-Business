@@ -33,8 +33,10 @@ class Query:
         self.answer = None
         self.plot = None
         self.generalised_answer = None
+        self.final_action = None
+        self.final_query = None
 
-    def early_analysis(self, db: Database)-> bool:
+    def early_analysis(self, db: Database) -> bool:
         response = early_analysis(self.userQuery, db)
         pprint(response)
         if response["status"] == "schema":
@@ -52,21 +54,24 @@ class Query:
         if self.actionInfos is None and self.requirements is not None:
             reqs = self.requirements
             actionInfos = actioner.get_action(reqs)
-            self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'} # type: ignore
+            self.actionInfos = {req: cmd for req, cmd in zip(reqs, actionInfos) if
+                                cmd['status'] == 'success'}  # type: ignore
             pprint(self.actionInfos)
 
     def create_queries(self, db: Database):
         if self.queries is None and self.actionInfos is not None:
-            action_commands, relevant_cols = [cmd['command'] for cmd in self.actionInfos.values()], [cmd["relevant_columns"] for cmd in self.actionInfos.values()]
-            self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, [None]*len(self.actionInfos))
+            action_commands, relevant_cols = [cmd['command'] for cmd in self.actionInfos.values()], [
+                cmd["relevant_columns"] for cmd in self.actionInfos.values()]
+            self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, [None] * len(self.actionInfos))
             queries = self.sql_generator.getQueries()
-            self.queries = {req:query for req,query in zip(self.actionInfos.keys(), queries) if query is not None}
+            self.queries = {req: query for req, query in zip(self.actionInfos.keys(), queries) if query is not None}
             pprint(self.queries)
 
     def get_dfs(self, threadpool):
         if self.dfs is None and self.sql_generator is not None and self.queries is not None:
-            futures = {req:threadpool.submit(self.sql_generator.executeQuery, query) for req,query in self.queries.items()}
-            dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
+            futures = {req: threadpool.submit(self.sql_generator.executeQuery, query) for req, query in
+                       self.queries.items()}
+            dataframes = {req: future.result() for req, future in zip(futures.keys(), futures.values())}
             # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
             self.dfs = {}
             for req, df in dataframes.items():
@@ -88,25 +93,28 @@ class Query:
                 self.plot = None
                 return
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
-            sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
+            sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta])  # type: ignore
             queries = sql.getQueries()
             query = queries[0] if queries[0] is not None else ""
+            self.final_query = query
             pprint(query)
             df = sql.executeQuery(query)
             pprint(df)
-            if isinstance(df, pd.DataFrame) and cmd['graph_type']!="No Chart":
+            if isinstance(df, pd.DataFrame) and cmd['graph_type'] != "No Chart":
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
                 self.plot = vis
             else:
                 self.answer = df
-    
+
     def get_generalised_answer(self):
         if self.generalised_answer is None:
             if self.plot is not None:
-                answer_gen = general_answer_gen(str(self.plot),self.userQuery,self.final_action, self.final_query, True) # type: ignore
+                answer_gen = general_answer_gen(str(self.plot), self.userQuery, self.final_action, self.final_query,
+                                                True)  # type: ignore
                 self.generalised_answer = answer_gen.getAnswer()
             elif self.answer is not None:
-                answer_gen = general_answer_gen(str(self.answer),self.userQuery, self.final_action, self.final_query, False) # type: ignore
+                answer_gen = general_answer_gen(str(self.answer), self.userQuery, self.final_action, self.final_query,
+                                                False)  # type: ignore
                 self.generalised_answer = answer_gen.getAnswer()
             else:
                 self.generalised_answer = None
@@ -122,13 +130,17 @@ class Query:
             "dfs": self.dfs,
             "answer": self.answer,
             "plot": self.plot,
+            "generalised_answer": self.generalised_answer,
+            "final_action": self.final_action,
+            "final_query": self.final_query
         }
 
 
 class Copilot:
     # TODO: Change this to use multiple databases.
-    def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5), potential_embedded=[], non_embedded=[]):
-        
+    def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite',
+                 threadpool=ThreadPoolExecutor(max_workers=5), potential_embedded=[], non_embedded=[]):
+
         if db is None:
             raise Exception("No database provided")
         else:
@@ -153,7 +165,7 @@ class Copilot:
                 query = self.UserQueries[userQuery] = Query(_userQuery)
 
                 print("---------------------Early Analysis----------------------")
-                if query.early_analysis(self.db): # If the query can be answered by the schema
+                if query.early_analysis(self.db):  # If the query can be answered by the schema
                     return self.UserQueries[userQuery]
 
                 print("---------------------Setting requirements----------------------")
@@ -176,6 +188,7 @@ class Copilot:
                 dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
                 pprint(dfs_database.getTextSchema())
                 query.get_plot(Actioner(dfs_database), dfs_database)
+                print("---------------------Getting generalised answer----------------------")
                 query.get_generalised_answer()
 
         return self.UserQueries[userQuery]

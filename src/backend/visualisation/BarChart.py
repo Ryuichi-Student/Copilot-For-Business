@@ -50,7 +50,9 @@ class BarChart(Visualisation):
             print("invalid data")
             return
 
+        print("Bar generation")
         fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+        print("Bar generated")
             # self.graphs["original"] = fig
 
         # fig.update_layout({
