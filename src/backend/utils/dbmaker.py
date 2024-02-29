@@ -148,6 +148,8 @@ def join_dbs(databases:list[str]):
         cursor.execute(f"SELECT name FROM {db[1]}.sqlite_master WHERE type='table';")
         tables = cursor.fetchall()
 
+        table_changes = {}
+
         # Iterate through each table and create it in the main database
         for table in tables:
             table_name = table[0]
@@ -156,41 +158,46 @@ def join_dbs(databases:list[str]):
             create_sql = f"CREATE TABLE {table_name} AS SELECT * FROM {table_name}"
             f = False
             # If the table already exists, add a number to the end
+            orig_name = table_name
             while table_name in [t[0] for t in cursor.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()]:
                 f = True
-                tables[tables.index(table)] = (f"{table_name}_1",)
                 table_name = f"{table_name}_1"
+                table_changes[orig_name] = table_name
+                print(f"Table {orig_name} already exists, changing to {table_name}")
+
 
             if f:
-                create_sql = f"CREATE TABLE {table_name}_1 AS SELECT * FROM {table_name}"
-                tables[tables.index(table)] = (f"{table_name}_1",)
+                create_sql = f"CREATE TABLE {table_name} AS SELECT * FROM {orig_name}"
                 cursor.execute(create_sql)
             else:
                 cursor.execute(create_sql)
 
+        # update the table names
+            
 
-            cursor.execute("PRAGMA foreign_keys = ON")
-
-
+        
         for table_name in tables:
             table_name = table_name[0]
+            old_name = table_name
+            if table_name in table_changes:
+                table_name = table_changes[table_name]
 
 
             cursor.execute("PRAGMA foreign_keys = ON")
-            names = [p[1] for p in primary_keys[table_name]]
-            types = [p[2] for p in primary_keys[table_name]]
+            names = [p[1] for p in primary_keys[old_name]]
+            types = [p[2] for p in primary_keys[old_name]]
             inner = f"{', '.join([f'{names[i]} {types[i]}' for i in range(len(names))])}"
 
             pkey = None
 
-            schema = db_.schema[table_name]
+            schema = db_.schema[old_name]
             for column in schema:
                 if column['is_primary']:
                     pkey = column["column_name"]
                     break
                     
 
-            for fkey in foreign_keys[table_name]:
+            for fkey in foreign_keys[old_name]:
                 from_col = fkey[3]
                 to_table = fkey[2]
                 to_col = fkey[4]
