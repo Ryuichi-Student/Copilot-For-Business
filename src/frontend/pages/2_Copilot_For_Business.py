@@ -271,7 +271,7 @@ if userQuery:
             k.write(t)
         else:
             session_manager.update_config(current_session_id, {"finished": True})
-            @load_async(component=None)
+            # @load_async(component=None)
             def _stream():
                 for x in stream(t):
                     k.write(x)
