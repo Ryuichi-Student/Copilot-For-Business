@@ -34,7 +34,7 @@ def load_async():
     def decorator(func):
         def wrapper(*args, **kwargs):
             def task():
-                time.sleep(0.1)
+                time.sleep(0.05)
                 func(*args, **kwargs)
 
             executor = st.session_state.executor
@@ -189,7 +189,7 @@ def create_copilot(): # type: ignore
     return copilot
 
 
-def handle_toggles_and_plot(userQuery):
+def handle_async_ui(userQuery):
     if "executor" in st.session_state:
         st.session_state.executor.shutdown(wait=False)
     st.session_state.executor = ThreadPoolExecutor(max_workers=4)
@@ -217,17 +217,45 @@ def handle_toggles_and_plot(userQuery):
             run()
 
     @load_async()
-    def show_sql():
-        print("showing sql")
-        with st.expander("See SQL"):
+    def show_sql(_sql_placeholder=_sql_placeholder):
+        def run():
+            print("showing sql")
             if plot:
-                plot.formatSQL()
+                plot.formatSQL(_sql_placeholder)
             else:
-                st.write(copilot.get_sql(userQuery))
-        print("Finished showing sql")
+                _sql_placeholder.write(copilot.get_sql(userQuery))
+            print("Finished showing sql")
+        with _sql_expander_placeholder, st.expander("See SQL"):
+            if _sql_placeholder is None:
+                _sql_placeholder = st.empty()
+            run()
 
-        # else:
-        #     print("Not showing sql")
+    @load_async()
+    def show_explanation(_explanation_placeholder=_explanation_placeholder):
+        def run():
+            print("showing explanation")
+            generalised_answer = copilot.get_generalised_answer(userQuery)
+            if generalised_answer:
+                _explanation_placeholder.write(generalised_answer)
+            else:
+                _explanation_placeholder.write("Copilot for Business was not able to generate a text explanation. Please try to refine your question to help")
+            print("Finished showing explanation")
+
+        with _explanation_expander_placeholder, st.expander("See explanation"):
+            if _explanation_placeholder is None:
+                _explanation_placeholder = st.empty()
+            run()
+        # def run():
+        #     print("showing explanation")
+        #
+        #     if generalised_answer:
+        #         _explanation_placeholder.write(generalised_answer)
+        #     else:
+        #         _explanation_placeholder.write("Copilot for Business was not able to generate a text explanation. Please try to refine your question to help")
+        #     print("Finished showing explanation")
+        #
+        # with _explanation_expander_placeholder, st.expander("See explanation"):
+        #     run()
 
     if plot:
         # Update for showing top 10 values toggle
@@ -247,6 +275,8 @@ def handle_toggles_and_plot(userQuery):
     # sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView", value=current_sqlView_state)
 
     show_sql()
+
+    show_explanation()
 
     st.session_state.executor.shutdown(wait=True)
 
@@ -287,21 +317,19 @@ if userQuery:
         _plot_placeholder = st.empty()
         _plot_toggle_placeholder = st.empty()
         _plot_toggle_placeholder.toggle(label="Show top 10 values only")
-        # _sql_placeholder = st.empty()
+        _sql_expander_placeholder = st.empty()
+        _sql_placeholder = None
+        _explanation_expander_placeholder = st.empty()
+        _explanation_placeholder = None
         # _sql_toggle_placeholder = st.empty()
         # _sql_toggle_placeholder.toggle("Show SQL")
 
         # none type has no attribute formatSQL
-        handle_toggles_and_plot(userQuery)
+        handle_async_ui(userQuery)
 
 
         # drop down expander that shows the generalised answer created for the graph
-        with st.expander("See explanation"):
-            generalised_answer = copilot.get_generalised_answer(userQuery)
-            if generalised_answer:
-                st.write(generalised_answer)
-            else:
-                st.write("Copilot for Business was not able to generate a text explanation. Please try to refine your question to help")
+        
 
 
         # _t = st.empty()
