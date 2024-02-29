@@ -49,7 +49,7 @@ class Visualisation():
         # ''')
         return self.query
     
-    def formatSQL(self):
+    def formatSQL(self, placeholder=None):
         # display a formatted sql query
         
         # split text on uppercase words
@@ -95,8 +95,10 @@ class Visualisation():
 
                 if name and columns:
                     explained += f'\n\nThe :blue[{name.group(0)}] values are generated from :blue[{columns}]'
-
-        st.write(explained)
+        if placeholder is None:
+            st.write(explained)
+        else:
+            placeholder.write(explained)
 
 
 
