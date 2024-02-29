@@ -207,6 +207,7 @@ def handle_toggles_and_plot(userQuery):
             config = {'displayModeBar': False}
             _plot_placeholder.plotly_chart(fig, config=config)
             print("Finished showing plot")
+        
         if _spinner_placeholder is not None:
             print("spinning")
             with _spinner_placeholder, st.spinner("Plotting graph..."):
@@ -231,13 +232,14 @@ def handle_toggles_and_plot(userQuery):
         # Update for showing top 10 values toggle
         if plot.dfLength > 10:
             current_topN_state = False if "topN" not in st.session_state else st.session_state.topN
+
             def change_plot():
                 st.session_state.plot_changed = True
                 print("Plot changed")
-            topN = _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
+            _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
                                                    value=current_topN_state, on_change=change_plot)
 
-            plot.topn(10, not current_topN_state)
+            plot.topn(10, current_topN_state)
         show_plot()
 
     # current_sqlView_state = False if "sqlView" not in st.session_state else st.session_state.sqlView
@@ -292,6 +294,7 @@ if userQuery:
         handle_toggles_and_plot(userQuery)
 
 
+        # drop down expander that shows the generalised answer created for the graph
         with st.expander("See explanation"):
             generalised_answer = copilot.get_generalised_answer(userQuery)
             if generalised_answer:
