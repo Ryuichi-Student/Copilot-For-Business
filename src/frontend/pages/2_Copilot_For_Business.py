@@ -208,6 +208,7 @@ def handle_toggles_and_plot(userQuery):
             config = {'displayModeBar': False}
             _plot_placeholder.plotly_chart(fig, config=config)
             print("Finished showing plot")
+        
         if _spinner_placeholder is not None:
             print("spinning")
             with _spinner_placeholder, st.spinner("Plotting graph..."):
@@ -218,30 +219,32 @@ def handle_toggles_and_plot(userQuery):
     @load_async()
     def show_sql():
         print("showing sql")
-        if "sqlView" in st.session_state and st.session_state.sqlView:
-            _sql_placeholder.write(copilot.get_sql(userQuery))
+        with st.expander("See SQL"):
             if plot:
                 plot.formatSQL()
-            print("Finished showing sql")
+            else:
+                st.write(copilot.get_sql(userQuery))
+        print("Finished showing sql")
 
-        else:
-            print("Not showing sql")
+        # else:
+        #     print("Not showing sql")
 
     if plot:
         # Update for showing top 10 values toggle
         if plot.dfLength > 10:
             current_topN_state = False if "topN" not in st.session_state else st.session_state.topN
+
             def change_plot():
                 st.session_state.plot_changed = True
                 print("Plot changed")
-            topN = _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
+            _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
                                                    value=current_topN_state, on_change=change_plot)
 
-            plot.topn(10, not current_topN_state)
+            plot.topn(10, current_topN_state)
         show_plot()
 
-    current_sqlView_state = False if "sqlView" not in st.session_state else st.session_state.sqlView
-    sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView", value=current_sqlView_state)
+    # current_sqlView_state = False if "sqlView" not in st.session_state else st.session_state.sqlView
+    # sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView", value=current_sqlView_state)
 
     show_sql()
 
@@ -257,7 +260,7 @@ if userQuery:
 
     status_placeholder = st.empty()
     if not session_manager.get_config(current_session_id, "finished"):
-        status = status_placeholder.status("Thinking...")
+        status = status_placeholder.status("Thinking...", expanded=True)
         copilot.set_status_placeholder(status)
     copilot.query(userQuery)
 
@@ -284,25 +287,36 @@ if userQuery:
         _plot_placeholder = st.empty()
         _plot_toggle_placeholder = st.empty()
         _plot_toggle_placeholder.toggle(label="Show top 10 values only")
-        _sql_placeholder = st.empty()
-        _sql_toggle_placeholder = st.empty()
-        _sql_toggle_placeholder.toggle("Show SQL")
-
-        _t = st.empty()
-        t = copilot.get_generalised_answer(userQuery)
-        if t:
-            if session_manager.get_config(current_session_id, "finished"):
-                _t.write(t)
-            else:
-                session_manager.update_config(current_session_id, {"finished": True})
-                for x in stream(t):
-                    _t.write(x)
-        else:
-            st.markdown(
-                "Copilot for Business was not able to generate an answer. Please try to refine your question to help")
+        # _sql_placeholder = st.empty()
+        # _sql_toggle_placeholder = st.empty()
+        # _sql_toggle_placeholder.toggle("Show SQL")
 
         # none type has no attribute formatSQL
         handle_toggles_and_plot(userQuery)
+
+
+        # drop down expander that shows the generalised answer created for the graph
+        with st.expander("See explanation"):
+            generalised_answer = copilot.get_generalised_answer(userQuery)
+            if generalised_answer:
+                st.write(generalised_answer)
+            else:
+                st.write("Copilot for Business was not able to generate a text explanation. Please try to refine your question to help")
+
+
+        # _t = st.empty()
+        # t = copilot.get_generalised_answer(userQuery)
+        # if t:
+        #     if session_manager.get_config(current_session_id, "finished"):
+        #         _t.write(t)
+        #     else:
+        #         session_manager.update_config(current_session_id, {"finished": True})
+        #         for x in stream(t):
+        #             _t.write(x)
+        # else:
+        #     st.markdown(
+        #         "Copilot for Business was not able to generate an answer. Please try to refine your question to help")
+
 
 
 @atexit.register

@@ -11,8 +11,8 @@ class BarChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
-        self.modifiedDF = data
-        self._modifiedDF = None
+        self.modifiedDFs = {"data" : data}
+        self.graphs = None
 
 
     # functions for the actioner
@@ -35,14 +35,14 @@ class BarChart(Visualisation):
     
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
-        if not show:
-            if self._modifiedDF is not None:
-                self.modifiedDF = self._modifiedDF
-            else:
-                limit = self.df.nlargest(n, self.y_axis)
-                self._modifiedDF = self.modifiedDF = limit
+        if "topn" not in self.modifiedDFs:
+            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
+        
+        if show:
+            self.df = self.modifiedDFs["topn"]
         else:
-            self.modifiedDF = self.df
+            self.df = self.modifiedDFs["data"]
+            
 
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
     def generate(self):
@@ -50,17 +50,20 @@ class BarChart(Visualisation):
             # return an error
             print("invalid data")
             return
-        fig = px.bar(self.modifiedDF, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
-        fig.update_layout({
-            "plot_bgcolor": "rgba(0, 0, 0, 0)",
-            "paper_bgcolor": "rgba(0, 0, 0, 50)",
-        })
-        fig.write_image("plots/plot.jpeg")
-        return FigureResampler(fig)
+        
+        fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+            # self.graphs["original"] = fig
+
+        # fig.update_layout({
+        #     "plot_bgcolor": "rgba(0, 0, 0, 0)",
+        #     "paper_bgcolor": "rgba(0, 0, 0, 50)",
+        # })
+        # fig.write_image("plots/plot.jpeg")
+        
+        return fig
 
 
     # test for this that gives an invalid data frame
-    # put this in the initialiser maybe
     def validate(self):
         if self.x_axis not in self.df:
             # no x axis in the data frame
