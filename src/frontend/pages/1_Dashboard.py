@@ -28,7 +28,7 @@ if st.session_state.CREATE_SESSION:
     session_name = st.text_input("Enter a session name.")
     if session_name:
         st.session_state.CREATE_SESSION = False
-        sessions.create_session(session_name)
+        sessions.create_session(session_name, autogenerate=False)
 
 # View the sessions that you have made and delete sessions by clicking the "X" button.
 st.write("## Current Sessions")
@@ -69,7 +69,7 @@ def upload_progress(args, upload_placeholder=None, upload_placeholder2=None):
 
 
 def get_db_upload():
-    uploaded_file = st.file_uploader("Choose a file", type=["sqlite3", "db", "pdf"])
+    uploaded_file = st.file_uploader("Upload your database", type=["sqlite3", "db", "pdf"])
 
     if uploaded_file is not None:
 
