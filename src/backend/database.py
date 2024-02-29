@@ -40,27 +40,39 @@ class Database(ABC):
     def getSchema(self) -> Dict[str, List[Dict[str, Union[str, bool, int]]]]:
         pass
 
-    def getTextSchema(self, filterTableNames:Optional[List[str]] = None) -> str:
-        # Turns schema into text. Assumes self._schema has been filled
+
+    def getTextSchema(self, filterTableNames: Optional[List[str]] = None) -> str:
+        # Turns schema into text. Assumes self.schema has been filled
         text_schema = ''
         schema = self.schema
         for table in schema:
-            if filterTableNames is not None:
-                if table not in filterTableNames:
-                    continue
+            if filterTableNames is not None and table not in filterTableNames:
+                continue
             text_schema += f'CREATE TABLE {table} (\n'
+            primary_keys = []
+            foreign_keys = []
             for column in schema[table]:
-                text_schema += f'  {column["column_name"]} {column["type"]}'
+                column_definition = f'  {column["column_name"]} {column["type"]}'
                 if not column['nullable']:
-                    text_schema += ' NOT NULL'
+                    column_definition += ' NOT NULL'
                 if column['default_value'] is not None:
-                    text_schema += f' DEFAULT {column["default_value"]}'
+                    column_definition += f' DEFAULT {column["default_value"]}'
                 if column['is_primary']:
-                    text_schema += f' PRIMARY KEY'
+                    primary_keys.append(column["column_name"])
                 if column['is_foreign']:
-                    text_schema += f' FOREIGN KEY REFERENCES {column["is_foreign"]}'
-                text_schema += ',\n'
-            text_schema += ');\n'
+                    foreign_keys.append((column["column_name"], column["is_foreign"]))
+                text_schema += column_definition + ',\n'
+            
+            # Adding primary key constraint if there's any primary key
+            if primary_keys:
+                text_schema += f'  PRIMARY KEY ({", ".join(primary_keys)}),\n' # type: ignore
+            
+            # Adding foreign key constraints
+            for fk in foreign_keys:
+                text_schema += f'  FOREIGN KEY ({fk[0]}) REFERENCES {fk[1]},\n'
+            
+            # Remove the last comma and newline, then close the table definition
+            text_schema = text_schema.rstrip(',\n') + '\n);\n'
         return text_schema
 
     @abstractmethod
@@ -72,10 +84,10 @@ class Database(ABC):
         pass
 
 class SQLiteDatabase(Database):
-    def __init__(self, file_path, additionalMetadata=None, progress_callback=None):
+    def __init__(self, file_path, additionalMetadata=None, progress_callback=None, potential_embedded=[], non_embedded=[]):
         self._url = file_path
         super().__init__(additionalMetadata)
-        self._descriptionEmbeddings = self.getDescriptionEmbeddings(progress_callback=progress_callback)
+        self._descriptionEmbeddings = self.getDescriptionEmbeddings(progress_callback=progress_callback, potential_embedded=potential_embedded, non_embedded=non_embedded)
     
     @property
     def url(self) -> str:
@@ -126,6 +138,10 @@ class SQLiteDatabase(Database):
     def getSchema(self):
         # print(f"URL: {self.url}")
         with sqlite3.connect(self.url) as conn:
+            
+            # PRAGMA database_list;
+            db_query = "PRAGMA database_list"
+            db_list = conn.execute(db_query).fetchall()
             # Get the list of tables
             tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
             tables = [row[0] for row in conn.execute(tables_query)]
@@ -163,12 +179,30 @@ class SQLiteDatabase(Database):
             column_names = [column_name for tname in self.tableNames for column_name in [row[1] for row in conn.execute(f"PRAGMA table_info(\"{tname}\")")]]
             return column_names
     
-    def getDescriptionEmbeddings(self, forceWrite=False, progress_callback=None):
+    def getDescriptionEmbeddings(self, forceWrite=False, progress_callback=None, potential_embedded=[], non_embedded=[]):
         """
         Get the embedding of each table in the database. If forceWrite is true will overwrite the embedding file.
         """
-        description_url = f'{self.url}.json'
+        tables_needed = []
         table_description_embeddings = {}
+        already_embedded = {}
+
+        # Get all the tables that are in embedded
+        for embedded in potential_embedded:
+            with open(embedded, 'r') as description_file:
+                table_description_embeddings = json.load(description_file)
+                already_embedded.update(table_description_embeddings)
+
+        for table in self.tableNames:
+            if table not in already_embedded:
+                tables_needed.append(table)
+        
+        print(f"Tables needed: {tables_needed}")
+
+
+        
+        description_url = f'{self.url}.json'
+
         try:
             if forceWrite:
                 raise FileNotFoundError
@@ -177,8 +211,10 @@ class SQLiteDatabase(Database):
         except FileNotFoundError:
             if progress_callback is not None:
                 progress_callback((0, len(self.tableNames)))
-            for table in self.tableNames:
-                progress_callback(table)
+            for table in tables_needed: # Should be tables_needed
+                print(f"Table: {table}")
+                if progress_callback is not None:
+                    progress_callback(table)
                 table_preview = self.query(f"SELECT * FROM \"{table}\" LIMIT 5").to_string(index=False)
                 system_prompt = dedent("""\
                     You are a data consultant, giving descriptions to tables. You will be provided with a preview of the first 5 rows of a table. Please come up with a short, concise description in one or two sentences that gives an accurate overview of the table.\
@@ -194,8 +230,38 @@ class SQLiteDatabase(Database):
                     'description': response,
                     'embedding': embedding
                 }
+
             with open(description_url, 'w') as description_file:
                 json.dump(table_description_embeddings, description_file)
+            
+
+            # Want to save in specific database jsons as well
+            for target in non_embedded:
+
+                description_target_dump = {}
+
+                
+                # Basefile is just removing the .json a.sqlit3.json -> a.sqlit3
+                basefile = target.split(".json")[0]
+
+                # Get list of tables that are in the database
+                tables_in_db = []
+                conn_db = sqlite3.connect(basefile)
+                query = "SELECT * FROM sqlite_master WHERE type='table';"
+                df = pd.read_sql_query(query, conn_db)
+                for table in df['name']:
+                    tables_in_db.append(table)
+                    if table in table_description_embeddings:
+                        description_target_dump[table] = table_description_embeddings[table]
+                    else:
+                        raise Exception(f"Table {table} not in table_description_embeddings")
+                conn_db.close()
+
+                with open(target, 'w') as description_file:
+                    json.dump(description_target_dump, description_file)
+
+
+
             if progress_callback is not None:
                 progress_callback((len(self.tableNames), len(self.tableNames)))
         return table_description_embeddings
@@ -223,6 +289,21 @@ class DataFrameDatabase(Database):
         else:
             return df
 
+    def _pandas_type_to_sqlite(self, type):
+        if type == 'object':
+            return 'TEXT'
+        elif type == 'int64':
+            return 'INTEGER'
+        elif type == 'float64':
+            return 'REAL'
+        elif type == 'bool':
+            return 'INTEGER'  # SQLite does not have a separate Boolean storage class. It uses integers.
+        elif type == 'datetime64[ns]':
+            return 'TEXT'  # or 'INTEGER' for Unix Time representation
+        else:
+            return 'TEXT'  # Default case if your DataFrame contains an unhandled type
+
+
     def getSchema(self):
         schema : Dict[str, List[Dict[str, Union[str, bool, int]]]] = {}
         for name, table in self.dataframes.items():
@@ -230,7 +311,7 @@ class DataFrameDatabase(Database):
             for col, col_type in zip(table.columns, table.dtypes):
                 column_info = {
                     "column_name": col,
-                    "type": col_type,
+                    "type": self._pandas_type_to_sqlite(str(col_type)),
                     "is_primary": False,
                     "is_foreign": False,
                     "default_value": None,
