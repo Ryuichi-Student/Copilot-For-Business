@@ -242,17 +242,7 @@ class Actioner:
         system_prompt = dedent('''\
             You are a data consultant, giving advice to the user. You will be provided with a question regarding some data in a database. All required information to answer the question should be in the database. The database schema will be provided. Respond with details on how to answer the question.
                                
-            First, determine whether it's possible to extract the information from the database. If not, respond with the following JSON object.
-            
-            {
-                "status": "error",
-                "error": "DATA_NOT_FOUND",
-                "message": ""
-            }
-            
-            The 'message' filed should contain the reason for why the data cannot be found.
-            
-            If it's possible, respond with a JSON object of the following structure.
+           Respond with a JSON object of the following structure.
             
             {
                 "status": "success",
