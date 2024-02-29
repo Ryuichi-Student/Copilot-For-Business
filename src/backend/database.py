@@ -40,30 +40,39 @@ class Database(ABC):
     def getSchema(self) -> Dict[str, List[Dict[str, Union[str, bool, int]]]]:
         pass
 
-    def getTextSchema(self, filterTableNames:Optional[List[str]] = None) -> str:
-        # Turns schema into text. Assumes self._schema has been filled
-        
 
-
+    def getTextSchema(self, filterTableNames: Optional[List[str]] = None) -> str:
+        # Turns schema into text. Assumes self.schema has been filled
         text_schema = ''
         schema = self.schema
         for table in schema:
-            if filterTableNames is not None:
-                if table not in filterTableNames:
-                    continue
+            if filterTableNames is not None and table not in filterTableNames:
+                continue
             text_schema += f'CREATE TABLE {table} (\n'
+            primary_keys = []
+            foreign_keys = []
             for column in schema[table]:
-                text_schema += f'  {column["column_name"]} {column["type"]}'
+                column_definition = f'  {column["column_name"]} {column["type"]}'
                 if not column['nullable']:
-                    text_schema += ' NOT NULL'
+                    column_definition += ' NOT NULL'
                 if column['default_value'] is not None:
-                    text_schema += f' DEFAULT {column["default_value"]}'
+                    column_definition += f' DEFAULT {column["default_value"]}'
                 if column['is_primary']:
-                    text_schema += f' PRIMARY KEY'
+                    primary_keys.append(column["column_name"])
                 if column['is_foreign']:
-                    text_schema += f' FOREIGN KEY REFERENCES {column["is_foreign"]}'
-                text_schema += ',\n'
-            text_schema += ');\n'
+                    foreign_keys.append((column["column_name"], column["is_foreign"]))
+                text_schema += column_definition + ',\n'
+            
+            # Adding primary key constraint if there's any primary key
+            if primary_keys:
+                text_schema += f'  PRIMARY KEY ({", ".join(primary_keys)}),\n' # type: ignore
+            
+            # Adding foreign key constraints
+            for fk in foreign_keys:
+                text_schema += f'  FOREIGN KEY ({fk[0]}) REFERENCES {fk[1]},\n'
+            
+            # Remove the last comma and newline, then close the table definition
+            text_schema = text_schema.rstrip(',\n') + '\n);\n'
         return text_schema
 
     @abstractmethod
@@ -280,6 +289,21 @@ class DataFrameDatabase(Database):
         else:
             return df
 
+    def _pandas_type_to_sqlite(self, type):
+        if type == 'object':
+            return 'TEXT'
+        elif type == 'int64':
+            return 'INTEGER'
+        elif type == 'float64':
+            return 'REAL'
+        elif type == 'bool':
+            return 'INTEGER'  # SQLite does not have a separate Boolean storage class. It uses integers.
+        elif type == 'datetime64[ns]':
+            return 'TEXT'  # or 'INTEGER' for Unix Time representation
+        else:
+            return 'TEXT'  # Default case if your DataFrame contains an unhandled type
+
+
     def getSchema(self):
         schema : Dict[str, List[Dict[str, Union[str, bool, int]]]] = {}
         for name, table in self.dataframes.items():
@@ -287,7 +311,7 @@ class DataFrameDatabase(Database):
             for col, col_type in zip(table.columns, table.dtypes):
                 column_info = {
                     "column_name": col,
-                    "type": col_type,
+                    "type": self._pandas_type_to_sqlite(str(col_type)),
                     "is_primary": False,
                     "is_foreign": False,
                     "default_value": None,
