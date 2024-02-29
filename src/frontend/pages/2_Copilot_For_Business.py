@@ -4,12 +4,20 @@
 # TODO: Remove the folder in the database merger
 # TODO: Optimise single database queries
 # TODO: Add session rename feature
-# TODO: Limit the size of the graph (as I think the number of rows that are creating it slows this down too much) - add caching
 # TODO: Handle errors more gracefully
+# TODO: Save images correctly - the image colours are wrong...
+# TODO: Make sure answers are consistent! Using one metric -> using a lot of metrics should still talk about the same thing.
+
+import atexit
+import threading
+import time
+from functools import wraps
 
 import streamlit as st
 import sys
 import os
+
+from streamlit.runtime.scriptrunner import add_script_run_ctx
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
@@ -17,10 +25,33 @@ from src.backend.copilot import Copilot
 from src.backend.utils.sessions import Session_Storage
 from src.backend.utils.dbmaker import join_dbs, get_database_list
 from src.backend.utils.gpt import stream
+from concurrent.futures import ThreadPoolExecutor
+import plotly.io as pio
+
+
+# Wrapper to load streamlit widgets asynchronously
+def load_async():
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            def task():
+                time.sleep(0.1)
+                func(*args, **kwargs)
+
+            executor = st.session_state.executor
+            executor.submit(task)
+            for t in executor._threads:
+                add_script_run_ctx(t)
+            # print(getattr(threading.current_thread(), "streamlit_script_run_ctx", "No script run context").session_id)
+
+        return wrapper
+    return decorator
 
 
 if "session_storage" not in st.session_state:
     st.session_state.session_storage = Session_Storage(st.rerun)
+if "plot_changed" not in st.session_state:
+    st.session_state.plot_changed = False
+
 session_manager = st.session_state.session_storage
 
 
@@ -58,10 +89,11 @@ def create_copilot(current_session):
         print(options)
         args = join_dbs(options)
         if isinstance(args, dict):
-            copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"], non_embedded=args["not-embedded"])
+            copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"],
+                              non_embedded=args["not-embedded"])
         else:
             copilot = Copilot(db=f"{args}", dbtype='sqlite')
-        
+
         session_manager.update_session_data(current_session_id, data=copilot)
     return copilot
 
@@ -73,7 +105,6 @@ with st.sidebar:
     # TODO: Load from persistent storage
     _p = st.empty()
     current_session_id = display_session_ui(_p)
-
 
 # ----------------------------------   Choosing databases   ----------------------------------
 
@@ -110,16 +141,13 @@ with st.sidebar:
     db_placeholder = st.empty()
     databases = select_databases(db_placeholder, current_session_id)
 
-
 # ----------------------------------   Ask for query   ----------------------------------
 col1, col2 = st.columns([7, 3])
-
 
 with col1:
     # title
     st.header("Copilot for Business")
     st.subheader(session_manager.get_session_data(current_session_id)["name"])
-
 
 if not session_manager.get_config(current_session_id, "query"):
     userQuery = st.chat_input("Enter your question")
@@ -151,7 +179,8 @@ def create_copilot():
         print(options)
         args = join_dbs(options)
         if isinstance(args, dict):
-            copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"], non_embedded=args["not-embedded"])
+            copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"],
+                              non_embedded=args["not-embedded"])
         else:
             print(f"Creating new copilot with {args}")
             copilot = Copilot(db=f"{args}", dbtype='sqlite')
@@ -160,32 +189,67 @@ def create_copilot():
 
 
 def handle_toggles_and_plot(userQuery):
-    if plot:
-        fig = plot.generate()
-        config = {'displayModeBar': False}
-        _plot_placeholder.plotly_chart(fig, config=config)
+    if "executor" in st.session_state:
+        st.session_state.executor.shutdown(wait=False)
+    st.session_state.executor = ThreadPoolExecutor(max_workers=4)
 
+    @load_async()
+    def show_plot():
+        def run():
+            if st.session_state.plot_changed:
+                st.session_state.plot_changed = False
+            else:
+                # if "plot.jpeg" in os.listdir("."):
+                #     _plot_placeholder.image("plot.jpeg")
+                pass
+            print("showing plot")
+            fig = plot.generate()
+            config = {'displayModeBar': False}
+            _plot_placeholder.plotly_chart(fig, config=config)
+            print("Finished showing plot")
+        if _spinner_placeholder is not None:
+            print("spinning")
+            with _spinner_placeholder, st.spinner("Plotting graph..."):
+                run()
+        else:
+            run()
+
+    @load_async()
+    def show_sql():
+        print("showing sql")
+        if "sqlView" in st.session_state and st.session_state.sqlView:
+            _sql_placeholder.write(copilot.get_sql(userQuery))
+            if plot:
+                plot.formatSQL()
+            print("Finished showing sql")
+
+        else:
+            print("Not showing sql")
+
+    if plot:
         # Update for showing top 10 values toggle
         if plot.dfLength > 10:
             current_topN_state = False if "topN" not in st.session_state else st.session_state.topN
+            def change_plot():
+                st.session_state.plot_changed = True
+                print("Plot changed")
             topN = _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
-                                                   value=current_topN_state)
+                                                   value=current_topN_state, on_change=change_plot)
 
-            plot.topn(10, topN)
+            plot.topn(10, not current_topN_state)
+        show_plot()
 
     current_sqlView_state = False if "sqlView" not in st.session_state else st.session_state.sqlView
     sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView", value=current_sqlView_state)
 
-    if sqlView:
-        _sql_placeholder.write(copilot.get_sql(userQuery))
-        if plot:
-            plot.formatSQL()
+    show_sql()
 
+    st.session_state.executor.shutdown(wait=True)
 
 if userQuery:
     copilot = create_copilot()
 
-# ----------------------------------   Query the Copilot   ----------------------------------
+    # ----------------------------------   Query the Copilot   ----------------------------------
 
     # display the user's entered prompt
     st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
@@ -206,12 +270,16 @@ if userQuery:
             k.write(t)
         else:
             session_manager.update_config(current_session_id, {"finished": True})
-            for x in stream(t):
-                k.write(x)
+            @load_async(component=None)
+            def _stream():
+                for x in stream(t):
+                    k.write(x)
+            _stream()
     else:
         plot = copilot.get_plot(userQuery)
 
         status_placeholder.empty()
+        _spinner_placeholder = st.empty()
         _plot_placeholder = st.empty()
         _plot_toggle_placeholder = st.empty()
         _plot_toggle_placeholder.toggle(label="Show top 10 values only")
@@ -229,7 +297,16 @@ if userQuery:
                 for x in stream(t):
                     _t.write(x)
         else:
-            st.markdown("Copilot for Business was not able to generate an answer. Please try to refine your question to help")
+            st.markdown(
+                "Copilot for Business was not able to generate an answer. Please try to refine your question to help")
 
-# none type has no attribute formatSQL
+        # none type has no attribute formatSQL
         handle_toggles_and_plot(userQuery)
+
+
+@atexit.register
+def shutdown():
+    print("Cleaning up threadpool")
+    if "executor" in st.session_state:
+        st.session_state.executor.shutdown(wait=False)
+        print("Shutting down UI threadpool")
