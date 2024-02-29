@@ -117,6 +117,8 @@ if current_session_id is not None:
             st.write(copilot.get_early_answer(userQuery))
         else:
             plot = copilot.get_plot(userQuery)
+            status_placeholder.status(label="Completed",  state="complete")
+
             if plot:
                 fig = plot.generate()
                 config = {'displayModeBar': None}
@@ -126,30 +128,15 @@ if current_session_id is not None:
 
                 # adds a toggle to show the top 10 values of the dataframe only
                 if plot.dfLength > 10:
-                    topN = st.checkbox("Show top :keycap_ten: values only", value= False)
+                    topN = st.toggle("Show top 10 values only", False)
                     if topN: plot.topn(10, topN)
                     else: plot.topn(10, topN)
-                st.divider()
 
-            viewOptions = st.radio("Viewing Options", ["Show :rainbow[SQL]", "Show Dataframe :floppy_disk:", "None"], horizontal=True)
-            sqlView = False
-            dataframeView = False
-            if viewOptions == "Show :rainbow[SQL]":
-                sqlView = True
-                dataframeView = False
-            elif viewOptions == "Show Dataframe :floppy_disk:":
-                sqlView = False
-                dataframeView = True
-            else:
-                sqlView = False
-                dataframeView = False
+            sqlView = st.toggle("Show SQL", False)
             if sqlView:
                 st.write(copilot.get_sql(userQuery))
                 if plot:
                     plot.formatSQL()
-            if dataframeView:
-                print(1)
-                st.write(copilot.get_final_df(userQuery))
-            st.divider()
+
             if copilot.get_generalised_answer(userQuery):
-                st.write_stream(io.StringIO(copilot.get_generalised_answer(userQuery)))
+                st.write(copilot.get_generalised_answer(userQuery))
