@@ -42,11 +42,12 @@ class QueryExecutionError(InvalidQueryError):
 class SQLGenerator:
     #Core class for generating SQL queries.
 
-    def __init__(self, database: Database, actionCommands: List[str], relevantColumns: List[List[str]], graph_infos: List[Optional[Dict[str, Union[str, Dict[str,str]]]]] = []):
+    def __init__(self, database: Database, actionCommands: List[str], relevantColumns: List[List[str]], primary_keys: List[str], graph_infos: List[Optional[Dict[str, Union[str, Dict[str,str]]]]] = []):
         self.database = database
         self.actionCommands = actionCommands
         self.graph_infos = graph_infos
         self.relevantColumns = relevantColumns
+        self.primary_keys = primary_keys
 
     def generateQuery(self) -> Dict[str, List]:
         #method to generate SQL queries.
@@ -103,12 +104,13 @@ class SQLGenerator:
         actionCommandsDetails = []
         for i, actionCommand in enumerate(self.actionCommands):
             actionCommandStr = actionCommand
+            primary_key = self.primary_keys[i]
             relevantColumnsStr = str(self.relevantColumns[i])  # convert list to string
             graphInfoStr = "None" if self.graph_infos[i] is None else str(self.graph_infos[i])  # convert dict to string
             
             actionCommandsDetails.append(f'''
             Here is the action command {i + 1}:
-            {actionCommandStr}
+            {actionCommandStr}, include the column {primary_key} in the sql select query.
 
             Here are the relevant columns for action command {i + 1}:
             {relevantColumnsStr}
@@ -157,7 +159,7 @@ class SQLGenerator:
             );
             
             Here is the action command 1:
-            Retrieve the total amount of orders for each client.
+            Retrieve the total amount of orders for each client, include the column client_id in the sql select query.
 
             Here are the relevant columns for action command 1:
             ["completedclient.name", "completedclient.client_id", "completedorder.account_id", "completedorder.amount"]
@@ -169,7 +171,7 @@ class SQLGenerator:
             }
             
             Here is the action command 2:
-            Count the number of transactions per account.
+            Count the number of transactions per account, include the column client_id in the sql select query..
 
             Here are the relevant columns for action command 2:
             ["completedacct.account_id", "completedtrans.account_id"]
