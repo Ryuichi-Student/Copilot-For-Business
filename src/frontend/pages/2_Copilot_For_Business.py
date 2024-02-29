@@ -118,7 +118,7 @@ if current_session_id is not None:
         else:
             plot = copilot.get_plot(userQuery)
 
-            status_placeholder.empty()
+            status_placeholder.status(label="Completed",  state="complete")
 
             if plot:
                 fig = plot.generate()
