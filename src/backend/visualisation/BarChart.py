@@ -12,6 +12,7 @@ class BarChart(Visualisation):
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
         self.modifiedDFs = {"data" : data}
+        self.graphs = None
 
 
     # functions for the actioner
@@ -50,9 +51,7 @@ class BarChart(Visualisation):
             print("invalid data")
             return
         
-        # if "original" not in self.graphs:
         fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
-
             # self.graphs["original"] = fig
 
         # fig.update_layout({
