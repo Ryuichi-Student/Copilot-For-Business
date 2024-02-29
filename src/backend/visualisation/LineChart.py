@@ -13,6 +13,7 @@ class LineChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
+        self.modifiedDFs = {"data" : data}
     
     @staticmethod
     def getChartName():
@@ -32,11 +33,13 @@ class LineChart(Visualisation):
 
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
-        if not show:
-            limit = self.df.nlargest(n, self.y_axis)
-            self.modifiedDF = limit
+        if "topn" not in self.modifiedDFs:
+            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
+        
+        if show:
+            self.df = self.modifiedDFs["topn"]
         else:
-            self.modifiedDF = self.df
+            self.df = self.modifiedDFs["data"]
 
     
     def generate(self):
