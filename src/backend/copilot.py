@@ -86,6 +86,9 @@ class Query:
             cmd = actioner.get_final_action(self.userQuery)
             self.final_action = cmd
             pprint(cmd)
+            if "graph_type" not in cmd:
+                self.plot = None
+                return
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
             sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [self.requirements['axis']], [graph_meta])
             queries = sql.getQueries()
@@ -105,12 +108,12 @@ class Query:
         if self.generalised_answer is None:
             if self.plot is not None:
                 answer_gen = general_answer_gen(str(self.plot),self.userQuery,self.final_action, self.final_query, True) # type: ignore
+                self.generalised_answer = answer_gen.getAnswer()
             elif self.answer is not None:
                 answer_gen = general_answer_gen(str(self.answer),self.userQuery, self.final_action, self.final_query, False) # type: ignore
-            self.generalised_answer = answer_gen.getAnswer()
-
-
-
+                self.generalised_answer = answer_gen.getAnswer()
+            else:
+                self.generalised_answer = None
 
     def __dict__(self):
         """ JSON serialisable """
@@ -131,9 +134,15 @@ class Query:
 
 class Copilot:
     # TODO: Change this to use multiple databases.
-    def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5)):
+    def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5), potential_embedded=[], non_embedded=[]):
+        
+        if db is None:
+            raise Exception("No database provided")
+        else:
+            print(f"Using database: {db}")
+
         if dbtype == "sqlite":
-            self.db = SQLiteDatabase(db)
+            self.db = SQLiteDatabase(db, potential_embedded=potential_embedded, non_embedded=non_embedded)
         self.UserQueries: Dict[int, Query] = {}
         self.actioner = Actioner(self.db)
         self.threadpool = threadpool
