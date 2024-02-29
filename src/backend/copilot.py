@@ -3,7 +3,7 @@ import time
 
 import pandas as pd
 from pprint import pprint
-from typing import Dict
+from typing import Dict, List, Union
 from concurrent.futures import ThreadPoolExecutor
 
 from src.backend.actioner import Actioner
@@ -54,13 +54,13 @@ class Query:
         if self.actionInfos is None and self.requirements is not None:
             reqs = self.requirements
             actionInfos = actioner.get_action(reqs)
-            self.actionInfos = {req:cmd for req,cmd in zip(reqs, actionInfos) if cmd['status'] == 'success'} # type: ignore
+            self.actionInfos = {req:cmd for req,cmd in zip(reqs['requirements'], actionInfos) if cmd['status'] == 'success'} # type: ignore
             pprint(self.actionInfos)
 
     def create_queries(self, db: Database):
         if self.queries is None and self.actionInfos is not None:
-            action_commands, relevant_cols = [cmd['command'] for cmd in self.actionInfos.values()], [cmd["relevant_columns"] for cmd in self.actionInfos.values()]
-            self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, [None]*len(self.actionInfos))
+            action_commands, relevant_cols, primary_keys = [cmd['command'] for cmd in self.actionInfos.values()], [cmd["relevant_columns"] for cmd in self.actionInfos.values()], [self.requirements['axis']]*len(self.actionInfos)
+            self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, primary_keys, [None]*len(self.actionInfos))
             queries = self.sql_generator.getQueries()
             self.queries = {req:query for req,query in zip(self.actionInfos.keys(), queries) if query is not None}
             pprint(self.queries)
@@ -87,11 +87,12 @@ class Query:
             self.final_action = cmd
             pprint(cmd)
             graph_meta = {"graph_type": cmd["graph_type"], "graph_info": cmd['graph_info']}
-            sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [graph_meta]) # type: ignore
+            sql = SQLGenerator(database, [str(cmd['command'])], [cmd['relevant_columns']], [self.requirements['axis']], [graph_meta])
             queries = sql.getQueries()
             query = queries[0] if queries[0] is not None else ""
             self.final_query = query
             pprint(query)
+            self.queries["Combine Subtables"] = query
             df = sql.executeQuery(query)
             pprint(df)
             if isinstance(df, pd.DataFrame) and cmd['graph_type']!="No Chart":
@@ -171,7 +172,6 @@ class Copilot:
                 print("---------------------Getting plot----------------------")
                 st.write("Generating answer")
                 dfs_database = DataFrameDatabase(self.get_dfs(_userQuery))
-                pprint(dfs_database.getTextSchema())
                 query.get_plot(Actioner(dfs_database), dfs_database)
                 print("---------------------Getting generalised answer----------------------")
                 query.get_generalised_answer()
@@ -181,7 +181,7 @@ class Copilot:
     def get_random_query(self):
         return self.UserQueries[list(self.UserQueries.keys())[0]]
 
-    def get_requirements(self, query: str) -> list[str]:
+    def get_requirements(self, query: str) -> Dict[str, Union[List[str], str]]:
         requirements = self.UserQueries[hash(query)].requirements
         if requirements is not None:
             return requirements
