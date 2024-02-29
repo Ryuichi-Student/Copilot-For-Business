@@ -15,18 +15,23 @@ class Actioner:
     def database(self) -> Database:
         return self._database
     
-    def get_requirements(self, query: str) -> List[str]:
+    def get_requirements(self, query: str) -> Dict[str, Union[List[str], str]]:
         system_prompt = dedent("""\
             You are a data consultant, giving advice to the user. You will be provided with a question regarding some data stored in a database. The database schema will be provided.
 
-            Respond with a list of datapoints required to answer the question. Datapoints should include all data required to answer the question. Limit the number of datapoints to a maximum of 10. If the question can be directly answered from the data in the database, reply with a single datapoint.
+            Respond with a list of datapoints required to answer the question. Datapoints should include all data required to answer the question and should have a common axis. Limit the number of datapoints to a maximum of 10. If the question can be directly answered from the data in the database, reply with a single datapoint.
             
             Respond with the following JSON object.
             {
                 "requirements": []
+                "axis": ""
             }
 
             The "requirements" field should contain a list of string, each one corresponding with one of the datapoints.
+                               
+            The "axis" field should contain the name of a common axis for which the requirements should be joined upon.
+                               
+            Make sure the "axis" field is NOT included as one of the requirements.
 
             Answer in a consistent style.\
         """)
@@ -68,7 +73,8 @@ class Actioner:
                     "total number of transactions per client",
                     "total amount spent of orders per client",
                     "total amount spent on transactions per client"
-                ]
+                ],
+                "axis": "client_id"
             }\
         ''')
         example_user_prompt_2 = dedent('''\
@@ -85,7 +91,8 @@ class Actioner:
             {
                 "requirements": [
                     "average salary of data scientist"
-                ]
+                ],
+                "axis": "position"
             }\
         ''')
         user_prompt = dedent(f'''\
@@ -105,9 +112,9 @@ class Actioner:
             jsonMode = True
         )
         response_json = json.loads(response)
-        return response_json['requirements']
+        return response_json
 
-    def get_action(self, requirements: list[str])-> Dict[str, List[Dict[str, Any]]]:
+    def get_action(self, requirements: Dict[str, Union[List[str], str]])-> Dict[str, List[Dict[str, Any]]]:
         system_prompt = dedent('''\
             You are a data consultant, giving advice to the user. You will be provided with a list of datapoints which need to be extracted from a database. The database schema will be provided. Respond with details on how to extract each data.
             
@@ -130,7 +137,7 @@ class Actioner:
             {
                 "status": "success",
                 "command": "",
-                "relevant_columns": []
+                "relevant_columns": [],
             }
 
             The 'command' field should contain actionable steps in an imperative mood to find the required information. Make sure that each table contains a relevant primary key for ease of joining in the future.
@@ -167,20 +174,21 @@ class Actioner:
               account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id),
             );
             
-            Provide details for extracting the following: total number of orders per client, total amount spent on transactions per client\
+            Provide details for extracting the following: names of each client, total number of orders per client.
+            Please make sure for each datapoint contains a common column: client_id. This will be used the join the resulting tables together.\
         ''')
         example_assistant_response_1 = dedent('''\
             {
                 "action_infos": [
                     {
                         "status": "success",
-                        "command": "Join the completedclient, completeddisposition, and completedorder tables on their respective keys, then group by client_id and count the number of orders for each client",
-                        "relevant_columns": ["completedclient.name", "completedclient.client_id", "completeddisposition.client_id", "completeddisposition.account_id", "completedorder.account_id"]
+                        "command": "Join the completedclient, completeddisposition, and completedorder tables on their respective keys, then group by client_id and count the number of orders for each client.",
+                        "relevant_columns": ["completedclient.client_id", "completeddisposition.client_id", "completeddisposition.account_id", "completedorder.account_id"]
                     },
                     {
                         "status": "success",
-                        "command": "Join the completedclient, completeddisposition, and completedtrans tables on their respective keys, then group by client_id and sum the amount for each client",
-                        "relevant_columns": ["completedclient.name", "completedclient.client_id", "completeddisposition.client_id", "completeddisposition.account_id", "completedtrans.account_id", "completedtrans.amount"]
+                        "command": "Join the completedclient, completeddisposition, and completedtrans tables on their respective keys, then group by client_id and sum the amount for each client.",
+                        "relevant_columns": ["completedclient.client_id", "completeddisposition.client_id", "completeddisposition.account_id", "completedtrans.account_id", "completedtrans.amount"]
                     }
                 ]
             }\
@@ -193,7 +201,8 @@ class Actioner:
               salary INTEGER,
             );
             
-            Provide details for extracting the following: average salary of analyst, average salary of data scientist\
+            Provide details for extracting the following: average salary of analyst, average salary of data scientist.
+            Please make sure for each datapoint contains a common column: position. This will be used the join the resulting tables together.\
         ''')
         example_assistant_response_2 = dedent('''\
             {
@@ -204,7 +213,7 @@ class Actioner:
                     },
                     {
                         "status": "success",
-                        "command": "Average over the salary of each employee with a data scientist position",
+                        "command": "Average over the salary of each employee with a data scientist position. Include the employee position as a column.",
                         "relevant_columns": ["completedemployee.position", "completedemployee.salary"]
                     }
                 ]
@@ -214,7 +223,8 @@ class Actioner:
             Here is the database schema:
             {self.database.getTextSchema()}
             
-            Provide details for extracting the following: {', '.join(requirements)}\
+            Provide details for extracting the following: {', '.join(requirements['requirements'])}.
+            Please make sure for each datapoint contains a common column: {requirements['axis']}. This will be used the join the resulting tables together.\
         ''')
         response = get_gpt_response(
             ("system", system_prompt),
@@ -223,7 +233,7 @@ class Actioner:
             ("user", example_user_prompt_2),
             ("assistant", example_assistant_response_2),
             ("user", user_prompt),
-            gpt4 = False,
+            gpt4 = True,
             jsonMode = True,
             top_p = 0.2
         )
@@ -233,18 +243,8 @@ class Actioner:
     def get_final_action(self, query: str) -> Dict[str, Union[str, List[str], Dict[str, str]]]:
         system_prompt = dedent('''\
             You are a data consultant, giving advice to the user. You will be provided with a question regarding some data in a database. All required information to answer the question should be in the database. The database schema will be provided. Respond with details on how to answer the question.
-                               
-            First, determine whether it's possible to extract the information from the database. If not, respond with the following JSON object.
             
-            {
-                "status": "error",
-                "error": "DATA_NOT_FOUND",
-                "message": ""
-            }
-            
-            The 'message' filed should contain the reason for why the data cannot be found.
-            
-            If it's possible, respond with a JSON object of the following structure.
+            Respond with a JSON object of the following structure.
             
             {
                 "status": "success",
