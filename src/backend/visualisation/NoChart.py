@@ -11,7 +11,7 @@ class NoChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when none of the other graphs from are suitable to represent the data."
+        return "This should be chosen when a graph is not suitable to display the data."
 
     @staticmethod
     def getChartParametersForActioner():
