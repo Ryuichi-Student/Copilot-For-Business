@@ -1,6 +1,7 @@
 import sys
 import os
 import uuid
+import io
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
@@ -104,22 +105,18 @@ if current_session_id is not None:
 
         # display the user's entered prompt
         st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
-
+    
         status_placeholder = st.empty()
         status = status_placeholder.status("Thinking...")
         copilot.set_status_placeholder(status)
         copilot.query(userQuery)
 
         # button to allow the user to accept or remove
-
+        status_placeholder.status("Complete :high_brightness:", state='complete')
         if copilot.get_early_answer(userQuery):
             st.write(copilot.get_early_answer(userQuery))
-            status_placeholder.empty()
         else:
             plot = copilot.get_plot(userQuery)
-
-            status_placeholder.empty()
-
             if plot:
                 fig = plot.generate()
                 config = {'displayModeBar': None}
@@ -129,15 +126,30 @@ if current_session_id is not None:
 
                 # adds a toggle to show the top 10 values of the dataframe only
                 if plot.dfLength > 10:
-                    topN = st.toggle("Show top 10 values only", False)
+                    topN = st.checkbox("Show top :keycap_ten: values only", value= False)
                     if topN: plot.topn(10, topN)
                     else: plot.topn(10, topN)
+                st.divider()
 
-            sqlView = st.toggle("Show SQL", False)
+            viewOptions = st.radio("Viewing Options", ["Show :rainbow[SQL]", "Show Dataframe :floppy_disk:", "None"], horizontal=True)
+            sqlView = False
+            dataframeView = False
+            if viewOptions == "Show :rainbow[SQL]":
+                sqlView = True
+                dataframeView = False
+            elif viewOptions == "Show Dataframe :floppy_disk:":
+                sqlView = False
+                dataframeView = True
+            else:
+                sqlView = False
+                dataframeView = False
             if sqlView:
                 st.write(copilot.get_sql(userQuery))
                 if plot:
                     plot.formatSQL()
-
+            if dataframeView:
+                print(1)
+                st.write(copilot.get_final_df(userQuery))
+            st.divider()
             if copilot.get_generalised_answer(userQuery):
-                st.write(copilot.get_generalised_answer(userQuery))
+                st.write_stream(io.StringIO(copilot.get_generalised_answer(userQuery)))
