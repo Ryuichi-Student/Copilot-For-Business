@@ -35,12 +35,14 @@ class TestSQLiteDatabase:
         schema = db.getTextSchema(['completedorder'])
         assert schema == dedent('''\
         CREATE TABLE completedorder (
-          order_id INTEGER PRIMARY KEY,
-          account_id TEXT FOREIGN KEY REFERENCES completedacct(account_id),
+          order_id INTEGER,
+          account_id TEXT,
           bank_to TEXT,
           account_to INTEGER,
           amount REAL,
           k_symbol TEXT,
+          PRIMARY KEY (order_id),
+          FOREIGN KEY (account_id) REFERENCES completedacct(account_id)
         );
         ''')
 
