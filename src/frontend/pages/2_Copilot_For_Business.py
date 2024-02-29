@@ -34,7 +34,7 @@ def load_async():
     def decorator(func):
         def wrapper(*args, **kwargs):
             def task():
-                time.sleep(0.05)
+                time.sleep(0.002)
                 func(*args, **kwargs)
 
             executor = st.session_state.executor
@@ -197,6 +197,7 @@ def handle_async_ui(userQuery):
     @load_async()
     def show_plot():
         def run():
+
             if st.session_state.plot_changed:
                 st.session_state.plot_changed = False
             else:
@@ -207,10 +208,13 @@ def handle_async_ui(userQuery):
             fig = plot.generate()
             config = {'displayModeBar': False}
             _plot_placeholder.plotly_chart(fig, config=config)
+            loading_placeholder.empty()
             print("Finished showing plot")
-        
-        if _spinner_placeholder is not None:
+
+        if (_spinner_placeholder is not None) and (plot.dfLength > 1000):
             print("spinning")
+
+            loading_placeholder.markdown(placeholder_html2, unsafe_allow_html=True)
             with _spinner_placeholder, st.spinner("Plotting graph..."):
                 run()
         else:
@@ -267,8 +271,8 @@ def handle_async_ui(userQuery):
                 print("Plot changed")
             _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
                                                    value=current_topN_state, on_change=change_plot)
-
             plot.topn(10, current_topN_state)
+
         show_plot()
 
     # current_sqlView_state = False if "sqlView" not in st.session_state else st.session_state.sqlView
@@ -286,7 +290,7 @@ if userQuery:
     # ----------------------------------   Query the Copilot   ----------------------------------
 
     # display the user's entered prompt
-    st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
+    st.markdown(f"USER:\n{userQuery}\n\nCOPILOT:")
 
     status_placeholder = st.empty()
     if not session_manager.get_config(current_session_id, "finished"):
@@ -314,6 +318,13 @@ if userQuery:
 
         status_placeholder.empty()
         _spinner_placeholder = st.empty()
+        if plot:
+            placeholder_html = """<div id="graph-placeholder" style="width: 640px; height: 480px;"></div>"""
+            placeholder_html2 = """<div id="graph-placeholder" style="width: 640px; height: 440px;"></div>"""
+
+            # Display the placeholder
+            loading_placeholder = st.markdown(placeholder_html, unsafe_allow_html=True)
+            # loading_placeholder = st.empty()
         _plot_placeholder = st.empty()
         _plot_toggle_placeholder = st.empty()
         _plot_toggle_placeholder.toggle(label="Show top 10 values only")
@@ -326,7 +337,7 @@ if userQuery:
 
         # none type has no attribute formatSQL
         handle_async_ui(userQuery)
-
+        session_manager.update_config(current_session_id, {"finished": True})
 
         # drop down expander that shows the generalised answer created for the graph
         
