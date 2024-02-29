@@ -1,6 +1,7 @@
 import sys
 import os
 import uuid
+import io
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
@@ -104,20 +105,18 @@ if current_session_id is not None:
 
         # display the user's entered prompt
         st.text(f"USER:\n{userQuery}\n\nCOPILOT:")
-
+    
         status_placeholder = st.empty()
         status = status_placeholder.status("Thinking...")
         copilot.set_status_placeholder(status)
         copilot.query(userQuery)
 
         # button to allow the user to accept or remove
-
+        status_placeholder.status("Complete :high_brightness:", state='complete')
         if copilot.get_early_answer(userQuery):
             st.write(copilot.get_early_answer(userQuery))
-            status_placeholder.empty()
         else:
             plot = copilot.get_plot(userQuery)
-
             status_placeholder.status(label="Completed",  state="complete")
 
             if plot:
