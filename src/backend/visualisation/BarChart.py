@@ -58,7 +58,7 @@ class BarChart(Visualisation):
         #     "plot_bgcolor": "rgba(0, 0, 0, 0)",
         #     "paper_bgcolor": "rgba(0, 0, 0, 50)",
         # })
-        # fig.write_image("plots/plot.jpeg")
+        fig.write_image("plots/plot.jpeg")
         
         return fig
 
