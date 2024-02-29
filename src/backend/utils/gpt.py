@@ -1,3 +1,6 @@
+import random
+import time
+
 from openai import OpenAI
 from pprint import pprint
 import dotenv
@@ -105,3 +108,19 @@ def record_gpt_token_usage():
         total = sum([int(token) for token in tokens])
         print(f"Total tokens used: {total}")
         print(f"Total tokens used this session: {total_tokens_used}")
+
+
+def stream(text):
+    x = ""
+    tmp = []
+    for letter in text:
+        if random.random() < 0.2:
+            tmp.append(x)
+            x = ""
+        x += letter
+    tmp.append(x)
+    x = ""
+    for y in tmp:
+        x += y
+        yield x + " "
+        time.sleep(0.05)
