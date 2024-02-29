@@ -174,7 +174,6 @@ class SQLiteDatabase(Database):
         """
         Get the embedding of each table in the database. If forceWrite is true will overwrite the embedding file.
         """
-        print(f"Potential embedded: {potential_embedded}")
         tables_needed = []
         table_description_embeddings = {}
         already_embedded = {}
@@ -190,7 +189,7 @@ class SQLiteDatabase(Database):
                 tables_needed.append(table)
         
         print(f"Tables needed: {tables_needed}")
-        print(f"Already embedded: {already_embedded.keys()}")
+
 
         
         description_url = f'{self.url}.json'
@@ -204,6 +203,7 @@ class SQLiteDatabase(Database):
             if progress_callback is not None:
                 progress_callback((0, len(self.tableNames)))
             for table in tables_needed: # Should be tables_needed
+                print(f"Table: {table}")
                 if progress_callback is not None:
                     progress_callback(table)
                 table_preview = self.query(f"SELECT * FROM \"{table}\" LIMIT 5").to_string(index=False)
