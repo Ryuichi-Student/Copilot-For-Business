@@ -64,7 +64,7 @@ class Visualisation():
         # [A-Z]+|[^A-Z]+
         
         # splitBy = "|".join(commands)
-        splitByWord = re.split('\s', sql)
+        splitByWord = re.split(r'\s', sql)
         # splitByComma = re.split(', |[A-Z]+\s', sql)
         
         explained = 'The data used to create this chart was fetched using the following SQL query:\n\n'
