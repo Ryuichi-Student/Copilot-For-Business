@@ -58,7 +58,7 @@ class Query:
             pprint(self.actionInfos)
 
     def create_queries(self, db: Database):
-        if self.queries is None and self.actionInfos is not None:
+        if self.queries is None and self.actionInfos is not None and self.requirements is not None:
             action_commands, relevant_cols, primary_keys = [cmd['command'] for cmd in self.actionInfos.values()], [cmd["relevant_columns"] for cmd in self.actionInfos.values()], [self.requirements['axis']]*len(self.actionInfos)
             self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, primary_keys, [None]*len(self.actionInfos))
             queries = self.sql_generator.getQueries()
@@ -82,7 +82,7 @@ class Query:
             pprint(self.dfs)
 
     def get_plot(self, actioner: Actioner, database: Database):
-        if self.plot is None and self.answer is None:
+        if self.plot is None and self.answer is None and self.requirements is not None and self.queries is not None:
             cmd = actioner.get_final_action(self.userQuery)
             self.final_action = cmd
             pprint(cmd)
