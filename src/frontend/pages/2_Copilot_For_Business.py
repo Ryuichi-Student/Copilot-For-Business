@@ -173,7 +173,7 @@ else:
 
 
 # ----------------------------------   Create a Copilot   ----------------------------------
-def create_copilot():
+def create_copilot(): # type: ignore
     copilot = session_manager.get_session_data(current_session_id)["data"]
     if copilot is None:
         options = session_manager.get_config(current_session_id, "selected_db")
@@ -251,7 +251,7 @@ def handle_toggles_and_plot(userQuery):
     st.session_state.executor.shutdown(wait=True)
 
 if userQuery:
-    copilot = create_copilot()
+    copilot = create_copilot() # type: ignore
 
     # ----------------------------------   Query the Copilot   ----------------------------------
 
