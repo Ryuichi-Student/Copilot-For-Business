@@ -42,7 +42,6 @@ class BarChart(Visualisation):
             self.df = self.modifiedDFs["topn"]
         else:
             self.df = self.modifiedDFs["data"]
-            
 
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
     def generate(self):
@@ -50,7 +49,7 @@ class BarChart(Visualisation):
             # return an error
             print("invalid data")
             return
-        
+
         fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
             # self.graphs["original"] = fig
 
@@ -58,12 +57,11 @@ class BarChart(Visualisation):
         #     "plot_bgcolor": "rgba(0, 0, 0, 0)",
         #     "paper_bgcolor": "rgba(0, 0, 0, 50)",
         # })
-        fig.write_image("plots/plot.jpeg")
-        
-        return fig
+        # fig.write_image("plots/plot.jpeg")
 
+        return FigureResampler(fig)
 
-    # test for this that gives an invalid data frame
+    # test for this that gives an invalid data fame
     def validate(self):
         if self.x_axis not in self.df:
             # no x axis in the data frame
