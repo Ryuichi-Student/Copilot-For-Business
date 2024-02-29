@@ -7,6 +7,7 @@ import glob
 import pandasql as ps
 from datetime import datetime
 import os
+from src.backend.database import SQLiteDatabase
 
 
 def initialize_db():
@@ -109,6 +110,8 @@ def join_dbs(databases:list[str]):
     print(list_of_embedded_databases)
     print(list_of_not_embedded_databases)
 
+    print("===========================*========= ")
+
 
 
     if len(databases) == 1:
@@ -134,13 +137,14 @@ def join_dbs(databases:list[str]):
 
             cursor.execute(f"PRAGMA table_info({table_name})")
             pkeys = cursor.fetchall()
-            primary_keys[table_name] = pkeys
+            primary_keys[table_name] = pkeys # Note not primary keys, but the schema
 
 
 
     cursor.execute("PRAGMA database_list")
     databases_t = cursor.fetchall()
     for db in databases_t:
+        db_ = SQLiteDatabase(db[2])
         cursor.execute(f"SELECT name FROM {db[1]}.sqlite_master WHERE type='table';")
         tables = cursor.fetchall()
 
@@ -148,8 +152,23 @@ def join_dbs(databases:list[str]):
         for table in tables:
             table_name = table[0]
             
+            cursor.execute("PRAGMA foreign_keys = OFF")
             create_sql = f"CREATE TABLE {table_name} AS SELECT * FROM {table_name}"
-            cursor.execute(create_sql)
+            f = False
+            # If the table already exists, add a number to the end
+            while table_name in [t[0] for t in cursor.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()]:
+                f = True
+                tables[tables.index(table)] = (f"{table_name}_1",)
+                table_name = f"{table_name}_1"
+
+            if f:
+                create_sql = f"CREATE TABLE {table_name}_1 AS SELECT * FROM {table_name}"
+                tables[tables.index(table)] = (f"{table_name}_1",)
+                cursor.execute(create_sql)
+            else:
+                cursor.execute(create_sql)
+
+
             cursor.execute("PRAGMA foreign_keys = ON")
 
 
@@ -162,16 +181,30 @@ def join_dbs(databases:list[str]):
             types = [p[2] for p in primary_keys[table_name]]
             inner = f"{', '.join([f'{names[i]} {types[i]}' for i in range(len(names))])}"
 
+            pkey = None
+
+            schema = db_.schema[table_name]
+            for column in schema:
+                if column['is_primary']:
+                    pkey = column["column_name"]
+                    break
+                    
+
             for fkey in foreign_keys[table_name]:
                 from_col = fkey[3]
                 to_table = fkey[2]
                 to_col = fkey[4]
+                
 
-
-                create_sql = f"""
-    CREATE TABLE temp_table ( {inner},  FOREIGN KEY ({from_col}) REFERENCES {to_table}({to_col}));
-    """
+                if pkey is None:
+                    create_sql = f""" CREATE TABLE temp_table ( {inner},  FOREIGN KEY ({from_col}) REFERENCES {to_table}({to_col})); """
             
+                else:
+                    create_sql = f"""
+            CREATE TABLE temp_table ( {inner},  FOREIGN KEY ({from_col}) REFERENCES {to_table}({to_col}) , PRIMARY KEY ({pkey}) );
+            """
+                    
+
             
                 cursor.execute(create_sql)
                 cursor.execute(f"PRAGMA foreign_keys = OFF")
@@ -213,8 +246,10 @@ def get_database_list():
 
 
 if __name__ == "__main__":
+
+    join_dbs(["C://Users/RamVi/Downloads/Copilot-For-Business/databases/crm_refined.sqlite3"])
+
     
-    join_dbs(["databases/crm_refined.sqlite3", "databases/Orders_Group.sqlite3"])
 
 
 
