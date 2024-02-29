@@ -1,3 +1,6 @@
+import random
+import time
+
 from openai import OpenAI
 import dotenv
 import atexit
@@ -6,7 +9,6 @@ import tiktoken
 
 config = dotenv.dotenv_values(".env")
 client = OpenAI(api_key=config['OPENAI_API_KEY'])
-
 
 def get_gpt_embedding(text):
     # calls openai embedding endpoint
@@ -35,9 +37,13 @@ def track_tokens(func):
 
 
 @track_tokens
-def get_gpt_response(*messages, history=None, model="gpt-4-turbo-preview", max_tokens=1500,
+def get_gpt_response(*messages, history=None, gpt4=True, max_tokens=1500,
                      jsonMode=False, stream=False, message_placeholder=None,
                      top_p=0.5, frequency_penalty=0, presence_penalty=0):
+    model = 'gpt-3.5-turbo-0125'
+    if gpt4:
+        model = 'gpt-4-turbo-preview'
+        
     if history is None: history = []
     messages = history + [{"role": m[0], "content": m[1]} for m in messages]
     gpt_response = client.chat.completions.create( # type: ignore
@@ -101,3 +107,19 @@ def record_gpt_token_usage():
         total = sum([int(token) for token in tokens])
         print(f"Total tokens used: {total}")
         print(f"Total tokens used this session: {total_tokens_used}")
+
+
+def stream(text):
+    x = ""
+    tmp = []
+    for letter in text:
+        if random.random() < 0.2:
+            tmp.append(x)
+            x = ""
+        x += letter
+    tmp.append(x)
+    x = ""
+    for y in tmp:
+        x += y
+        yield x + " "
+        time.sleep(0.05)

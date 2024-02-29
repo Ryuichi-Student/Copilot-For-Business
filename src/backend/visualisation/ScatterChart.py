@@ -8,6 +8,7 @@ class ScatterChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
+        self.modifiedDFs = {"data" : data}
     
     # functions for the actioner
     @staticmethod
@@ -16,7 +17,7 @@ class ScatterChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a scatter plot is most suitable to represent the data."
+        return "This should be chosen when a scatter plot is most suitable to represent the data, for example to display the relationship between two varying variables."
 
     @staticmethod
     def getChartParametersForActioner():
@@ -28,11 +29,13 @@ class ScatterChart(Visualisation):
 
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
-        if not show:
-            limit = self.df.nlargest(n, self.y_axis)
-            self.modifiedDF = limit
+        if "topn" not in self.modifiedDFs:
+            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
+        
+        if show:
+            self.df = self.modifiedDFs["topn"]
         else:
-            self.modifiedDF = self.df
+            self.df = self.modifiedDFs["data"]
 
     def generate(self):
         if not self.validate():
