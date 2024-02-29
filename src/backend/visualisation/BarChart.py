@@ -1,6 +1,7 @@
-import matplotlib.pyplot as plot
-import pandas as pd
+import sys
+
 import plotly.express as px
+from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
 
 
@@ -10,8 +11,10 @@ class BarChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
-        self.modifiedDF = data
-    
+        self.modifiedDFs = {"data" : data}
+        self.graphs = None
+
+
     # functions for the actioner
     @staticmethod
     def getChartName():
@@ -19,7 +22,7 @@ class BarChart(Visualisation):
 
     @staticmethod
     def getChartDescription():
-        return "This should be chosen when a bar chart is most suitable to represent the data, for example compare numerical data between different groups."
+        return "This should be chosen when a bar chart is most suitable to represent the data, for example to compare numerical data between different groups."
     
     # returns a dictionary of the parameters required from the Actioner to create a BarChart object
     @staticmethod
@@ -32,11 +35,13 @@ class BarChart(Visualisation):
     
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
-        if not show:
-            limit = self.df.nlargest(n, self.y_axis)
-            self.modifiedDF = limit
+        if "topn" not in self.modifiedDFs:
+            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
+        
+        if show:
+            self.df = self.modifiedDFs["topn"]
         else:
-            self.modifiedDF = self.df
+            self.df = self.modifiedDFs["data"]
 
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
     def generate(self):
@@ -45,13 +50,18 @@ class BarChart(Visualisation):
             print("invalid data")
             return
 
-        fig = px.bar(self.modifiedDF, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+        fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+            # self.graphs["original"] = fig
 
-        return fig
+        # fig.update_layout({
+        #     "plot_bgcolor": "rgba(0, 0, 0, 0)",
+        #     "paper_bgcolor": "rgba(0, 0, 0, 50)",
+        # })
+        # fig.write_image("plots/plot.jpeg")
 
+        return FigureResampler(fig)
 
-    # test for this that gives an invalid data frame
-    # put this in the initialiser maybe
+    # test for this that gives an invalid data fame
     def validate(self):
         if self.x_axis not in self.df:
             # no x axis in the data frame
