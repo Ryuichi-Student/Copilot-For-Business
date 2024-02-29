@@ -64,7 +64,7 @@ class Database(ABC):
             
             # Adding primary key constraint if there's any primary key
             if primary_keys:
-                text_schema += f'  PRIMARY KEY ({", ".join(primary_keys)}),\n'
+                text_schema += f'  PRIMARY KEY ({", ".join(primary_keys)}),\n' # type: ignore
             
             # Adding foreign key constraints
             for fk in foreign_keys:
