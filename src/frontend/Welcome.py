@@ -27,4 +27,31 @@ st.markdown(
 # extension: link to see previous queries? 
 )
 
+st.write("## Try it out!")
+st.write("Below is an example of how you can ask Copilot for Business a question. Try it out! This is for the example database crm_refined. Feel free to try the example yourself by clicking on the Copilot For Business tab on the left.")
+
+# Send to copilot page, forward
+link_style = """
+border-color: #007bff;
+align: center;
+text-align: right;
+display: block;
+border-right: 100px ;
+
+"""
+
+st.markdown("[Click here to try now!!!](/Copilot_For_Business)")
+# Create new button which is right aliugned
+
+
+
+
+# Toggle for light/dark mode
+dark = st.toggle("Dark Mode Example", True)
+
+# If toggle clicked
+if dark:
+    st.image("Dark_Example.png", use_column_width=True)
+else:
+    st.image("Light_Example.png", use_column_width=True)
 
