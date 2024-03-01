@@ -238,8 +238,7 @@ class Actioner:
             jsonMode = True,
             top_p = 0.2
         )
-        print(response)
-        print(json.loads(response))
+
         response_json = json.loads(response)
         return response_json['action_infos']
     
