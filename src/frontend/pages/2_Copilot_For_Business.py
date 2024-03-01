@@ -210,20 +210,19 @@ def handle_async_ui(userQuery):
                 #     _plot_placeholder.image("plot.jpeg")
                 pass
             print("showing plot")
-            fig = plot.generate()
             config = {'displayModeBar': False}
+
+            if plot.getChartName() == "Bar Chart":
+                small_fig = plot.small_generate(800)
+                if small_fig is not None:
+                    _plot_placeholder.plotly_chart(small_fig, config=config)
+                    loading_placeholder.empty()
+            fig = plot.generate()
             _plot_placeholder.plotly_chart(fig, config=config)
             loading_placeholder.empty()
             print("Finished showing plot")
 
-        if (_spinner_placeholder is not None) and (plot.dfLength > 1000):
-            print("spinning")
-
-            loading_placeholder.markdown(placeholder_html2, unsafe_allow_html=True)
-            with _spinner_placeholder, st.spinner("Plotting graph..."):
-                run()
-        else:
-            run()
+        run()
 
     @load_async()
     def show_sql(_sql_placeholder=_sql_placeholder):
@@ -340,11 +339,8 @@ if userQuery:
         print(f"PLOT: {plot}")
 
         status_placeholder.empty()
-        _spinner_placeholder = st.empty()
         if plot:
             placeholder_html = """<div id="graph-placeholder" style="width: 640px; height: 480px;"></div>"""
-            placeholder_html2 = """<div id="graph-placeholder" style="width: 640px; height: 440px;"></div>"""
-
             # Display the placeholder
             loading_placeholder = st.markdown(placeholder_html, unsafe_allow_html=True)
             # loading_placeholder = st.empty()
