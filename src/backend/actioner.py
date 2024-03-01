@@ -95,9 +95,6 @@ class Actioner:
                 "axis": "position"
             }\
         ''')
-
-
-
         user_prompt = dedent(f'''\
             Here is the database schema:
             {self.database.getTextSchema()}
@@ -128,11 +125,12 @@ class Actioner:
 
             The "action_infos" field should contain a list of action_info objects, each one corresponding with one of the datapoints to be extracted. To create action_info objects, follow these steps:
             
-            First, determine whether it's possible to extract the information from the database. If not, respond with the following JSON object.
+            First, determine whether it's possible to extract the information from the database. If not, respond with the following JSON object. Note, only use this option as a last resort. The field 'message' should contain the reason why the data cannot be extracted
             
             {
                 "status": "error",
                 "error": "DATA_NOT_FOUND"
+                "message": ""
             }
             
             If it's possible, respond with a JSON object of the following structure.
@@ -178,7 +176,7 @@ class Actioner:
             );
             
             Provide details for extracting the following: names of each client, total number of orders per client.
-            Please make sure for each datapoint contains a common column: client_id. This will be used the join the resulting tables together.\
+            Please make sure for each datapoint, the resulting table contains the column: client_id. If the column cannot be directly included, find a way to include the column through a series of JOIN operations. This will be used the join the resulting tables together.\
         ''')
         example_assistant_response_1 = dedent('''\
             {
@@ -205,7 +203,7 @@ class Actioner:
             );
             
             Provide details for extracting the following: average salary of analyst, average salary of data scientist.
-            Please make sure for each datapoint contains a common column: position. This will be used the join the resulting tables together.\
+            Please make sure for each datapoint, the resulting table contains a common column: position. If the column cannot be directly included, find a way to include the column through a series of JOIN operations. This will be used the join the resulting tables together.\
         ''')
         example_assistant_response_2 = dedent('''\
             {
@@ -227,7 +225,7 @@ class Actioner:
             {self.database.getTextSchema()}
             
             Provide details for extracting the following: {', '.join(requirements['requirements'])}.
-            Please make sure for each datapoint contains a common column: {requirements['axis']}. This will be used the join the resulting tables together.\
+            Please make sure for each datapoint, the resulting table contains a common column: {requirements['axis']}. If the column cannot be directly included, find a way to include the column through a series of JOIN operations. This will be used the join the resulting tables together.\
         ''')
         response = get_gpt_response(
             ("system", system_prompt),
