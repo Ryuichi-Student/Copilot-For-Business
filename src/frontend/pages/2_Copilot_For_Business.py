@@ -140,10 +140,13 @@ def select_databases(placeholder, session_id):
 
     return options
 
+def disable(b):
+        st.session_state["disabled"] = b
 
 with st.sidebar:
     db_placeholder = st.empty()
     databases = select_databases(db_placeholder, current_session_id)
+    new_session_button = st.button("Create new session", on_click=lambda: session_manager.use_session(session_manager.new_session), disabled=not st.session_state.get("disabled", True))
 
 # ----------------------------------   Ask for query   ----------------------------------
 col1, col2 = st.columns([7, 3])
@@ -158,6 +161,7 @@ with col1:
 if not session_manager.get_config(current_session_id, "query"):
     userQuery = st.chat_input("Enter your question")
     if userQuery:
+        disable(False)
         options = db_placeholder.multiselect(
             label="Select databases to load",
             options=get_database_list(),
@@ -171,6 +175,7 @@ if not session_manager.get_config(current_session_id, "query"):
             for x in session_manager.update_session_name(current_session_id, userQuery):
                 placeholder.text(x)
             placeholder.empty()
+            disable(True)
 
         st.rerun()
 else:
