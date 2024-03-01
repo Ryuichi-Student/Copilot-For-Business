@@ -146,8 +146,11 @@ def disable_new_session_button(b):
 with st.sidebar:
     db_placeholder = st.empty()
     databases = select_databases(db_placeholder, current_session_id)
-    nb_placeholder = st.empty()
     disable_new_session_button(True)
+    st.divider()
+    cols = st.columns([1.5, 5, 1])
+    with cols[1]:
+        nb_placeholder = st.empty()
     new_session_button = nb_placeholder.button("Create new session", on_click=lambda: session_manager.use_session(session_manager.new_session), disabled=not st.session_state.get("disabled"))
 
 # ----------------------------------   Ask for query   ----------------------------------
