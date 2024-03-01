@@ -107,10 +107,10 @@ class Query:
     def get_generalised_answer(self):
         if self.generalised_answer is None:
             if self.plot is not None:
-                answer_gen = general_answer_gen(str(self.plot),self.userQuery,self.final_action, self.final_query, True) # type: ignore
+                answer_gen = general_answer_gen(str(self.plot),self.userQuery, self.final_action, [cmd['command'] for cmd in self.actionInfos.values()], True) # type: ignore
                 self.generalised_answer = answer_gen.getAnswer()
             elif self.answer is not None:
-                answer_gen = general_answer_gen(str(self.answer),self.userQuery, self.final_action, self.final_query, False) # type: ignore
+                answer_gen = general_answer_gen(str(self.answer),self.userQuery, self.final_action, [cmd['command'] for cmd in self.actionInfos.values()], False) # type: ignore
                 self.generalised_answer = answer_gen.getAnswer()
             else:
                 self.generalised_answer = None
