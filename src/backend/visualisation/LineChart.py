@@ -34,7 +34,7 @@ class LineChart(Visualisation):
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
         if "topn" not in self.modifiedDFs:
-            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
+            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis).sort_values(by=self.x_axis)
         
         if show:
             self.df = self.modifiedDFs["topn"]

@@ -35,6 +35,7 @@ class Query:
         self.generalised_answer = None
         self.final_action = None
         self.final_query = None
+        self.final_df = None
 
     def early_analysis(self, db: Database)-> bool:
         response = early_analysis(self.userQuery, db)
@@ -97,6 +98,7 @@ class Query:
             pprint(query)
             self.queries["Combine Subtables"] = query
             df = sql.executeQuery(query)
+            self.final_df = df
             pprint(df)
             if isinstance(df, pd.DataFrame) and cmd['graph_type']!="No Chart":
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
@@ -128,7 +130,8 @@ class Query:
             "plot": self.plot,
             "generalised_answer": self.generalised_answer,
             "final_action": self.final_action,
-            "final_query": self.final_query
+            "final_query": self.final_query,
+            "final_df": self.final_df
         }
 
 
@@ -213,6 +216,9 @@ class Copilot:
         if dfs is not None:
             return dfs
         raise Exception("unknown query")
+    
+    def get_final_df(self, query: str) -> pd.DataFrame:
+        return self.UserQueries[hash(query)].final_df
 
     def get_early_answer(self, query: str):
         return self.UserQueries[hash(query)].early_answer
