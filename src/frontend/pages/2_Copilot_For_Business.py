@@ -150,8 +150,10 @@ col1, col2 = st.columns([7, 3])
 
 with col1:
     # title
-    st.header("Copilot for Business")
-    st.subheader(session_manager.get_session_data(current_session_id)["name"])
+    st.header("Copilot for Business")    
+    # st.subheader(f"""{session_manager.get_session_data(current_session_id)["name"]}""")
+    # st.header(":rainbow[Copilot for Business]")
+    st.subheader(f""":gray[{session_manager.get_session_data(current_session_id)["name"]}]""")
 
 if not session_manager.get_config(current_session_id, "query"):
     userQuery = st.chat_input("Enter your question")
@@ -238,6 +240,18 @@ def handle_async_ui(userQuery):
             run()
 
     @load_async()
+    def show_final_df(_final_df_placeholder=_final_df_placeholder):
+        def run():
+            print("showing final df")
+            _final_df_placeholder.write(copilot.get_final_df(userQuery))
+            print("Finished showing final df")
+        with _final_df_expander_placeholder, st.expander("See final dataframe"):
+            if _final_df_placeholder is None:
+                _final_df_placeholder = st.empty()
+            run()
+
+
+    @load_async()
     def show_explanation(_explanation_placeholder=_explanation_placeholder):
         def run():
             print("showing explanation")
@@ -264,6 +278,8 @@ def handle_async_ui(userQuery):
         # with _explanation_expander_placeholder, st.expander("See explanation"):
         #     run()
 
+
+
     if plot:
         print(f"PLOT2: {plot}")
         # Update for showing top 10 values toggle
@@ -283,6 +299,8 @@ def handle_async_ui(userQuery):
     # sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView", value=current_sqlView_state)
 
     show_sql()
+
+    show_final_df()
 
     show_explanation()
 
@@ -336,6 +354,8 @@ if userQuery:
             _plot_toggle_placeholder.toggle(label="Show top 10 values only")
         _sql_expander_placeholder = st.empty()
         _sql_placeholder = None
+        _final_df_expander_placeholder = st.empty()
+        _final_df_placeholder = None
         _explanation_expander_placeholder = st.empty()
         _explanation_placeholder = None
         # _sql_toggle_placeholder = st.empty()
