@@ -1,5 +1,6 @@
 import sys
 
+import numpy as np
 import plotly.express as px
 from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
@@ -12,8 +13,8 @@ class BarChart(Visualisation):
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
         self.modifiedDFs = {"data" : data}
-        self.graphs = None
-
+        self.graphs = {}
+        self.sampled_fig = {}
 
     # functions for the actioner
     @staticmethod
@@ -49,8 +50,11 @@ class BarChart(Visualisation):
             # return an error
             print("invalid data")
             return
-
-        fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+        size = len(self.df)
+        if self.graphs.get(size, None) is None:
+            fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+            self.graphs[size] = FigureResampler(fig)
+        return self.graphs[size]
             # self.graphs["original"] = fig
 
         # fig.update_layout({
@@ -59,7 +63,31 @@ class BarChart(Visualisation):
         # })
         # fig.write_image("plots/plot.jpeg")
 
-        return FigureResampler(fig)
+
+    def small_generate(self, size=300):
+        if not self.validate():
+            # return an error
+            print("invalid data")
+            return
+
+        if size > len(self.df):
+            return
+
+        if self.sampled_fig.get(size, None) is None:
+            df_length = len(self.df)
+            print(df_length, size)
+
+            # Step 1: Sample indexes
+            sampled_indexes = np.random.choice(df_length, size=size, replace=False)
+
+            # Step 2: Sort the sampled indexes
+            sampled_indexes_sorted = np.sort(sampled_indexes)
+
+            # Step 3: Subset the DataFrame using the sorted indexes
+            sampled_df = self.df.iloc[sampled_indexes_sorted]
+
+            self.sampled_fig[size] = px.bar(sampled_df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+        return self.sampled_fig[size]
 
     # test for this that gives an invalid data fame
     def validate(self):
