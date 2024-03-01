@@ -265,6 +265,7 @@ def handle_async_ui(userQuery):
         #     run()
 
     if plot:
+        print(f"PLOT2: {plot}")
         # Update for showing top 10 values toggle
         if plot.dfLength > 10:
             current_topN_state = False if "topN" not in st.session_state else st.session_state.topN
@@ -318,6 +319,7 @@ if userQuery:
             _stream()
     else:
         plot = copilot.get_plot(userQuery)
+        print(f"PLOT: {plot}")
 
         status_placeholder.empty()
         _spinner_placeholder = st.empty()
@@ -330,7 +332,8 @@ if userQuery:
             # loading_placeholder = st.empty()
         _plot_placeholder = st.empty()
         _plot_toggle_placeholder = st.empty()
-        _plot_toggle_placeholder.toggle(label="Show top 10 values only")
+        if plot:
+            _plot_toggle_placeholder.toggle(label="Show top 10 values only")
         _sql_expander_placeholder = st.empty()
         _sql_placeholder = None
         _explanation_expander_placeholder = st.empty()
