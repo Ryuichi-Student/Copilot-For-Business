@@ -140,10 +140,18 @@ def select_databases(placeholder, session_id):
 
     return options
 
+def disable_new_session_button(b):
+    st.session_state["disabled"] = b
 
 with st.sidebar:
     db_placeholder = st.empty()
     databases = select_databases(db_placeholder, current_session_id)
+    disable_new_session_button(True)
+    st.divider()
+    cols = st.columns([1.5, 5, 1])
+    with cols[1]:
+        nb_placeholder = st.empty()
+    new_session_button = nb_placeholder.button("Create new session", on_click=lambda: session_manager.use_session(session_manager.new_session), disabled=not st.session_state.get("disabled"))
 
 # ----------------------------------   Ask for query   ----------------------------------
 col1, col2 = st.columns([7, 3])
@@ -158,6 +166,9 @@ with col1:
 if not session_manager.get_config(current_session_id, "query"):
     userQuery = st.chat_input("Enter your question")
     if userQuery:
+        disable_new_session_button(False)
+        new_session_button = nb_placeholder.button("Create new session", on_click=lambda: session_manager.use_session(
+            session_manager.new_session), disabled=not st.session_state.get("disabled", True), key="new_session_button2")
         options = db_placeholder.multiselect(
             label="Select databases to load",
             options=get_database_list(),
@@ -171,6 +182,7 @@ if not session_manager.get_config(current_session_id, "query"):
             for x in session_manager.update_session_name(current_session_id, userQuery):
                 placeholder.text(x)
             placeholder.empty()
+            disable_new_session_button(True)
 
         st.rerun()
 else:
@@ -202,7 +214,6 @@ def handle_async_ui(userQuery):
     @load_async()
     def show_plot():
         def run():
-
             if st.session_state.plot_changed:
                 st.session_state.plot_changed = False
             else:
