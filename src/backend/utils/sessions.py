@@ -21,6 +21,7 @@ class Session_Storage:
         self.mru: deque = deque()
         self.to_delete = set()
         self.rerun = rerun
+        self.new_session = None
 
     def create_session(self, session_name, rerun=True, autogenerate=True):
         """
@@ -35,6 +36,8 @@ class Session_Storage:
         self.mru.append(session_id)
         if not autogenerate:
             self.session_data[session_id]["autogenerate"] = False
+        else:
+            self.new_session = session_id
         if rerun:
             self.rerun()
 
