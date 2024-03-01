@@ -76,7 +76,7 @@ class SQLGenerator:
 
                 Replace ERROR_DESCRIPTION with one of the following, as appropriate:
                 - COLUMN_NOTIN_SCHEMA if the relevant columns are not in the database schema.
-                - INVALID_ACTION_COMMAND if the action command is logically unexecutable.
+                - INVALID_ACTION_COMMAND if the action command is logically completly unexecutable.
                 - GRAPH_INFO_NOT_APPLICABLE if the graph information does not suit the query context.
 
                 And ERROR_MESSAGE with a concise explanation of the issue.
@@ -107,10 +107,10 @@ class SQLGenerator:
             primary_key = self.primary_keys[i]
             relevantColumnsStr = str(self.relevantColumns[i])  # convert list to string
             graphInfoStr = "None" if self.graph_infos[i] is None else str(self.graph_infos[i])  # convert dict to string
-            
+            pk_message = f"include the column {primary_key} in the sql select query." if primary_key else ""
             actionCommandsDetails.append(f'''
             Here is the action command {i + 1}:
-            {actionCommandStr}, include the column {primary_key} in the sql select query.
+            {actionCommandStr}, {pk_message}
 
             Here are the relevant columns for action command {i + 1}:
             {relevantColumnsStr}
