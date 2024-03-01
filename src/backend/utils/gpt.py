@@ -2,6 +2,7 @@ import random
 import time
 
 from openai import OpenAI
+from pprint import pprint
 import dotenv
 import atexit
 import tiktoken
