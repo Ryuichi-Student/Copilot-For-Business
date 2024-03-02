@@ -47,6 +47,7 @@ def load_async():
             # print(getattr(threading.current_thread(), "streamlit_script_run_ctx", "No script run context").session_id)
 
         return wrapper
+
     return decorator
 
 
@@ -158,7 +159,7 @@ col1, col2 = st.columns([7, 3])
 
 with col1:
     # title
-    st.header("Copilot for Business")    
+    st.header("Copilot for Business")
     # st.subheader(f"""{session_manager.get_session_data(current_session_id)["name"]}""")
     # st.header(":rainbow[Copilot for Business]")
     st.subheader(f""":gray[{session_manager.get_session_data(current_session_id)["name"]}]""")
@@ -190,7 +191,7 @@ else:
 
 
 # ----------------------------------   Create a Copilot   ----------------------------------
-def create_copilot(): # type: ignore
+def create_copilot():  # type: ignore
     copilot = session_manager.get_session_data(current_session_id)["data"]
     if copilot is None:
         options = session_manager.get_config(current_session_id, "selected_db")
@@ -198,7 +199,7 @@ def create_copilot(): # type: ignore
         args = join_dbs(options)
         if isinstance(args, dict):
             copilot = Copilot(db=args["name"], dbtype='sqlite', potential_embedded=args["embedded"],
-                              non_embedded=args["not-embedded"]) 
+                              non_embedded=args["not-embedded"])
         else:
             print(f"Creating new copilot with {args}")
             copilot = Copilot(db=f"{args}", dbtype='sqlite')
@@ -221,20 +222,19 @@ def handle_async_ui(userQuery):
                 #     _plot_placeholder.image("plot.jpeg")
                 pass
             print("showing plot")
-            fig = plot.generate()
             config = {'displayModeBar': False}
+
+            if plot.getChartName() == "Bar Chart":
+                small_fig = plot.small_generate(800)
+                if small_fig is not None:
+                    _plot_placeholder.plotly_chart(small_fig, config=config)
+                    loading_placeholder.empty()
+            fig = plot.generate()
             _plot_placeholder.plotly_chart(fig, config=config)
             loading_placeholder.empty()
             print("Finished showing plot")
 
-        if (_spinner_placeholder is not None) and (plot.dfLength > 1000):
-            print("spinning")
-
-            loading_placeholder.markdown(placeholder_html2, unsafe_allow_html=True)
-            with _spinner_placeholder, st.spinner("Plotting graph..."):
-                run()
-        else:
-            run()
+        run()
 
     @load_async()
     def show_sql(_sql_placeholder=_sql_placeholder):
@@ -245,6 +245,7 @@ def handle_async_ui(userQuery):
             else:
                 _sql_placeholder.write(copilot.get_sql(userQuery))
             print("Finished showing sql")
+
         with _sql_expander_placeholder, st.expander("See SQL"):
             if _sql_placeholder is None:
                 _sql_placeholder = st.empty()
@@ -256,11 +257,11 @@ def handle_async_ui(userQuery):
             print("showing final df")
             _final_df_placeholder.write(copilot.get_final_df(userQuery))
             print("Finished showing final df")
+
         with _final_df_expander_placeholder, st.expander("See final dataframe"):
             if _final_df_placeholder is None:
                 _final_df_placeholder = st.empty()
             run()
-
 
     @load_async()
     def show_explanation(_explanation_placeholder=_explanation_placeholder):
@@ -270,7 +271,8 @@ def handle_async_ui(userQuery):
             if generalised_answer:
                 _explanation_placeholder.write(generalised_answer)
             else:
-                _explanation_placeholder.write("Copilot for Business was not able to generate a text explanation. Please try to refine your question to help")
+                _explanation_placeholder.write(
+                    "Copilot for Business was not able to generate a text explanation. Please try to refine your question to help")
             print("Finished showing explanation")
 
         with _explanation_expander_placeholder, st.expander("See explanation"):
@@ -289,8 +291,6 @@ def handle_async_ui(userQuery):
         # with _explanation_expander_placeholder, st.expander("See explanation"):
         #     run()
 
-
-
     if plot:
         print(f"PLOT2: {plot}")
         # Update for showing top 10 values toggle
@@ -300,8 +300,9 @@ def handle_async_ui(userQuery):
             def change_plot():
                 st.session_state.plot_changed = True
                 print("Plot changed")
+
             _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
-                                                   value=current_topN_state, on_change=change_plot)
+                                            value=current_topN_state, on_change=change_plot)
             plot.topn(10, current_topN_state)
 
         show_plot()
@@ -317,8 +318,9 @@ def handle_async_ui(userQuery):
 
     st.session_state.executor.shutdown(wait=True)
 
+
 if userQuery:
-    copilot = create_copilot() # type: ignore
+    copilot = create_copilot()  # type: ignore
 
     # ----------------------------------   Query the Copilot   ----------------------------------
 
@@ -341,21 +343,22 @@ if userQuery:
             k.write(t)
         else:
             session_manager.update_config(current_session_id, {"finished": True})
+
+
             # @load_async(component=None)
             def _stream():
                 for x in stream(t):
                     k.write(x)
+
+
             _stream()
     else:
         plot = copilot.get_plot(userQuery)
         print(f"PLOT: {plot}")
 
         status_placeholder.empty()
-        _spinner_placeholder = st.empty()
         if plot:
             placeholder_html = """<div id="graph-placeholder" style="width: 640px; height: 480px;"></div>"""
-            placeholder_html2 = """<div id="graph-placeholder" style="width: 640px; height: 440px;"></div>"""
-
             # Display the placeholder
             loading_placeholder = st.markdown(placeholder_html, unsafe_allow_html=True)
             # loading_placeholder = st.empty()
@@ -377,8 +380,6 @@ if userQuery:
         session_manager.update_config(current_session_id, {"finished": True})
 
         # drop down expander that shows the generalised answer created for the graph
-        
-
 
         # _t = st.empty()
         # t = copilot.get_generalised_answer(userQuery)
@@ -392,7 +393,6 @@ if userQuery:
         # else:
         #     st.markdown(
         #         "Copilot for Business was not able to generate an answer. Please try to refine your question to help")
-
 
 
 @atexit.register
