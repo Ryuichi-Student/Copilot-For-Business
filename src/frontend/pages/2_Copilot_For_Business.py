@@ -37,7 +37,7 @@ def load_async():
     def decorator(func):
         def wrapper(*args, **kwargs):
             def task():
-                time.sleep(0.002)
+                time.sleep(0.005 if plot.getChartName != "Bar Chart" or plot.dfLength < 1000 else 0.5)
                 func(*args, **kwargs)
 
             executor = st.session_state.executor
@@ -224,8 +224,8 @@ def handle_async_ui(userQuery):
             print("showing plot")
             config = {'displayModeBar': False}
 
-            if plot.getChartName() == "Bar Chart":
-                small_fig = plot.small_generate(800)
+            if plot.getChartName() == "Bar Chart" and len(plot.df) > 800:
+                small_fig = plot.small_generate(400)
                 if small_fig is not None:
                     _plot_placeholder.plotly_chart(small_fig, config=config)
                     loading_placeholder.empty()
@@ -295,15 +295,20 @@ def handle_async_ui(userQuery):
         print(f"PLOT2: {plot}")
         # Update for showing top 10 values toggle
         if plot.dfLength > 10:
-            current_topN_state = False if "topN" not in st.session_state else st.session_state.topN
+            current_topN_state = len(plot.df) if "topN" not in st.session_state else st.session_state.topN
 
             def change_plot():
                 st.session_state.plot_changed = True
                 print("Plot changed")
 
-            _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
-                                            value=current_topN_state, on_change=change_plot)
-            plot.topn(10, current_topN_state)
+            _plot_toggle_placeholder.select_slider(
+                label="Show top n values only",
+                options=[x for x in [1, 5, 10, 20, 50, 100] if x < plot.dfLength] + [plot.dfLength],
+                value=current_topN_state,
+                key = "topN",
+                on_change=change_plot
+            )
+            plot.topn(current_topN_state)
 
         show_plot()
 
@@ -365,7 +370,11 @@ if userQuery:
         _plot_placeholder = st.empty()
         _plot_toggle_placeholder = st.empty()
         if plot:
-            _plot_toggle_placeholder.toggle(label="Show top 10 values only")
+            _plot_toggle_placeholder.select_slider(
+                label="Show top n values only",
+                options=[x for x in [1, 5, 10, 20, 50, 100] if x < plot.dfLength] + [plot.dfLength]
+            )
+            # _plot_toggle_placeholder.toggle(label="Show top 10 values only")
         _sql_expander_placeholder = st.empty()
         _sql_placeholder = None
         _final_df_expander_placeholder = st.empty()
