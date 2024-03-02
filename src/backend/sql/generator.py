@@ -42,12 +42,13 @@ class QueryExecutionError(InvalidQueryError):
 class SQLGenerator:
     #Core class for generating SQL queries.
 
-    def __init__(self, database: Database, actionCommands, relevantColumns, primary_keys, graph_infos = []):
+    def __init__(self, database: Database, actionCommands, relevantColumns, primary_keys, graph_infos = [], is_Final = False):
         self.database = database
         self.actionCommands = actionCommands
         self.graph_infos = graph_infos
         self.relevantColumns = relevantColumns
         self.primary_keys = primary_keys
+        self.is_Final = is_Final
 
     def generateQuery(self) -> Dict[str, List]:
         #method to generate SQL queries.
@@ -107,10 +108,10 @@ class SQLGenerator:
             primary_key = self.primary_keys[i]
             relevantColumnsStr = str(self.relevantColumns[i])  # convert list to string
             graphInfoStr = "None" if self.graph_infos[i] is None else str(self.graph_infos[i])  # convert dict to string
-            pk_message = f"include the column {primary_key} in the sql select query." if primary_key else ""
+            pk_message = f"include the column {primary_key} in the sql select query, if it is possible. When it is not possible, please ignore this `include {primary_key} in column` requirement and do not raise ERROR because of it."
             actionCommandsDetails.append(f'''
             Here is the action command {i + 1}:
-            {actionCommandStr}, {pk_message}
+            {actionCommandStr}; {pk_message}
 
             Here are the relevant columns for action command {i + 1}:
             {relevantColumnsStr}
