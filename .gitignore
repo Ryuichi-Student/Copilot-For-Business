@@ -78,3 +78,4 @@ uploads/*.sqlite
 uploads/*.db
 
 gpt_token_usage.txt
+session_manager.pkl

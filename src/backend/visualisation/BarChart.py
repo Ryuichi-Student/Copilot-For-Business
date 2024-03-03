@@ -94,6 +94,7 @@ class BarChart(Visualisation):
 
             self.sampled_fig[size] = FigureResampler(px.bar(sampled_df, x=self.x_axis, y=self.y_axis, title=self.title,
                                             color=self.x_axis))
+            self.graphs[size] = self.sampled_fig[size]
         return self.sampled_fig[size]
 
     # test for this that gives an invalid data fame
