@@ -40,7 +40,11 @@ class BarChart(Visualisation):
             self.df = self.modifiedDFs["data"]
         else:
             if n not in self.modifiedDFs:
-                self.modifiedDFs[n] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
+                if len(self.modifiedDFs) > 1:
+                    smallest = min(x for x in self.modifiedDFs.keys() if x != "data" and x > n)
+                    self.modifiedDFs[n] = self.modifiedDFs[smallest].nlargest(n, self.y_axis)
+                else:
+                    self.modifiedDFs[n] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
             self.df = self.modifiedDFs[n]
 
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
