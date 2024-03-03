@@ -1,5 +1,6 @@
 import sys
 
+import numpy as np
 import plotly.express as px
 from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
@@ -11,9 +12,9 @@ class BarChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
-        self.modifiedDFs = {"data" : data}
-        self.graphs = None
-
+        self.modifiedDFs = {"data": data}
+        self.graphs = {}
+        self.sampled_fig = {}
 
     # functions for the actioner
     @staticmethod
@@ -23,21 +24,21 @@ class BarChart(Visualisation):
     @staticmethod
     def getChartDescription():
         return "This should be chosen when a bar chart is most suitable to represent the data, for example to compare numerical data between different groups."
-    
+
     # returns a dictionary of the parameters required from the Actioner to create a BarChart object
     @staticmethod
     def getChartParametersForActioner():
         return {'title': '', 'x_axis': '', 'y_axis': ''}
-    
+
     @staticmethod
     def getChartParameterDescription():
         return "'title' should contain a string of most suitable title for the bar chart. 'x_axis' should contain a string of the column name that should be used as the x axis of the bar chart. 'y_axis' should contain a string of the column name that should be used as the y axis of the bar chart."
-    
+
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n, show):
         if "topn" not in self.modifiedDFs:
             self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
-        
+
         if show:
             self.df = self.modifiedDFs["topn"]
         else:
@@ -49,9 +50,12 @@ class BarChart(Visualisation):
             # return an error
             print("invalid data")
             return
-
-        fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
-            # self.graphs["original"] = fig
+        size = len(self.df)
+        if self.graphs.get(size, None) is None:
+            fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+            self.graphs[size] = FigureResampler(fig)
+        return self.graphs[size]
+        # self.graphs["original"] = fig
 
         # fig.update_layout({
         #     "plot_bgcolor": "rgba(0, 0, 0, 0)",
@@ -59,7 +63,31 @@ class BarChart(Visualisation):
         # })
         # fig.write_image("plots/plot.jpeg")
 
-        return FigureResampler(fig)
+    def small_generate(self, size=300):
+        if not self.validate():
+            # return an error
+            print("invalid data")
+            return
+
+        if size > len(self.df):
+            return
+
+        if self.sampled_fig.get(size, None) is None:
+            df_length = len(self.df)
+            print(df_length, size)
+
+            # Step 1: Sample indexes
+            sampled_indexes = np.random.choice(df_length, size=size, replace=False)
+
+            # Step 2: Sort the sampled indexes
+            sampled_indexes_sorted = np.sort(sampled_indexes)
+
+            # Step 3: Subset the DataFrame using the sorted indexes
+            sampled_df = self.df.iloc[sampled_indexes_sorted]
+
+            self.sampled_fig[size] = px.bar(sampled_df, x=self.x_axis, y=self.y_axis, title=self.title,
+                                            color=self.x_axis)
+        return self.sampled_fig[size]
 
     # test for this that gives an invalid data fame
     def validate(self):
@@ -73,21 +101,18 @@ class BarChart(Visualisation):
             return False
         else:
             return True
-    
+
     def getSQLQuery(self) -> str:
         return self.query
 
     def __str__(self):
-        
+
         description = (f"BarChart:\n"
                        f"Title: {self.title}\n"
                        f"X-axis: {self.x_axis} (Column name used as the X axis)\n"
                        f"Y-axis: {self.y_axis} (Column name used as the Y axis)\n"
                        f"Data: {self.df}")
         return description
-
-
-
 
 # df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
 # bar = BarChart(df, "query", {'title': 'title1', 'x_axis': 'lab', 'y_axis': 'val'})
