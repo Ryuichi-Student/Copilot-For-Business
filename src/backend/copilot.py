@@ -166,7 +166,7 @@ class Copilot:
 
         if dbtype == "sqlite":
             self.db = SQLiteDatabase(db, potential_embedded=potential_embedded, non_embedded=non_embedded)
-        self.UserQueries: Dict[int, Query] = {}
+        self.UserQueries: Dict[str, Query] = {}
         self.actioner = Actioner(self.db)
         self.threadpool = threadpool
         self.status_placeholder = None
