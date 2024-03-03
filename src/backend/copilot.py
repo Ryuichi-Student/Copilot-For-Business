@@ -1,5 +1,6 @@
 import atexit
 import time
+import uuid
 
 import pandas as pd
 from pprint import pprint
@@ -15,7 +16,7 @@ from src.backend.utils.clean_name import clean_name
 from src.backend.utils.early_analysis import early_analysis
 
 import streamlit as st
-
+import hashlib
 
 # TODO: After we finish everything, we can start making this into more than 2 layers.
 class Query:
@@ -119,10 +120,14 @@ class Query:
 
     def __dict__(self):
         """ JSON serialisable """
+        return self.__getstate__()
+
+    def __getstate__(self):
         return {
             "userQuery": self.userQuery,
             "requirements": self.requirements,
             "actionInfos": self.actionInfos,
+            "early_answer": self.early_answer,
             "sql_generator": self.sql_generator,
             "queries": self.queries,
             "dfs": self.dfs,
@@ -134,6 +139,21 @@ class Query:
             "final_df": self.final_df
         }
 
+    def __setstate__(self, state):
+        self.userQuery = state["userQuery"]
+        self.requirements = state["requirements"]
+        self.actionInfos = state["actionInfos"]
+        self.early_answer = state["early_answer"]
+        self.sql_generator = state["sql_generator"]
+        self.queries = state["queries"]
+        self.dfs = state["dfs"]
+        self.answer = state["answer"]
+        self.plot = state["plot"]
+        self.generalised_answer = state["generalised_answer"]
+        self.final_action = state["final_action"]
+        self.final_query = state["final_query"]
+        self.final_df = state["final_df"]
+        print(self.early_answer)
 
 class Copilot:
     # TODO: Change this to use multiple databases.
@@ -155,7 +175,8 @@ class Copilot:
     def query(self, _userQuery):
         if self.status_placeholder is None:
             raise Exception("status_placeholder is not set")
-        userQuery = hash(_userQuery)
+        # Maybe hash the query
+        userQuery = _userQuery
         if userQuery not in self.UserQueries:
             with self.status_placeholder:
                 print("---------------------Creating a new query----------------------")
@@ -194,44 +215,61 @@ class Copilot:
         return self.UserQueries[list(self.UserQueries.keys())[0]]
 
     def get_requirements(self, query: str) -> Dict[str, Union[List[str], str]]:
-        requirements = self.UserQueries[hash(query)].requirements
+        requirements = self.UserQueries[query].requirements
         if requirements is not None:
             return requirements
         raise Exception("unknown query")
 
     def get_actionInfos(self, query: str) -> list[str]:
-        actionInfos = self.UserQueries[hash(query)].actionInfos
+        actionInfos = self.UserQueries[query].actionInfos
         if actionInfos is not None:
             return actionInfos
         raise Exception("unknown query")
 
     def get_sql(self, query: str) -> list[str]:
-        queries = self.UserQueries[hash(query)].queries
+        queries = self.UserQueries[query].queries
         if queries is not None:
             return queries
         raise Exception("unknown query")
 
     def get_dfs(self, query: str) -> dict[str, pd.DataFrame]:
-        dfs = self.UserQueries[hash(query)].dfs
+        dfs = self.UserQueries[query].dfs
         if dfs is not None:
             return dfs
         raise Exception("unknown query")
     
     def get_final_df(self, query: str) -> pd.DataFrame:
-        return self.UserQueries[hash(query)].final_df
+        return self.UserQueries[query].final_df
 
     def get_early_answer(self, query: str):
-        return self.UserQueries[hash(query)].early_answer
+        return self.UserQueries[query].early_answer
 
     def get_plot(self, query: str):
-        return self.UserQueries[hash(query)].plot
+        return self.UserQueries[query].plot
 
     def get_generalised_answer(self, query: str):
-        return self.UserQueries[hash(query)].generalised_answer
+        return self.UserQueries[query].generalised_answer
 
     def cleanup(self):
         print("Cleaning up threadpool")
-        self.threadpool.shutdown(wait=False)
+        if hasattr(self, 'threadpool'):
+            self.threadpool.shutdown(wait=False)
 
     def set_status_placeholder(self, animation_placeholder):
         self.status_placeholder = animation_placeholder
+
+    def __getstate__(self):
+        state = self.__dict__
+        if 'threadpool' in state:
+            self.threadpool.shutdown(wait=False)
+            del state['threadpool']
+        if 'status_placeholder' in state:
+            del state['status_placeholder']
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        print(state)
+        self.threadpool = ThreadPoolExecutor(max_workers=5)
+        self.status_placeholder = None
+        atexit.register(self.cleanup)

@@ -9,16 +9,12 @@
 # TODO: Make sure answers are consistent! Using one metric -> using a lot of metrics should still talk about the same thing.
 
 import atexit
-import threading
 import time
-from functools import wraps
 
 import streamlit as st
 import sys
 import os
-
-import uuid
-import io
+import pickle
 
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 
@@ -53,7 +49,19 @@ def load_async():
 
 @st.cache_resource()
 def get_storage():
-    return Session_Storage(st.rerun)
+    ss = None
+    # If a session storage exists in a pickle file, load it instead
+    if os.path.exists("session_manager.pkl"):
+        try:
+            with open("session_manager.pkl", "rb") as f:
+                ss = pickle.load(f)
+        except:
+            ss = None
+    if ss is None or not isinstance(ss, Session_Storage):
+        ss = Session_Storage(st.rerun)
+    else:
+        ss.rerun = st.rerun
+    return ss
 
 
 if "session_storage" not in st.session_state:
@@ -346,6 +354,8 @@ if userQuery:
     if not session_manager.get_config(current_session_id, "finished"):
         status = status_placeholder.status("Thinking...", expanded=True)
         copilot.set_status_placeholder(status)
+    elif copilot.status_placeholder is None:
+        copilot.set_status_placeholder(status_placeholder)
     copilot.query(userQuery)
 
     # button to allow the user to accept or remove
@@ -416,6 +426,10 @@ if userQuery:
 
 @atexit.register
 def shutdown():
+    # Add session_manager to a pickle file
+    with open("session_manager.pkl", "wb") as f:
+        print("Saving session manager to session_manager.pkl")
+        pickle.dump(session_manager, f)
     print("Cleaning up threadpool")
     if "executor" in st.session_state:
         st.session_state.executor.shutdown(wait=False)
