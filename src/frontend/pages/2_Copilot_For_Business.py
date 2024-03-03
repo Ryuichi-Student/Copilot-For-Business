@@ -245,13 +245,17 @@ def handle_async_ui(userQuery):
     def show_sql(_sql_placeholder=_sql_placeholder):
         def run():
             print("showing sql")
-            if plot:
-                plot.formatSQL(_sql_placeholder)
-            else:
-                _sql_placeholder.write(copilot.get_sql(userQuery))
+            # if plot:
+            #     plot.formatSQL(_sql_placeholder)
+            # else:
+            sql_query_dict = copilot.get_sql(userQuery)
+            markdownstr = ""
+            for k, v in sql_query_dict.items():
+                markdownstr += f"`{str(k).capitalize()}`:\n```sql\n{v}\n```\n"
+            _sql_placeholder.markdown(markdownstr, unsafe_allow_html=True)
             print("Finished showing sql")
 
-        with _sql_expander_placeholder, st.expander("See SQL"):
+        with _sql_expander_placeholder, st.expander("**Show SQL**  :keyboard:"):
             if _sql_placeholder is None:
                 _sql_placeholder = st.empty()
             run()
@@ -263,7 +267,7 @@ def handle_async_ui(userQuery):
             _final_df_placeholder.write(copilot.get_final_df(userQuery))
             print("Finished showing final df")
 
-        with _final_df_expander_placeholder, st.expander("See final dataframe"):
+        with _final_df_expander_placeholder, st.expander("**Show Data**  :floppy_disk:"):
             if _final_df_placeholder is None:
                 _final_df_placeholder = st.empty()
             run()
@@ -280,7 +284,7 @@ def handle_async_ui(userQuery):
                     "Copilot for Business was not able to generate a text explanation. Please try to refine your question to help")
             print("Finished showing explanation")
 
-        with _explanation_expander_placeholder, st.expander("See explanation"):
+        with _explanation_expander_placeholder, st.expander("**Show Explanation**  :book:", expanded=True):
             if _explanation_placeholder is None:
                 _explanation_placeholder = st.empty()
             run()
@@ -335,7 +339,8 @@ if userQuery:
     # ----------------------------------   Query the Copilot   ----------------------------------
 
     # display the user's entered prompt
-    st.markdown(f"USER:\n{userQuery}\n\nCOPILOT:")
+    # st.write(f"USER:\n{userQuery}\n\nCOPILOT:")
+    st.write(f"##### :orange[User:] \n {userQuery} \n\n##### :orange[Copilot:] ")
 
     status_placeholder = st.empty()
     if not session_manager.get_config(current_session_id, "finished"):
