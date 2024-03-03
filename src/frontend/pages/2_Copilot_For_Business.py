@@ -51,8 +51,13 @@ def load_async():
     return decorator
 
 
+@st.cache_resource()
+def get_storage():
+    return Session_Storage(st.rerun)
+
+
 if "session_storage" not in st.session_state:
-    st.session_state.session_storage = Session_Storage(st.rerun)
+    st.session_state.session_storage = get_storage()
 if "plot_changed" not in st.session_state:
     st.session_state.plot_changed = False
 
