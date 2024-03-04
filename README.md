@@ -4,7 +4,7 @@ Welcome to Copilot for Business. This is a student run project at the University
 
 ## Run the project
 
-The project is currently hosted at: streamlit.io...
+The project is currently hosted at: [Streamlit link]()
 
 ## Installation
 
