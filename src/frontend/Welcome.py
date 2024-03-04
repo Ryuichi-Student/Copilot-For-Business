@@ -4,26 +4,32 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 
 import streamlit as st
-from streamlit_javascript import st_javascript
+# from streamlit_javascript import st_javascript
 st.markdown(" <style> div[class^='block-container'] { padding-top: 2rem; } </style> ", unsafe_allow_html=True)
 st.write("# Welcome to Copilot For Business! 👋")
-st.sidebar.success("")
+# st.sidebar.success("")
 
 st.write("Welcome to Copilot for Business. This is a student run project at the University of Cambridge, in collaboration with Cambridge Kinematics. This project is part of the second year project in the Computer Science Tripos. ")
 st.write("The team: Samuel Jie, Isaac Lam, Izzi Millar, Mmesoma Okoro, Leo Takashige and Ram Vinjamuri.")
 
 st.markdown(
     """
-    ## What have we built?
+    ## :gray[What is Copilot for Business?]
 
     
     Copilot for Business is a tool that helps you analyse databases better, faster, and more efficiently. It's powered by OpenAI's GPT-3 and GPT-4 models.
      
-    ## What does it do?
+    ### :gray[What does it do?]
 
     You can ask Copilot for Business questions about your database, and it will help you write SQL queries, explain the results, and more. For example you can ask:
     - "Who are the top 5 customers measured by revenue?"
-    - Upon this query, Copilot will generate a SQL query to find the top 5 customers by revenue, create a chart to visualize the results, and explain the results in plain English.
+    
+    Copilot for business will generate an SQL query to find the top 5 customers by revenue, create a chart to visualize the results, and explain the results in natural language.
+
+    ### :gray[How do I use it?]
+    - To upload a database go to 'Dashboard'
+    - To ask a question go to 'Copilot for Business'. This will automatically create a "session" which allows you to ask a question. To ask another question or go back to previous sessions, choose from the dropdown in the sidebar.
+    - For more help go to 'Help'
 """
 
 # link to ask a question/try out
