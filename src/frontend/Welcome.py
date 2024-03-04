@@ -49,11 +49,6 @@ border-right: 100px ;
 
 """
 
-# Create new button which is right aliugned
-
-
-
-
 # Toggle for light/dark mode
 dark = st.toggle("Dark Mode Example", True)
 
