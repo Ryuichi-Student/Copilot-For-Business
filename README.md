@@ -1,6 +1,6 @@
 # Copilot for Business
 
-Welcome to Copilot for Business. This is a student run project at the university of Cambridge, in collaboration with Cambridge Kinematics. This project is part of the second year project in the Computer Science Tripos. The project has been created by: Samuel Jie, Isaac Lam, Izzi Millar, Mmesoma Okoro, Leo Takashige and Ram Vinjamuri.
+Welcome to Copilot for Business. This is a student run project at the University of Cambridge, in collaboration with Cambridge Kinematics. This project is part of the second year project in the Computer Science Tripos. The project has been created by: Samuel Jie, Isaac Lam, Izzi Millar, Mmesoma Okoro, Leo Takashige and Ram Vinjamuri.
 
 ## Run the project
 
@@ -22,7 +22,7 @@ You can then run the app using ```streamlit run src/frontend/Welcome.py```
 
 ## Using the app
 
-To use he app, after opening up localhost:port_number, you will be greeted with the welcome page. You can then navigate to the different pages using the sidebar on the left. To start you can either go to the dashboard to upload your database or go to the main page (copilot for business) in order to start using the app.
+To use the app, after opening up localhost:port_number, you will be greeted with the welcome page. You can then navigate to the different pages using the sidebar on the left. To start you can either go to the dashboard to upload your database or go to the main page (copilot for business) in order to start using the app.
 If you need help at any point, please consult the help page.
 
 
