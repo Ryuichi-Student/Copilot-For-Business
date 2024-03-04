@@ -10,7 +10,6 @@ class PieChart(Visualisation):
         self.title = info['title']
         self.categories = info['categories']
         self.count = info['count']
-        self.modifiedDFs = {"data" : data}
 
     # functions for the actioner
     @staticmethod
@@ -45,7 +44,8 @@ class PieChart(Visualisation):
             return
 
 
-        fig = px.pie(self.df, names=self.categories, values=self.count, title=self.title)
+        fig = px.pie(self.df, names=(self.categories), values=(self.count), title=self.title)
+
         
         # gets the segment and count data from the dataframe
         # segments = self.df[self.categories]
@@ -63,14 +63,36 @@ class PieChart(Visualisation):
 
     def validate(self):
         if self.categories not in self.df:
-            # handle
+            # if there's two columns and the other one is categories, set count 
+            if self.count in self.df and len(self.df.columns) == 2:
+                self.categories = list(self.df.columns).remove(self.count) # type: ignore
+                return True
             return False
         elif self.count not in self.df:
-            # handle
+            # if there's two columns and the other one is count, set categories
+            if self.categories in self.df and len(self.df.columns) == 2:
+                self.count = list(self.df.columns).remove(self.categories) # type: ignore
+                return True
             return False
         else:
-            # both categories and and the count are in the dataframe
             return True
+    
+
+    def getModifiers(self):
+        # change this to not show if length < 10
+        if self.dfLength > 10:
+            return ("Original", "Top 10 values only")
+        else:
+            return None
+    
+    def modify(self, modifier):
+        if modifier == "Original":
+            self.originalData()
+        elif modifier == "Top 10 values only":
+            self.topn(10)
+        else:
+            self.originalData()
+
     
     def __str__(self):
         # Construct the string description

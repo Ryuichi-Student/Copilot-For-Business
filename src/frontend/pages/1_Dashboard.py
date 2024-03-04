@@ -17,21 +17,13 @@ sessions = st.session_state.session_storage
 if "CREATE_SESSION" not in st.session_state:
     st.session_state.CREATE_SESSION = False
 
-st.header("Create/Delete Sessions")
+st.header("Dashboard")
 
-
-# Create a new session by clicking a button and entering a session name in the text box that appears
-if st.button("Create Session"):
-    st.session_state.CREATE_SESSION = True
-
-if st.session_state.CREATE_SESSION:
-    session_name = st.text_input("Enter a session name.")
-    if session_name:
-        st.session_state.CREATE_SESSION = False
-        sessions.create_session(session_name, autogenerate=False)
 
 # View the sessions that you have made and delete sessions by clicking the "X" button.
-st.write("## Current Sessions")
+st.subheader(":gray[Current Sessions]")
+
+
 
 for session_id in sessions.get_sessions():
     col1, col2 = st.columns([0.9, 0.1])
@@ -40,6 +32,18 @@ for session_id in sessions.get_sessions():
     with col2:
         if st.button("X", key=session_id):
             sessions.delete_session(session_id)
+
+
+
+# Create a new session by clicking a button and entering a session name in the text box that appears
+if st.button("Create a new session"):
+    st.session_state.CREATE_SESSION = not st.session_state.CREATE_SESSION
+
+if st.session_state.CREATE_SESSION:
+    session_name = st.text_input("Enter a session name.")
+    if session_name:
+        st.session_state.CREATE_SESSION = False
+        sessions.create_session(session_name, autogenerate=False)
 
 # TODO: Add undo functionality
 
@@ -69,7 +73,8 @@ def upload_progress(args, upload_placeholder=None, upload_placeholder2=None):
 
 
 def get_db_upload():
-    uploaded_file = st.file_uploader("Upload your database", type=["sqlite3", "db", "pdf"])
+    st.subheader(":gray[Upload a database]")
+    uploaded_file = st.file_uploader("", type=["sqlite3", "db", "pdf"])
 
     if uploaded_file is not None:
 
