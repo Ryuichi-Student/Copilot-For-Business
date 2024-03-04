@@ -9,6 +9,7 @@ class Visualisation():
         self.df: pd.DataFrame = data
         self.query = query
         self.dfLength = len(data.index)
+        self.modifiedDFs = {"data" : data}
     
     @staticmethod
     def getChartName() -> str:
@@ -30,12 +31,14 @@ class Visualisation():
     @st.cache_data
     def generate(self):
         pass
+
+    def originalData(self):
+        self.df = self.modifiedDFs["data"]
     
     # limits data frame to the top 10 bars
     def topn(self, n):
         pass
     
-
     def validate(self) -> bool:
         return True
     
@@ -49,56 +52,51 @@ class Visualisation():
         # ''')
         return self.query
     
-    def formatSQL(self, placeholder=None):
-        # display a formatted sql query
+    # def formatSQL(self, placeholder=None):
+    #     # display a formatted sql query
         
-        # split text on uppercase words
-        sql = self.query
-        # splits the query based on uppercase and following words
+    #     sql = self.query
+    #     # split query by words
+    #     splitByWord = re.split('\s', sql)
+    #     # splitByComma = re.split(', |[A-Z]+\s', sql)
+        
+    #     explained = 'The data used to create this chart was fetched using the following SQL query:\n\n'
+        
+    #     # if a string is a command then show it orange
+    #     for string in splitByWord:
+    #         if string.isupper():
+    #             explained += f':orange[{string}] '
+    #         else:
+    #             explained += string
+    #             explained += " "
 
-        # gets completely uppercase words from the string
-        # commands = re.findall('([A-Z]+)\s', sql)
-        # st.write(commands)
-
-        # splits the sql query by uppercase words (commands) and others
-        # [A-Z]+|[^A-Z]+
-        
-        # splitBy = "|".join(commands)
-        splitByWord = re.split('\s', sql)
-        # splitByComma = re.split(', |[A-Z]+\s', sql)
-        
-        explained = 'The data used to create this chart was fetched using the following SQL query:\n\n'
-        
-        # if a string is a command then show it orange
-        for string in splitByWord:
-            if string.isupper():
-                explained += f':orange[{string}] '
-            else:
-                explained += string
-                explained += " "
-
-        # if there is an AS show this to the user
-        for i, word in enumerate(splitByWord):
-            # if there is an AS phrase
-            if word == "AS":
-                name = re.match('^[a-zA-Z0-9_.-]*', splitByWord[i + 1])
+    #     # if there is an AS show this to the user
+    #     for i, word in enumerate(splitByWord):
+    #         # if there is an AS phrase
+    #         if word == "AS":
+    #             name = re.match('^[a-zA-Z0-9_.-]*', splitByWord[i + 1])
                 
-                columns = ""
-                for j in range (i - 1, 0, -1):
-                    # if there's no comma in the preceding word add it to the column
-                    if ',' not in splitByWord[j]:
-                        columns = splitByWord[j] + " " + columns
-                    else:
-                        break
+    #             columns = ""
+    #             for j in range (i - 1, 0, -1):
+    #                 # if there's no comma in the preceding word add it to the column
+    #                 if ',' not in splitByWord[j]:
+    #                     columns = splitByWord[j] + " " + columns
+    #                 else:
+    #                     break
 
-                # columns = re.match('(.*), ^[a-zA-Z0-9_.-]*', sql)
+    #             # columns = re.match('(.*), ^[a-zA-Z0-9_.-]*', sql)
 
-                if name and columns:
-                    explained += f'\n\nThe :blue[{name.group(0)}] values are generated from :blue[{columns}]'
-        if placeholder is None:
-            st.write(explained)
-        else:
-            placeholder.write(explained)
+    #             if name and columns:
+    #                 explained += f'\n\nThe :blue[{name.group(0)}] values are generated from :blue[{columns}]'
+    #     if placeholder is None:
+    #         st.write(explained)
+    #     else:
+    #         placeholder.write(explained)
 
+    def getModifiers(self):
+        return ""
+
+    def modify(self, modifier):
+        pass
 
 

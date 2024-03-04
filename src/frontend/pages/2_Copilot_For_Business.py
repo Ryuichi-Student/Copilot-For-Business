@@ -11,6 +11,7 @@
 import atexit
 import time
 
+import pandas as pd
 import streamlit as st
 import sys
 import os
@@ -24,6 +25,7 @@ from src.backend.copilot import Copilot
 from src.backend.utils.sessions import Session_Storage
 from src.backend.utils.dbmaker import join_dbs, get_database_list
 from src.backend.utils.gpt import stream
+from src.backend.utils.formatSQL import formatSQL
 from concurrent.futures import ThreadPoolExecutor
 import plotly.io as pio
 
@@ -257,10 +259,13 @@ def handle_async_ui(userQuery):
             #     plot.formatSQL(_sql_placeholder)
             # else:
             sql_query_dict = copilot.get_sql(userQuery)
-            markdownstr = ""
-            for k, v in sql_query_dict.items():
-                markdownstr += f"`{str(k).capitalize()}`:\n```sql\n{v}\n```\n"
-            _sql_placeholder.markdown(markdownstr, unsafe_allow_html=True)
+
+            # _sql_placeholder.write("what the flip")
+            # markdownstr = ""
+            # for k, v in sql_query_dict.items():
+            #     markdownstr += f"`{str(k).capitalize()}`:\n```sql\n{v}\n```\n"
+            # _sql_placeholder.write("markdownstr", unsafe_allow_html=True)
+            _sql_placeholder.markdown(formatSQL(sql_query_dict))
             print("Finished showing sql")
 
         with _sql_expander_placeholder, st.expander("**Show SQL**  :keyboard:"):
@@ -404,7 +409,6 @@ if userQuery:
         # _sql_toggle_placeholder = st.empty()
         # _sql_toggle_placeholder.toggle("Show SQL")
 
-        # none type has no attribute formatSQL
         handle_async_ui(userQuery)
         session_manager.update_config(current_session_id, {"finished": True})
 
