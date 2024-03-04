@@ -179,8 +179,11 @@ with col1:
     # st.header(":rainbow[Copilot for Business]")
     st.subheader(f""":gray[{session_manager.get_session_data(current_session_id)["name"]}]""")
 
+
+chat_placeholder = "Enter your question about the database..."
+
 if not session_manager.get_config(current_session_id, "query"):
-    userQuery = st.chat_input("Enter your question")
+    userQuery = st.chat_input(chat_placeholder)
     if userQuery:
         disable_new_session_button(False)
         new_session_button = nb_placeholder.button("Create new session", on_click=lambda: session_manager.use_session(
