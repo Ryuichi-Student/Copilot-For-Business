@@ -2,6 +2,17 @@ import streamlit as st
 import pandas as pd
 
 import os, sys
+
+
+st.markdown("""
+<style>
+    .st-emotion-cache-1dj0hjr.eczjsme5 {
+        color: yellow !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 commands = ["SELECT", "AS", "FROM", "WHERE", "JOIN"]
