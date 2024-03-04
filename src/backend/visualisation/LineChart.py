@@ -32,14 +32,13 @@ class LineChart(Visualisation):
         return "'title' should contain a string of most suitable title for the line chart. 'x_axis' should contain a string of the column name that should be used as the x axis of the line chart. 'y_axis' should contain a string of the column name that should be used as the y axis of the line chart."
 
     # sets the database to show the top n values by y axis depending on a bool
-    def topn(self, n, show):
-        if "topn" not in self.modifiedDFs:
-            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis).sort_values(by=self.x_axis)
-        
-        if show:
-            self.df = self.modifiedDFs["topn"]
-        else:
+    def topn(self, n):
+        if n == len(self.y_axis):
             self.df = self.modifiedDFs["data"]
+        else:
+            if n not in self.modifiedDFs:
+                self.modifiedDFs[n] = self.modifiedDFs["data"].nlargest(n, self.y_axis).sort_values(by=self.x_axis)
+            self.df = self.modifiedDFs[n]
 
     
     def generate(self):

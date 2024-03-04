@@ -30,14 +30,13 @@ class PieChart(Visualisation):
         return "'title' should contain a string of the most suitable title for the pie chart. 'categories' should contain a string of the column name that should be used as the segment labels of the pie chart. 'count' should contain a string of the column name that should be used as the total count of occurrences of each of the segments of the pie chart."
 
     # sets the database to show the top n values by y axis depending on a bool
-    def topn(self, n, show):
-        if "topn" not in self.modifiedDFs:
-            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.count)
-        
-        if show:
-            self.df = self.modifiedDFs["topn"]
-        else:
+    def topn(self, n):
+        if n == self.count:
             self.df = self.modifiedDFs["data"]
+        else:
+            if n not in self.modifiedDFs:
+                self.modifiedDFs[n] = self.modifiedDFs["data"].nlargest(n, self.count)
+            self.df = self.modifiedDFs[n]
 
     def generate(self):
         if not self.validate():

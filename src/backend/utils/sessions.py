@@ -165,3 +165,12 @@ class Session_Storage:
         return not s or all(
                 not self.get_config(session, "autogenerate") for session in s
         )
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["rerun"]
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self.rerun = None
