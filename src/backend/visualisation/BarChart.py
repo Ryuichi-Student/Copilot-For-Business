@@ -4,6 +4,7 @@ import numpy as np
 import plotly.express as px
 from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
+from src.backend.utils.clean_name import natural_name
 
 
 class BarChart(Visualisation):
@@ -12,7 +13,7 @@ class BarChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
-        self.modifiedDFs = {"data": data}
+        # self.modifiedDFs = {"data": data}
         self.graphs = {}
         self.sampled_fig = {}
 
@@ -46,7 +47,21 @@ class BarChart(Visualisation):
                 else:
                     self.modifiedDFs[n] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
             self.df = self.modifiedDFs[n]
-
+    
+    # creates a dataframe with values in ascending order
+    def ascending(self):
+        if "ascending" not in self.modifiedDFs:
+            self.modifiedDFs["ascending"] = self.modifiedDFs["data"].sort_values(by=self.y_axis)
+        
+        self.df = self.modifiedDFs["ascending"]
+    
+    # creates a dataframe with values in descending order
+    def descending(self):
+        if "descending" not in self.modifiedDFs:
+            self.modifiedDFs["descending"] = self.modifiedDFs["data"].sort_values(by=self.y_axis, ascending=False)
+        
+        self.df = self.modifiedDFs["descending"]
+        
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
     def generate(self):
         if not self.validate():
@@ -60,9 +75,10 @@ class BarChart(Visualisation):
             return
         if self.graphs.get(size, None) is None:
             fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
-            self.graphs[size] = FigureResampler(fig)
-        return self.graphs[size]
-        # self.graphs["original"] = fig
+            fig.update_layout(xaxis_title = natural_name(self.x_axis), yaxis_title = natural_name(self.y_axis))
+
+        # self.graphs[size] = FigureResampler(fig)
+        return fig
 
         # fig.update_layout({
         #     "plot_bgcolor": "rgba(0, 0, 0, 0)",
@@ -100,18 +116,38 @@ class BarChart(Visualisation):
     # test for this that gives an invalid data fame
     def validate(self):
         if self.x_axis not in self.df:
-            # no x axis in the data frame
-            # make this better raise an error? call to gpt?
+            if self.y_axis in self.df and len(self.df.columns) == 2:
+                self.x_axis = list(self.df.columns).remove(self.y_axis) # type: ignore
+                return True
             return False
         elif self.y_axis not in self.df:
-            # no yaxis in the data frame
-            # raise an error
+            if self.x_axis in self.df and len(self.df.columns) == 2:
+                self.y_axis = list(self.df.columns).remove(self.x_axis) # type: ignore
+                return True
             return False
         else:
             return True
 
     def getSQLQuery(self) -> str:
         return self.query
+
+    def getModifiers(self):
+        if self.dfLength > 10:
+            return ("Original", "Top 10 values only", "Ascending order by y values", "Descending order by y values")
+        else:
+            return ("Original", "Ascending order by y values", "Descending order by y values")
+
+    def modify(self, modifier):
+        if modifier == "Original":
+            self.originalData()
+        elif modifier == "Top 10 values only":
+            self.topn(10)
+        elif modifier == "Ascending order by y values":
+            self.ascending()
+        elif modifier == "Descending order by y values":
+            self.descending()
+        else:
+            self.originalData()
 
     def __str__(self):
 
