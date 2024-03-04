@@ -35,14 +35,17 @@ class BarChart(Visualisation):
         return "'title' should contain a string of most suitable title for the bar chart. 'x_axis' should contain a string of the column name that should be used as the x axis of the bar chart. 'y_axis' should contain a string of the column name that should be used as the y axis of the bar chart."
 
     # sets the database to show the top n values by y axis depending on a bool
-    def topn(self, n, show):
-        if "topn" not in self.modifiedDFs:
-            self.modifiedDFs["topn"] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
-
-        if show:
-            self.df = self.modifiedDFs["topn"]
-        else:
+    def topn(self, n):
+        if n == len(self.y_axis):
             self.df = self.modifiedDFs["data"]
+        else:
+            if n not in self.modifiedDFs:
+                if len(self.modifiedDFs) > 1:
+                    smallest = min(x for x in self.modifiedDFs.keys() if x != "data" and x > n)
+                    self.modifiedDFs[n] = self.modifiedDFs[smallest].nlargest(n, self.y_axis)
+                else:
+                    self.modifiedDFs[n] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
+            self.df = self.modifiedDFs[n]
 
     # generates a bar chart from the data frame with the x axis and y axis provided as identifiers for the data frame
     def generate(self):
@@ -51,6 +54,10 @@ class BarChart(Visualisation):
             print("invalid data")
             return
         size = len(self.df)
+        if size > 50000:
+            print("size too large, generating a smaller bar chart")
+            self.small_generate(50000)
+            return
         if self.graphs.get(size, None) is None:
             fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
             self.graphs[size] = FigureResampler(fig)
@@ -85,8 +92,9 @@ class BarChart(Visualisation):
             # Step 3: Subset the DataFrame using the sorted indexes
             sampled_df = self.df.iloc[sampled_indexes_sorted]
 
-            self.sampled_fig[size] = px.bar(sampled_df, x=self.x_axis, y=self.y_axis, title=self.title,
-                                            color=self.x_axis)
+            self.sampled_fig[size] = FigureResampler(px.bar(sampled_df, x=self.x_axis, y=self.y_axis, title=self.title,
+                                            color=self.x_axis))
+            self.graphs[size] = self.sampled_fig[size]
         return self.sampled_fig[size]
 
     # test for this that gives an invalid data fame

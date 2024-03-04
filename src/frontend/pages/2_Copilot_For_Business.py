@@ -9,16 +9,12 @@
 # TODO: Make sure answers are consistent! Using one metric -> using a lot of metrics should still talk about the same thing.
 
 import atexit
-import threading
 import time
-from functools import wraps
 
 import streamlit as st
 import sys
 import os
-
-import uuid
-import io
+import pickle
 
 from streamlit.runtime.scriptrunner import add_script_run_ctx
 
@@ -37,7 +33,7 @@ def load_async():
     def decorator(func):
         def wrapper(*args, **kwargs):
             def task():
-                time.sleep(0.002)
+                time.sleep(0.005 if plot.getChartName != "Bar Chart" or plot.dfLength < 1000 else 0.5)
                 func(*args, **kwargs)
 
             executor = st.session_state.executor
@@ -51,8 +47,25 @@ def load_async():
     return decorator
 
 
+@st.cache_resource()
+def get_storage():
+    ss = None
+    # If a session storage exists in a pickle file, load it instead
+    if os.path.exists("session_manager.pkl"):
+        try:
+            with open("session_manager.pkl", "rb") as f:
+                ss = pickle.load(f)
+        except:
+            ss = None
+    if ss is None or not isinstance(ss, Session_Storage):
+        ss = Session_Storage(st.rerun)
+    else:
+        ss.rerun = st.rerun
+    return ss
+
+
 if "session_storage" not in st.session_state:
-    st.session_state.session_storage = Session_Storage(st.rerun)
+    st.session_state.session_storage = get_storage()
 if "plot_changed" not in st.session_state:
     st.session_state.plot_changed = False
 
@@ -224,8 +237,8 @@ def handle_async_ui(userQuery):
             print("showing plot")
             config = {'displayModeBar': False}
 
-            if plot.getChartName() == "Bar Chart":
-                small_fig = plot.small_generate(800)
+            if plot.getChartName() == "Bar Chart" and len(plot.df) > 800:
+                small_fig = plot.small_generate(400)
                 if small_fig is not None:
                     _plot_placeholder.plotly_chart(small_fig, config=config)
                     loading_placeholder.empty()
@@ -299,15 +312,20 @@ def handle_async_ui(userQuery):
         print(f"PLOT2: {plot}")
         # Update for showing top 10 values toggle
         if plot.dfLength > 10:
-            current_topN_state = False if "topN" not in st.session_state else st.session_state.topN
+            current_topN_state = len(plot.df) if "topN" not in st.session_state else st.session_state.topN
 
             def change_plot():
                 st.session_state.plot_changed = True
                 print("Plot changed")
 
-            _plot_toggle_placeholder.toggle(label="Show top 10 values only", key="topN",
-                                            value=current_topN_state, on_change=change_plot)
-            plot.topn(10, current_topN_state)
+            _plot_toggle_placeholder.select_slider(
+                label="Show top n values only",
+                options=[x for x in [1, 5, 10, 20, 50, 100] if x < plot.dfLength] + [plot.dfLength],
+                value=current_topN_state,
+                key = "topN",
+                on_change=change_plot
+            )
+            plot.topn(current_topN_state)
 
         show_plot()
 
@@ -336,6 +354,8 @@ if userQuery:
     if not session_manager.get_config(current_session_id, "finished"):
         status = status_placeholder.status("Thinking...", expanded=True)
         copilot.set_status_placeholder(status)
+    elif copilot.status_placeholder is None:
+        copilot.set_status_placeholder(status_placeholder)
     copilot.query(userQuery)
 
     # button to allow the user to accept or remove
@@ -370,7 +390,11 @@ if userQuery:
         _plot_placeholder = st.empty()
         _plot_toggle_placeholder = st.empty()
         if plot:
-            _plot_toggle_placeholder.toggle(label="Show top 10 values only")
+            _plot_toggle_placeholder.select_slider(
+                label="Show top n values only",
+                options=[x for x in [1, 5, 10, 20, 50, 100] if x < plot.dfLength] + [plot.dfLength]
+            )
+            # _plot_toggle_placeholder.toggle(label="Show top 10 values only")
         _sql_expander_placeholder = st.empty()
         _sql_placeholder = None
         _final_df_expander_placeholder = st.empty()
@@ -402,6 +426,10 @@ if userQuery:
 
 @atexit.register
 def shutdown():
+    # Add session_manager to a pickle file
+    with open("session_manager.pkl", "wb") as f:
+        print("Saving session manager to session_manager.pkl")
+        pickle.dump(session_manager, f)
     print("Cleaning up threadpool")
     if "executor" in st.session_state:
         st.session_state.executor.shutdown(wait=False)

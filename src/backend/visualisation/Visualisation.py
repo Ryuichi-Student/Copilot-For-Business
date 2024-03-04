@@ -32,7 +32,7 @@ class Visualisation():
         pass
     
     # limits data frame to the top 10 bars
-    def topn(self, n, show):
+    def topn(self, n):
         pass
     
 
