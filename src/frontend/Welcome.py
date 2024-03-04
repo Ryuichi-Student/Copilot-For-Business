@@ -9,9 +9,12 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 2rem; } </sty
 st.write("# Welcome to Copilot For Business! 👋")
 # st.sidebar.success("")
 
+st.write("Welcome to Copilot for Business. This is a student run project at the University of Cambridge, in collaboration with Cambridge Kinematics. This project is part of the second year project in the Computer Science Tripos. ")
+st.write("The team: Samuel Jie, Isaac Lam, Izzi Millar, Mmesoma Okoro, Leo Takashige and Ram Vinjamuri.")
+
 st.markdown(
     """
-    ### :gray[What is Copilot for Business?]
+    ## :gray[What is Copilot for Business?]
 
     
     Copilot for Business is a tool that helps you analyse databases better, faster, and more efficiently. It's powered by OpenAI's GPT-3 and GPT-4 models.
@@ -34,6 +37,12 @@ st.markdown(
 )
 
 st.write("## Try it out!")
+
+
+
+st.write("To start you can either go to the dashboard to upload your database or go to the main page (copilot for business) in order to start using the app. If you need help at any point, please consult the help page.")
+st.markdown("[Click here to try now!!!](/Copilot_For_Business)")
+
 st.write("Below is an example of how you can ask Copilot for Business a question. Try it out! This is for the example database crm_refined. Feel free to try the example yourself by clicking on the Copilot For Business tab on the left.")
 
 # Send to copilot page, forward
@@ -45,12 +54,6 @@ display: block;
 border-right: 100px ;
 
 """
-
-st.markdown("[Click here to try now!!!](/Copilot_For_Business)")
-# Create new button which is right aliugned
-
-
-
 
 # Toggle for light/dark mode
 dark = st.toggle("Dark Mode Example", True)
