@@ -74,11 +74,11 @@ class BarChart(Visualisation):
             self.small_generate(50000)
             return
         if self.graphs.get(size, None) is None:
-            fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+            fig = self.graphs[size] = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
             fig.update_layout(xaxis_title = natural_name(self.x_axis), yaxis_title = natural_name(self.y_axis))
 
         # self.graphs[size] = FigureResampler(fig)
-        return fig
+        return self.graphs[size]
 
         # fig.update_layout({
         #     "plot_bgcolor": "rgba(0, 0, 0, 0)",

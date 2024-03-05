@@ -339,7 +339,7 @@ def handle_async_ui(userQuery):
 
     # current_sqlView_state = False if "sqlView" not in st.session_state else st.session_state.sqlView
     # sqlView = _sql_toggle_placeholder.toggle("Show SQL", key="sqlView", value=current_sqlView_state)
-
+    print("hello")
     show_sql()
 
     show_final_df()
@@ -390,6 +390,7 @@ if userQuery:
         print(f"PLOT: {plot}")
 
         status_placeholder.empty()
+        loading_placeholder = st.empty()
         if plot:
             placeholder_html = """<div id="graph-placeholder" style="width: 640px; height: 480px;"></div>"""
             # Display the placeholder
