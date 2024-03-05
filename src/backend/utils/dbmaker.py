@@ -238,12 +238,11 @@ def join_dbs(databases:list[str]):
     return {"name": f"uploads/tempdb{name}.sqlite3", "embedded": list_of_embedded_databases, "not-embedded": list_of_embedded_databases }
 
 
-@st.cache_data
 def get_database_list():
-    list_of_databases = glob.glob("databases/*.sqlite3")
-    list_of_databases.extend(glob.glob("databases/*.db"))
+    # list_of_databases = glob.glob("databases/*.sqlite3")
+    # list_of_databases.extend(glob.glob("databases/*.db"))
 
-    list_of_databases.extend(glob.glob("uploads/*.sqlite3"))
+    list_of_databases = glob.glob("uploads/*.sqlite3")
     list_of_databases.extend(glob.glob("uploads/*.db"))
 
     # Remove all databases starting with temp
