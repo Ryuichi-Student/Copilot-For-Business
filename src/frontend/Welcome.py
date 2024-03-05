@@ -9,7 +9,7 @@ st.markdown(" <style> div[class^='block-container'] { padding-top: 2rem; } </sty
 st.write("# Welcome to Copilot For Business! 👋")
 # st.sidebar.success("")
 
-st.write("Welcome to Copilot for Business. This is a student run project at the University of Cambridge, in collaboration with Cambridge Kinematics. This project is part of the second year project in the Computer Science Tripos. ")
+st.write("Welcome to Copilot for Business. This is a student run project at the University of Cambridge, in collaboration with Cambridge Kinetics. This project is part of the second year project in the Computer Science Tripos. ")
 st.write("The team: Samuel Jie, Isaac Lam, Izzi Millar, Mmesoma Okoro, Leo Takashige and Ram Vinjamuri.")
 
 st.markdown(
