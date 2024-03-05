@@ -9,3 +9,4 @@ python-dotenv==1.0.1
 sqlvalidator==0.0.20
 streamlit==1.31.1
 tiktoken==0.6.0
+streamlit_player==0.1.5
