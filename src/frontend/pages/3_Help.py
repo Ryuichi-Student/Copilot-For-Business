@@ -34,10 +34,23 @@ st.subheader(":gray[About]")
 st.write("Copilot for Business takes your question and uses it with information from the database to try and find the most suitable plot to display an answer. The more specific your query, the more likely Copilot for Business is to be able to come up with an accurate and useful answer. The types of plot available are bar charts, line charts, pie charts and scatter charts.")
 
 # header 2 - sql with explanation of key sql commands
-st.subheader(":gray[SQL]")
-st.write("When Copilot for Business displays the graph it has generated to answer your question it will give an option to show the SQL used to generate it. This SQL explains which columns from your database have been used and how they have been edited to generate the most suitable graph to answer your question. Here are some key words from an SQL statement and what they mean:")
-st.table(sql_commands)
+st.subheader(":gray[FAQs]")
 
+with st.expander(":gray[What does all this SQL mean?]"):
+    st.write("When Copilot for Business displays the graph it has generated to answer your question it will give an option to show the SQL used to generate it. This SQL explains which columns from your database have been used and how they have been edited to generate the most suitable graph to answer your question. Here are some key words from an SQL statement and what they mean:")
+    st.table(sql_commands)
+
+
+with st.expander(":gray[How much better is this than asking ChatGPT 4?]"):
+    st.markdown("Copilot for Business is an entire pipeline which incorporates finetuned GPT-3.5 and GPT-4 models and our own functions. This allows Copilot For Business to understand your data unlike no other easily available alternatives.")
+    st.markdown("Let's compare ChatGPT 4 and Copilot for Business:")
+    st.image("src/frontend/images/ChatGPT4Fail.png", use_column_width=True)
+    st.write("After the very long and unreliable upload time, the state-of-the-art ChatGPT4 fails to understand the database it is given and wastes the user's time retrying fruitlessly until the dreaded network error! No graph is provided and the explanation is both wrong and too technical.")
+    st.image("src/frontend/images/Dark_Example.png", use_column_width=True)
+    st.write("Meanwhile, Copilot for Business understands the context of the database and is able to answer the question in a precise and easy-to-understand manner; an accompanying visualisation is provided, as well as SQL for the more technical. If the database does not contain the necessary information, Copilot for Business does not waste the user's time and instead provides a clear explanation of the problem.")
+    st.write("Copilot is up to 10x faster than ChatGPT 4 before providing an answer, and is immeasurably more accurate and reliable (in testing, GPT4 was unable to answer a single question adequately on a large database).")
+
+st.subheader(":gray[Videos]")
 
 st_player("https://youtu.be/vAk7c7Ye0BE")
 
