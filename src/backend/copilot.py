@@ -47,14 +47,14 @@ class Query:
     def set_requirements(self, actioner: Actioner):
         if self.requirements is None:
             self.requirements = actioner.get_requirements(self.userQuery)
-            # pprint(self.requirements)
+            #pprint(self.requirements)
 
     def set_actionInfos(self, actioner: Actioner):
         if self.actionInfos is None and self.requirements is not None:
             reqs = self.requirements
             actionInfos = actioner.get_action(reqs)
             self.actionInfos = {req:cmd for req,cmd in zip(reqs['requirements'], actionInfos) if cmd['status'] == 'success'} # type: ignore
-            # pprint(self.actionInfos)
+            #pprint(self.actionInfos)
 
     def create_queries(self, db: Database):
         if self.queries is None and self.actionInfos is not None and self.requirements is not None:
@@ -62,13 +62,12 @@ class Query:
             self.sql_generator = SQLGenerator(db, action_commands, relevant_cols, primary_keys, [None]*len(self.actionInfos))
             queries = self.sql_generator.getQueries()
             self.queries = {req:query for req,query in zip(self.actionInfos.keys(), queries) if query is not None}
-            # pprint(self.queries)
+            #pprint(self.queries)
 
     def get_dfs(self, threadpool):
         if self.dfs is None and self.sql_generator is not None and self.queries is not None:
             futures = {req:threadpool.submit(self.sql_generator.executeQuery, query) for req,query in self.queries.items()}
             dataframes = {req:future.result() for req,future in zip(futures.keys(), futures.values())}
-            # dataframes = {req:self.sql_generators[req].executeQuery(query) for req,query in self.queries.items()}
             self.dfs = {}
             for req, df in dataframes.items():
                 if isinstance(df, pd.DataFrame):
@@ -77,14 +76,13 @@ class Query:
                 else:
                     newdf = pd.DataFrame({clean_name(req): [df]})
                     self.dfs[req] = newdf
-            # self.dfs = {req:df for req,df in dataframes.items() if df is not None and not df.empty}
-            # pprint(self.dfs)
+            #pprint(self.dfs)
 
     def get_plot(self, actioner: Actioner, database: Database):
         if self.plot is None and self.answer is None and self.requirements is not None and self.queries is not None:
             cmd = actioner.get_final_action(self.userQuery)
             self.final_action = cmd
-            # pprint(cmd)
+            #pprint(cmd)
             if "graph_type" not in cmd:
                 self.plot = None
                 return
@@ -93,11 +91,11 @@ class Query:
             queries = sql.getQueries()
             query = queries[0] if queries[0] is not None else ""
             self.final_query = query
-            # pprint(query)
+            #pprint(query)
             self.queries["Combine Subtables"] = query
             df = sql.executeQuery(query)
             self.final_df = df
-            # pprint(df)
+            #pprint(df)
             if isinstance(df, pd.DataFrame) and cmd['graph_type']!="No Chart":
                 vis = visualisation_subclasses[str(cmd['graph_type'])](df, query, graph_meta["graph_info"])
                 self.plot = vis
@@ -114,6 +112,7 @@ class Query:
                 self.generalised_answer = answer_gen.getAnswer()
             else:
                 self.generalised_answer = None
+            #pprint(self.generalised_answer)
 
     def __dict__(self):
         """ JSON serialisable """
