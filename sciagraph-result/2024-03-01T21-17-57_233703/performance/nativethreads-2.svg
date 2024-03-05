@@ -1,0 +1,37 @@
+<svg  preserveAspectRatio="none" height="288" viewBox="0 0 1150 288" xmlns="http://www.w3.org/2000/svg">
+<text x="0" y="144" dy="0.76em" text-anchor="middle" font-family="monospace" font-size="9.67741935483871" opacity="1" fill="#000000" transform="rotate(270, 0, 144)">
+# threads
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="0,10 0,277 "/>
+<text x="10" y="277" dy="0.5ex" text-anchor="start" font-family="monospace" font-size="9.67741935483871" opacity="1" fill="#000000">
+0.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="0,277 5,277 "/>
+<text x="10" y="211" dy="0.5ex" text-anchor="start" font-family="monospace" font-size="9.67741935483871" opacity="1" fill="#000000">
+2.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="0,211 5,211 "/>
+<text x="10" y="144" dy="0.5ex" text-anchor="start" font-family="monospace" font-size="9.67741935483871" opacity="1" fill="#000000">
+4.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="0,144 5,144 "/>
+<text x="10" y="77" dy="0.5ex" text-anchor="start" font-family="monospace" font-size="9.67741935483871" opacity="1" fill="#000000">
+6.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="0,77 5,77 "/>
+<text x="10" y="10" dy="0.5ex" text-anchor="start" font-family="monospace" font-size="9.67741935483871" opacity="1" fill="#000000">
+8.0
+</text>
+<polyline fill="none" opacity="1" stroke="#000000" stroke-width="1" points="0,10 5,10 "/>
+<polyline fill="none" opacity="1" stroke="#B2B2FF" stroke-width="1" points="0,277 88,277 176,277 265,44 353,44 441,44 530,44 618,44 707,44 795,211 883,277 972,277 1060,277 1149,277 "/>
+<polyline fill="none" opacity="1" stroke="#FFB264" stroke-width="1" points="0,277 88,277 176,277 265,277 353,277 441,277 530,277 618,277 707,277 795,111 883,44 972,44 1060,44 1149,44 "/>
+<rect x="1057" y="121" width="88" height="45" opacity="1" fill="none" stroke="#000000"/>
+<text x="1097" y="131" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+CPU
+</text>
+<text x="1097" y="146" dy="0.76em" text-anchor="start" font-family="sans-serif" font-size="9.67741935483871" opacity="1" fill="#000000">
+Waiting
+</text>
+<rect x="1062" y="136" width="10" height="1" opacity="1" fill="none" stroke="#B2B2FF"/>
+<rect x="1062" y="151" width="10" height="1" opacity="1" fill="none" stroke="#FFB264"/>
+</svg>
