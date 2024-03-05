@@ -27,10 +27,6 @@ from src.backend.utils.gpt import stream
 from src.backend.utils.formatSQL import formatSQL
 from concurrent.futures import ThreadPoolExecutor
 
-
-from streamlit_float import *
-
-
 st.markdown("""
 <style>
     .st-emotion-cache-1dj0hjr.eczjsme5 {
