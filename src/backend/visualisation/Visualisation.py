@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Union
 import pandas as pd
 import re
 import streamlit as st
