@@ -1,15 +1,22 @@
+import os
 import random
 import time
 
 from openai import OpenAI
-from pprint import pprint
 import dotenv
 import atexit
 import tiktoken
+import streamlit as st
 
 
-config = dotenv.dotenv_values(".env")
-client = OpenAI(api_key=config['OPENAI_API_KEY'])
+# If .env exists, load the environment variables from it, otherwise load from environment
+if dotenv.find_dotenv(".env"):
+    config = dotenv.dotenv_values(".env")
+    client = OpenAI(api_key=config['OPENAI_API_KEY'])
+elif os.getenv('OPENAI_API_KEY'):
+    client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+else:
+    client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
 
 def get_gpt_embedding(text):
     # calls openai embedding endpoint
