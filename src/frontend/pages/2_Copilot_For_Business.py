@@ -7,7 +7,6 @@
 # TODO: Handle errors more gracefully
 # TODO: Save images correctly - the image colours are wrong...
 # TODO: Make sure answers are consistent! Using one metric -> using a lot of metrics should still talk about the same thing.
-
 import atexit
 import time
 

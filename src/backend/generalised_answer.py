@@ -1,6 +1,5 @@
 from src.backend.utils.gpt import get_gpt_response
 from textwrap import dedent
-import json
 
 class general_answer_gen:
     def __init__(self, answer: str, prompt: str, final_action_command: dict, action_commands: list[str], is_graph: bool): 

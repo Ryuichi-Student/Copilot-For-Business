@@ -136,7 +136,6 @@ class SQLiteDatabase(Database):
                     conn.rollback()
 
     def getSchema(self):
-        # print(f"URL: {self.url}")
         with sqlite3.connect(self.url) as conn:
             
             # PRAGMA database_list;
@@ -197,10 +196,6 @@ class SQLiteDatabase(Database):
             if table not in already_embedded:
                 tables_needed.append(table)
         
-        print(f"Tables needed: {tables_needed}")
-
-
-        
         description_url = f'{self.url}.json'
 
         try:
@@ -212,7 +207,6 @@ class SQLiteDatabase(Database):
             if progress_callback is not None:
                 progress_callback((0, len(self.tableNames)))
             for table in tables_needed: # Should be tables_needed
-                print(f"Table: {table}")
                 if progress_callback is not None:
                     progress_callback(table)
                 table_preview = self.query(f"SELECT * FROM \"{table}\" LIMIT 5").to_string(index=False)
