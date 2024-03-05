@@ -15,6 +15,20 @@ from src.backend.utils.formatSQL import formatSQL
 # db = SQLiteDatabase('databases/crm_refined.sqlite3')
 # print(db.getTextSchema())
 
+# Injecting JavaScript to search for elements with specific conditions and apply styles
+js = """
+<script>
+document.querySelectorAll('span').forEach((el) => {
+        if (el.textContent == 'Chat') {
+            el.style.color = 'yellow';
+        }
+    });
+</script>
+"""
+
+st.markdown(js, unsafe_allow_html=True)
+
+
 prompt = st.chat_input("Say something")
 
 speed = [0.1, 17.5, 40, 48, 52, 69, 88, 12, 23, 45, 11]
