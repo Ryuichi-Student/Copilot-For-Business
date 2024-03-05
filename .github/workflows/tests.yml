@@ -63,4 +63,6 @@ jobs:
           pip install pytest-cov
           pip install tox tox-gh-actions
       - name: Run tests with tox
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: tox -e py39
