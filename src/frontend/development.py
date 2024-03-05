@@ -1,5 +1,4 @@
 # Use this if you want to test random functions
-# TODO: For development purposes only. Use REST APIs or some other communication protocols to interact with backend.
 import sys
 import os
 
@@ -7,13 +6,21 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 import streamlit as st
 from src.backend.visualisation.BarChart import BarChart
-# from src.backend.database import SQLiteDatabase
-from src.backend.test import *
 import pandas as pd
 from src.backend.utils.formatSQL import formatSQL
 
-# db = SQLiteDatabase('databases/crm_refined.sqlite3')
-# print(db.getTextSchema())
+# Injecting JavaScript to search for elements with specific conditions and apply styles
+js = """
+<script>
+document.querySelectorAll('span').forEach((el) => {
+        if (el.textContent == 'Chat') {
+            el.style.color = 'yellow';
+        }
+    });
+</script>
+"""
+
+st.markdown(js, unsafe_allow_html=True)
 
 prompt = st.chat_input("Say something")
 
@@ -28,15 +35,9 @@ if True:
     chart = BarChart(df, "query", {'title': 'title of the chart', 'x_axis': 'lab', 'y_axis': 'lifespan'})
 
     chart.query = "SELECT total_amount_spent_on_orders_per_client.client_id, (total_amount_spent_on_orders_per_client.total_amount + total_amount_spent_on_transactions_per_client.total_amount + total_loan_amount_per_client.total_amount) AS total_value FROM total_amount_spent_on_orders_per_client JOIN total_amount_spent_on_transactions_per_client ON total_amount_spent_on_orders_per_client.client_id = total_amount_spent_on_transactions_per_client.client_id JOIN total_loan_amount_per_client ON total_amount_spent_on_orders_per_client.client_id = total_loan_amount_per_client.client_id ORDER BY total_value DESC"
-    # st.write(chart.getSQLQuery())
 
     chart.ascending()
     vis = chart.generate()
     
     st.plotly_chart(vis)
-        
-    # chart.formatSQL()
     st.markdown(formatSQL({"some sql" : chart.query}))
-    # command = test_actioner_workflow(prompt)
-
-    # st.write(f"Backend has responded with the following command: {command}")

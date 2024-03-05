@@ -86,7 +86,7 @@ def get_stream(gpt_response, message_placeholder, full_response=""):
             tokens += num_tokens_from_string(delta)
             message_placeholder.markdown(full_response + "▌")
         except Exception as e:
-            print(response)
+            # print(response)
             print(f"error: {e}")
             continue
     message_placeholder.markdown(full_response)
