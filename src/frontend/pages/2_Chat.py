@@ -29,8 +29,6 @@ from src.backend.utils.formatSQL import formatSQL
 from concurrent.futures import ThreadPoolExecutor
 
 
-from streamlit_float import *
-
 
 st.markdown("""
 <style>

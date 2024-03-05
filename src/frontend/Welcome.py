@@ -72,7 +72,7 @@ dark = st.toggle("Dark Mode Example", True)
 
 # If toggle clicked
 if dark:
-    st.image("src/frontend/images/Light_Example.png", use_column_width=True)
-else:
     st.image("src/frontend/images/Dark_Example.png", use_column_width=True)
+else:
+    st.image("src/frontend/images/Light_Example.png", use_column_width=True)
 
