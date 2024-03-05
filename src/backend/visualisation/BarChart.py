@@ -13,7 +13,7 @@ class BarChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
-        # self.modifiedDFs = {"data": data}
+        self.modifiedDFs = {"data": data}
         self.graphs = {}
         self.sampled_fig = {}
 
@@ -37,7 +37,7 @@ class BarChart(Visualisation):
 
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n):
-        if n == len(self.y_axis):
+        if n == len(self.modifiedDFs["data"]):
             self.modifiedDFs[n] = self.df = self.modifiedDFs["data"]
         else:
             if n not in self.modifiedDFs:
