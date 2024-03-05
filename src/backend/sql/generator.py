@@ -1,12 +1,10 @@
-import sqlvalidator
 import sqlite3
 import pandas as pd
 from src.backend.utils.gpt import get_gpt_response
 from src.backend.database import Database
 from pprint import pprint
-from src.backend.visualisation import visualisation_subclasses
 from textwrap import dedent
-from typing import List, Dict, Any, Union, Optional, Tuple
+from typing import List, Dict, Any, Union, Optional
 import json
 
 

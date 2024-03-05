@@ -1,6 +1,4 @@
 import json
-import pandas as pd
-from pprint import pprint
 from typing import List, Dict, Any, Union
 from textwrap import dedent
 from src.backend.database import Database
@@ -338,7 +336,6 @@ class Actioner:
                 "graph_info": {},
             }
         ''')
-        pprint(self.database.getTextSchema())
         user_prompt = dedent(f'''\
             Here is the database schema:
             {self.database.getTextSchema()}
