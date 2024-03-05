@@ -234,7 +234,7 @@ class Actioner:
             ("user", user_prompt),
             gpt4 = True,
             jsonMode = True,
-            top_p = 0.2
+            top_p = 0.5
         )
 
         response_json = json.loads(response)
@@ -352,7 +352,7 @@ class Actioner:
             ("user", user_prompt),
             gpt4 = True,
             jsonMode = True,
-            top_p = 0.2
+            top_p = 0.5
         )
         response_json = json.loads(response)
         return response_json

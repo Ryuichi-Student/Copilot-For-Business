@@ -1,6 +1,8 @@
 import sys
+from typing import Union, Any
 
 import numpy as np
+import pandas as pd
 import plotly.express as px
 from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
@@ -13,7 +15,7 @@ class BarChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
-        # self.modifiedDFs = {"data": data}
+        self.modifiedDFs: dict[Any, pd.DataFrame] = {"data": data}
         self.graphs = {}
         self.sampled_fig = {}
 
@@ -37,12 +39,15 @@ class BarChart(Visualisation):
 
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n):
-        if n == len(self.y_axis):
-            self.df = self.modifiedDFs["data"]
+        if n == len(self.modifiedDFs["data"]):
+            self.modifiedDFs[n] = self.df = self.modifiedDFs["data"]
         else:
             if n not in self.modifiedDFs:
-                if len(self.modifiedDFs) > 1:
-                    smallest = min(x for x in self.modifiedDFs.keys() if x != "data" and x > n)
+                smallest = -1
+                for x in self.modifiedDFs.keys():
+                    if x != "data" and x > n:
+                        smallest = min(smallest, x)
+                if smallest != -1:
                     self.modifiedDFs[n] = self.modifiedDFs[smallest].nlargest(n, self.y_axis)
                 else:
                     self.modifiedDFs[n] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
@@ -74,11 +79,11 @@ class BarChart(Visualisation):
             self.small_generate(50000)
             return
         if self.graphs.get(size, None) is None:
-            fig = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
+            fig = self.graphs[size] = px.bar(self.df, x=self.x_axis, y=self.y_axis, title=self.title, color=self.x_axis)
             fig.update_layout(xaxis_title = natural_name(self.x_axis), yaxis_title = natural_name(self.y_axis))
 
         # self.graphs[size] = FigureResampler(fig)
-        return fig
+        return self.graphs[size]
 
         # fig.update_layout({
         #     "plot_bgcolor": "rgba(0, 0, 0, 0)",
