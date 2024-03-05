@@ -4,6 +4,17 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 
 import streamlit as st
+
+
+st.markdown("""
+<style>
+    .st-emotion-cache-1dj0hjr.eczjsme5 {
+        color: yellow !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 # from streamlit_javascript import st_javascript
 st.markdown(" <style> div[class^='block-container'] { padding-top: 2rem; } </style> ", unsafe_allow_html=True)
 st.write("# Welcome to Copilot For Business! 👋")
@@ -29,6 +40,7 @@ st.markdown(
     ### :gray[How do I use it?]
     - To upload a database go to 'Dashboard'
     - To ask a question go to 'Copilot for Business'. This will automatically create a "session" which allows you to ask a question. To ask another question or go back to previous sessions, choose from the dropdown in the sidebar.
+    - If you are not sure about the database, feel free to ask 'What questions can I ask about the database?'
     - For more help go to 'Help'
 """
 
@@ -60,7 +72,7 @@ dark = st.toggle("Dark Mode Example", True)
 
 # If toggle clicked
 if dark:
-    st.image("Dark_Example.png", use_column_width=True)
+    st.image("src/frontend/images/Dark_Example.png", use_column_width=True)
 else:
-    st.image("Light_Example.png", use_column_width=True)
+    st.image("src/frontend/images/Light_Example.png", use_column_width=True)
 

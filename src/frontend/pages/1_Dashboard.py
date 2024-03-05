@@ -1,3 +1,5 @@
+import atexit
+import pickle
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
@@ -9,9 +11,36 @@ import streamlit as st
 import sqlite3
 import os
 
+
+st.markdown("""
+<style>
+    .st-emotion-cache-1dj0hjr.eczjsme5 {
+        color: yellow !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+@st.cache_resource()
+def get_storage():
+    ss = None
+    # If a session storage exists in a pickle file, load it instead
+    if os.path.exists("session_manager.pkl"):
+        try:
+            with open("session_manager.pkl", "rb") as f:
+                ss = pickle.load(f)
+        except:
+            ss = None
+    if ss is None or not isinstance(ss, Session_Storage):
+        ss = Session_Storage(st.rerun)
+    else:
+        ss.rerun = st.rerun
+    return ss
+
+
 # TODO: Load from persistent storage
 if "session_storage" not in st.session_state:
-    st.session_state.session_storage = Session_Storage(st.rerun)
+    st.session_state.session_storage = get_storage()
 sessions = st.session_state.session_storage
 
 if "CREATE_SESSION" not in st.session_state:
@@ -23,16 +52,16 @@ st.header("Dashboard")
 # View the sessions that you have made and delete sessions by clicking the "X" button.
 st.subheader(":gray[Question History]")
 
-
-
-for session_id in sessions.get_sessions():
-    col1, col2 = st.columns([0.9, 0.1])
-    with col1:
-        st.write(sessions.session_data[session_id]["name"])
-    with col2:
-        if st.button("X", key=session_id):
-            sessions.delete_session(session_id)
-
+with st.container(height=300, border=False):
+    st.write("\n")
+    for session_id in sessions.get_sessions():
+        col1, col2 = st.columns([0.9, 0.1])
+        with col1:
+            st.write(sessions.session_data[session_id]["name"])
+        with col2:
+            if st.button("X", key=session_id):
+                sessions.delete_session(session_id)
+    st.write("\n")
 
 
 # Create a new session by clicking a button and entering a session name in the text box that appears
@@ -46,6 +75,9 @@ if st.session_state.CREATE_SESSION:
         sessions.create_session(session_name, autogenerate=False)
 
 # TODO: Add undo functionality
+
+
+st.write("\n")
 
 
 upload_status, upload_end, table_name = 0, 0, ""
@@ -119,3 +151,11 @@ def get_db_upload():
 
 
 get_db_upload()
+
+
+@atexit.register
+def shutdown():
+    # Add session_manager to a pickle file
+    with open("session_manager.pkl", "wb") as f:
+        print("Saving session manager to session_manager.pkl")
+        pickle.dump(sessions, f)
