@@ -21,7 +21,7 @@ st.header("Dashboard")
 
 
 # View the sessions that you have made and delete sessions by clicking the "X" button.
-st.subheader(":gray[Current Sessions]")
+st.subheader(":gray[Question History]")
 
 
 
@@ -36,7 +36,7 @@ for session_id in sessions.get_sessions():
 
 
 # Create a new session by clicking a button and entering a session name in the text box that appears
-if st.button("Create a new session"):
+if st.button("Create a new question"):
     st.session_state.CREATE_SESSION = not st.session_state.CREATE_SESSION
 
 if st.session_state.CREATE_SESSION:
