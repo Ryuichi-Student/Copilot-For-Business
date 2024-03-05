@@ -38,11 +38,14 @@ class BarChart(Visualisation):
     # sets the database to show the top n values by y axis depending on a bool
     def topn(self, n):
         if n == len(self.y_axis):
-            self.df = self.modifiedDFs["data"]
+            self.modifiedDFs[n] = self.df = self.modifiedDFs["data"]
         else:
             if n not in self.modifiedDFs:
-                if len(self.modifiedDFs) > 1:
-                    smallest = min(x for x in self.modifiedDFs.keys() if x != "data" and x > n)
+                smallest = -1
+                for x in self.modifiedDFs.keys():
+                    if x != "data" and x > n:
+                        smallest = min(smallest, x)
+                if smallest != -1:
                     self.modifiedDFs[n] = self.modifiedDFs[smallest].nlargest(n, self.y_axis)
                 else:
                     self.modifiedDFs[n] = self.modifiedDFs["data"].nlargest(n, self.y_axis)
