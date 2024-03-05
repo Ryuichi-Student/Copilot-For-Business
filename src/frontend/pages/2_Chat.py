@@ -26,7 +26,18 @@ from src.backend.utils.dbmaker import join_dbs, get_database_list
 from src.backend.utils.gpt import stream
 from src.backend.utils.formatSQL import formatSQL
 from concurrent.futures import ThreadPoolExecutor
-import plotly.io as pio
+
+
+from streamlit_float import *
+
+
+st.markdown("""
+<style>
+    .st-emotion-cache-1dj0hjr.eczjsme5 {
+        color: yellow !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 
 # Wrapper to load streamlit widgets asynchronously
