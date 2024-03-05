@@ -1,6 +1,8 @@
 import sys
+from typing import Union, Any
 
 import numpy as np
+import pandas as pd
 import plotly.express as px
 from plotly_resampler import FigureResampler
 from src.backend.visualisation.Visualisation import Visualisation
@@ -13,7 +15,7 @@ class BarChart(Visualisation):
         self.title = info['title']
         self.x_axis = info['x_axis']
         self.y_axis = info['y_axis']
-        self.modifiedDFs = {"data": data}
+        self.modifiedDFs: dict[Any, pd.DataFrame] = {"data": data}
         self.graphs = {}
         self.sampled_fig = {}
 
