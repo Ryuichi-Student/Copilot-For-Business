@@ -55,5 +55,5 @@ def formatSQL(queries):
     #     st.write(explained)
     # else:
     #     placeholder.write(explained)
-                    
+    
     return explained

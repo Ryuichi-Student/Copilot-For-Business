@@ -97,6 +97,7 @@ class SQLGenerator:
         - Use backslashes to escape quotes in the SQL query string.
         - Your response should strictly contain the JSON object with "SQL_queries" field and a list of SQL query object conforming to the specified format. Avoid including extraneous information.
         - Use the primary key and foreign key relationships to join the tables whenever necessary.
+        - Enter newlines in the code to make the code human readable.
         \
         ''')
         
@@ -188,11 +189,11 @@ class SQLGenerator:
                 "SQL_queries": [
                     {
                         "status": "success",
-                        "query": "SELECT completedclient.name, completedclient.client_id, SUM(completedorder.amount) AS total_amount FROM completedclient JOIN completeddisposition ON completedclient.client_id = completeddisposition.client_id JOIN completedorder ON completeddisposition.account_id = completedorder.account_id GROUP BY completedclient.client_id",
+                        "query": "SELECT completedclient.name, completedclient.client_id, SUM(completedorder.amount) AS total_amount\\nFROM completedclient\\nJOIN completeddisposition ON completedclient.client_id = completeddisposition.client_id\\nJOIN completedorder ON completeddisposition.account_id = completedorder.account_id\\nGROUP BY completedclient.client_id",
                     },
                     {
                         "status": "success",
-                        "query": "SELECT completedacct.account_id, COUNT(completedtrans.trans_id) AS transaction_count FROM completedacct JOIN completedtrans ON completedacct.account_id = completedtrans.account_id GROUP BY completedacct.account_id",
+                        "query": "SELECT completedacct.account_id, COUNT(completedtrans.trans_id) AS transaction_count\\nFROM completedacct\\nJOIN completedtrans ON completedacct.account_id = completedtrans.account_id\\nGROUP BY completedacct.account_id",
                     }
                 ]
             }
@@ -259,7 +260,7 @@ class SQLGenerator:
                     },
                     {
                         "status": "success",
-                        "query": "SELECT completedorder.order_id FROM completedorder WHERE completedorder.amount = (SELECT MAX(completedorder.amount) FROM completedorder)",
+                        "query": "SELECT completedorder.order_id FROM completedorder\\nWHERE completedorder.amount = (SELECT MAX(completedorder.amount) FROM completedorder)",
                     }
                 ]
             }
