@@ -18,6 +18,8 @@ You can then activate the virtual environment using ``source venv/bin/activate``
 
 You can then install the dependencies using ``pip install -r requirements.txt``
 
+Create a .env file with the template of example.env 
+
 You can then run the app using ``streamlit run src/frontend/Welcome.py``
 
 ## Using the app
