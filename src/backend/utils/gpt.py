@@ -1,3 +1,4 @@
+import os
 import random
 import time
 
@@ -12,6 +13,8 @@ import streamlit as st
 if dotenv.find_dotenv(".env"):
     config = dotenv.dotenv_values(".env")
     client = OpenAI(api_key=config['OPENAI_API_KEY'])
+elif os.getenv('OPENAI_API_KEY'):
+    client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 else:
     client = OpenAI(api_key=st.secrets['OPENAI_API_KEY'])
 
