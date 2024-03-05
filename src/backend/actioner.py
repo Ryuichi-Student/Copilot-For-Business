@@ -338,7 +338,7 @@ class Actioner:
                 "graph_info": {},
             }
         ''')
-        pprint(self.database.getTextSchema())
+        # pprint(self.database.getTextSchema())
         user_prompt = dedent(f'''\
             Here is the database schema:
             {self.database.getTextSchema()}
