@@ -16,6 +16,9 @@ css = '''
     .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
     font-size:1.2rem;
     }
+    .st-emotion-cache-1dj0hjr.eczjsme5 {
+        color: yellow !important;
+    }
 </style>
 '''
 
