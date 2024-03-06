@@ -8,7 +8,7 @@ import os, sys
 st.markdown("""
 <style>
     .st-emotion-cache-1dj0hjr.eczjsme5 {
-        color: yellow !important;
+        color: #ffbd45 !important;
     }
     
 </style>
