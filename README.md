@@ -1,6 +1,6 @@
 # Copilot for Business
 
-Welcome to Copilot for Business. This is a student run project at the University of Cambridge, in collaboration with Cambridge Kinetics. This project is part of the second year project in the Computer Science Tripos. The project has been created by: Samuel Jie, Isaac Lam, Izzi Millar, Mmesoma Okoro, Leo Takashige and Ram Vinjamuri.
+Welcome to Copilot for Business. This is a student run project at the University of Cambridge, in collaboration with Cambridge Kinetics. This project is part of the second year group project in the Computer Science Tripos. The project has been created by: Samuel Jie, Isaac Lam, Izzi Millar, Mmesoma Okoro, Leo Takashige and Ram Vinjamuri.
 
 ## Run the project
 
@@ -8,7 +8,7 @@ The project is currently hosted at: [Streamlit link]()
 
 ## Installation
 
-To install the project, you need to have Python 3.7 or later installed. You can download it from the [Python website](https://www.python.org/downloads/).
+To install the project, you need to have Python 3.9 or later installed. You can download it from the [Python website](https://www.python.org/downloads/).
 
 You can then clone the repository using ``git clone https://github.com/Ryuichi-Student/Copilot-For-Business.git``
 
@@ -16,11 +16,11 @@ Then you should create a virtual environment using ``python -m venv venv`` or us
 
 You can then activate the virtual environment using ``source venv/bin/activate`` on Linux or ``venv\Scripts\activate`` on Windows.
 
-You can then install the dependencies using ``pip install -r requirements.txt``
+You can then install the dependencies using ``pip install -r requirements.txt``.
 
-Create a .env file with the template of example.env 
+Create a .env file with the template of example.env (the key must be an OpenAI key with access to the GPT4 API).
 
-You can then run the app using ``streamlit run src/frontend/Welcome.py``
+You can then run the app using ``streamlit run src/frontend/Welcome.py``.
 
 ## Using the app
 
@@ -29,6 +29,6 @@ If you need help at any point, please consult the help page.
 
 ## Testing
 
-If you would like to test the project, you first need to install tox using ``pip install tox``
+If you would like to test the project, you first need to install tox using ``pip install tox``.
 
-You can then run the tests using ``tox`` from the root directory.
+You can then run the tests using ``tox`` from the root directory..
