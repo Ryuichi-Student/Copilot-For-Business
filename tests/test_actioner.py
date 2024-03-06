@@ -9,7 +9,7 @@ from src.backend.database import SQLiteDatabase
 
 # def test_action_valid():
 #     query = "Who is the most valuable customer?"
-#     db = SQLiteDatabase('databases/crm_refined.sqlite3')
+#     db = SQLiteDatabase('databases/example.sqlite3')
 #     actioner = Actioner(db)
 #     requirements = actioner.get_requirements(query)
 #     command = actioner.get_action(requirements)
@@ -18,7 +18,7 @@ from src.backend.database import SQLiteDatabase
 
 # def test_action_invalid():
 #     query = "Hello"
-#     db = SQLiteDatabase('databases/crm_refined.sqlite3')
+#     db = SQLiteDatabase('databases/example.sqlite3')
 #     actioner = Actioner(db)
 #     requirements = actioner.get_requirements(query)
 #     command = actioner.get_action(requirements)
@@ -28,7 +28,7 @@ from src.backend.database import SQLiteDatabase
 
 # def test_actioner_final_pass():
 #     query = "What are our most popular products?"
-#     db = SQLiteDatabase('databases/crm_refined.sqlite3')
+#     db = SQLiteDatabase('databases/example.sqlite3')
 #     actioner = Actioner(db)
 #     command = actioner.get_final_action(query)
 #     print(command)
@@ -36,7 +36,7 @@ from src.backend.database import SQLiteDatabase
 
 # def test_actioner_final_fail():
 #     query = "Hello"
-#     db = SQLiteDatabase('databases/crm_refined.sqlite3')
+#     db = SQLiteDatabase('databases/example.sqlite3')
 #     actioner = Actioner(db)
 #     command = actioner.get_final_action(query)
 #     print(command)
