@@ -2,6 +2,10 @@
 
 Welcome to Copilot for Business. This is a student run project at the University of Cambridge, in collaboration with Cambridge Kinetics. This project is part of the second year group project in the Computer Science Tripos. The project has been created by: Samuel Jie, Isaac Lam, Izzi Millar, Mmesoma Okoro, Leo Takashige and Ram Vinjamuri.
 
+## What is this?
+
+Copilot for Business is an app that allows users, regardless of technical skill, to query their databases in natural language for meaningful data and insights. For more details - and answers to some FAQs - please refer to [Help](https://copilot-for-business.streamlit.app/Help)!
+
 ## Run the project
 
 The project is currently hosted at: [Copilot For Business](https://copilot-for-business.streamlit.app).
