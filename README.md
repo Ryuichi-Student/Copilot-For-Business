@@ -4,7 +4,8 @@ Welcome to Copilot for Business. This is a student run project at the University
 
 ## Run the project
 
-The project is currently hosted at: [Streamlit link]()
+The project is currently hosted at: [Copilot For Business](https://copilot-for-business.streamlit.app).
+This utilises a personal OpenAI key (which costs money), so please be mindful in its use, and email rt590@cam.ac.uk if you would like to use the app after the key has expired.
 
 ## Installation
 
@@ -32,3 +33,8 @@ If you need help at any point, please consult the help page.
 If you would like to test the project, you first need to install tox using ``pip install tox``.
 
 You can then run the tests using ``tox`` from the root directory..
+
+## Future features
+
+- Add user accounts so that different users have different sessions
+- Migrate from streamlit to a more performant frontend technology.
