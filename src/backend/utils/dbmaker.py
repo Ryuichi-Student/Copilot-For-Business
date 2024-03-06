@@ -34,7 +34,7 @@ def initialize_db():
 def db_splitter():
 
     # Connect to SQLite database
-    conn = sqlite3.connect('C://Users/RamVi/Downloads/Copilot-For-Business/databases/crm_refined.sqlite3')
+    conn = sqlite3.connect('C://Users/RamVi/Downloads/Copilot-For-Business/databases/example.sqlite3')
 
     """
     name
@@ -253,7 +253,7 @@ def get_database_list():
 
 if __name__ == "__main__":
 
-    join_dbs(["C://Users/RamVi/Downloads/Copilot-For-Business/databases/crm_refined.sqlite3"])
+    join_dbs(["C://Users/RamVi/Downloads/Copilot-For-Business/databases/example.sqlite3"])
 
     
 

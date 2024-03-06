@@ -67,6 +67,20 @@ def run():
                 sessions.delete_session(session_id)
     st.write("\n")
 
+    # Create a new session by clicking a button and entering a session name in the text box that appears
+    if st.button("Create a new question"):
+        st.session_state.CREATE_SESSION = not st.session_state.CREATE_SESSION
+
+    if st.session_state.CREATE_SESSION:
+        session_name = st.text_input("Enter a session name.")
+        if session_name:
+            st.session_state.CREATE_SESSION = False
+            sessions.create_session(session_name, autogenerate=False)
+
+    # TODO: Add undo functionality
+
+    st.write("\n")
+
 with tabs[0]:
     if x > 6:
         with st.container(height=415, border=False):
@@ -75,20 +89,6 @@ with tabs[0]:
         with st.container(border=False):
             run()
 
-# Create a new session by clicking a button and entering a session name in the text box that appears
-if st.button("Create a new question"):
-    st.session_state.CREATE_SESSION = not st.session_state.CREATE_SESSION
-
-if st.session_state.CREATE_SESSION:
-    session_name = st.text_input("Enter a session name.")
-    if session_name:
-        st.session_state.CREATE_SESSION = False
-        sessions.create_session(session_name, autogenerate=False)
-
-# TODO: Add undo functionality
-
-
-st.write("\n")
 
 with tabs[1]:
     upload_status, upload_end, table_name = 0, 0, ""

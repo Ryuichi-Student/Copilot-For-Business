@@ -12,7 +12,7 @@ import sqlite3 as sql
 class TestSQLiteDatabase:
 
     def test_getSchema(self):
-        relative_path = "databases/crm_refined.sqlite3"
+        relative_path = "databases/example.sqlite3"
         absolute_path = os.path.abspath(os.path.join(relative_path))
         # print(f"VERSION: {sqlite3.version}")
         db = SQLiteDatabase(absolute_path)
@@ -31,7 +31,7 @@ class TestSQLiteDatabase:
         assert isinstance(schema["completedorder"][0]["is_foreign"], (bool, str))
     
     def test_textSchema(self):
-        db = SQLiteDatabase('databases/crm_refined.sqlite3')
+        db = SQLiteDatabase('databases/example.sqlite3')
         schema = db.getTextSchema(['completedorder'])
         assert schema == dedent('''\
         CREATE TABLE completedorder (
@@ -48,18 +48,18 @@ class TestSQLiteDatabase:
 
     def test_DBconnection(self):
         # convert the relative file databases/crm1.db path to python os path
-        relative_path = "databases/crm_refined.sqlite3"
+        relative_path = "databases/example.sqlite3"
         absolute_path = os.path.abspath(os.path.join(relative_path))
         sql.connect(absolute_path)
 
     def test_query(self):
-        with sql.connect("databases/crm_refined.sqlite3") as conn:
+        with sql.connect("databases/example.sqlite3") as conn:
             tables_query = "SELECT name FROM sqlite_master WHERE type='table'"
             a = conn.execute(tables_query).fetchall()
             print(a)
 
     def test_modify_db(self):
-        relative_path = "databases/crm_refined.sqlite3"
+        relative_path = "databases/example.sqlite3"
         absolute_path = os.path.abspath(os.path.join(relative_path))
         db = SQLiteDatabase(absolute_path)
         with pytest.raises(pd.errors.DatabaseError):
@@ -76,14 +76,14 @@ class TestSQLiteDatabase:
             db.query("INSERT INTO completedorder VALUES (1, '123', 'bank', 123, 123.0, 'symbol')", is_df=False)
     
     def test_singlevalue(self):
-        relative_path = "databases/crm_refined.sqlite3"
+        relative_path = "databases/example.sqlite3"
         absolute_path = os.path.abspath(os.path.join(relative_path))
         db = SQLiteDatabase(absolute_path)
         response = db.query("SELECT COUNT(*) FROM completedorder", is_df=True, is_single_value=True)
         assert not isinstance(response, pd.DataFrame)
 
     def test_not_singlevalue(self):
-        relative_path = "databases/crm_refined.sqlite3"
+        relative_path = "databases/example.sqlite3"
         absolute_path = os.path.abspath(os.path.join(relative_path))
         db = SQLiteDatabase(absolute_path)
         with pytest.raises(RuntimeError) as e:

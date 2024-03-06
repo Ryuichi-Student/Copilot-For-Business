@@ -153,7 +153,7 @@ class Query:
 
 class Copilot:
     # TODO: Change this to use multiple databases.
-    def __init__(self, db='databases/crm_refined.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5), potential_embedded=[], non_embedded=[]):
+    def __init__(self, db='databases/example.sqlite3', dbtype='sqlite', threadpool=ThreadPoolExecutor(max_workers=5), potential_embedded=[], non_embedded=[]):
         
         if db is None:
             raise Exception("No database provided")
