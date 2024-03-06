@@ -9,7 +9,7 @@ Copilot for Business is an app that allows users, regardless of technical skill,
 ## Run the project
 
 The project is currently hosted at: [Copilot For Business](https://copilot-for-business.streamlit.app).
-This utilises a personal OpenAI key (which costs money), so please be mindful in its use, and email rt590@cam.ac.uk if you would like to use the app after the key has expired.
+This utilises a personal OpenAI key (which costs money), so please be mindful in its use, and email `rt590@cam.ac.uk` if you would like to use the app after the key has expired.
 
 ## Installation
 
